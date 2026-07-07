@@ -26,11 +26,13 @@
       <span class="brand-text">AI <strong>Travel</strong> Planner</span>
       <span class="badge badge-ibm ms-1">IBM Granite</span>
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
-      <i class="bi bi-list"></i>
+    <button class="navbar-toggler border-0" type="button"
+            data-bs-toggle="collapse" data-bs-target="#mainNav"
+            aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+      <i class="bi bi-list fs-4"></i>
     </button>
     <div class="collapse navbar-collapse" id="mainNav">
-      <ul class="navbar-nav ms-auto align-items-center gap-1">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
         <li class="nav-item"><a class="nav-link" href="{{ url_for('main.home') }}"><i class="bi bi-house me-1"></i>Home</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('planner.destinations') }}"><i class="bi bi-compass me-1"></i>Destinations</a></li>
         {% if user_id %}
@@ -40,13 +42,12 @@
               <i class="bi bi-magic me-1"></i>Smart Wizard
             </a>
           </li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('planner.saved_trips') }}"><i class="bi bi-bookmark me-1"></i>Saved</a></li>
           {% if user_role == 'admin' %}
             <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('admin.admin_dashboard') }}"><i class="bi bi-shield me-1"></i>Admin</a></li>
           {% endif %}
           <li class="nav-item">
             <div class="dropdown">
-              <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown">
+              <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                 <span class="user-avatar">{{ user_name[0]|upper if user_name else 'U' }}</span>
                 <span class="d-none d-lg-inline">{{ user_name }}</span>
               </a>
@@ -59,10 +60,10 @@
           </li>
         {% else %}
           <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
-          <li class="nav-item"><a class="btn btn-ibm ms-2" href="{{ url_for('auth.register') }}">Get Started</a></li>
+          <li class="nav-item"><a class="btn btn-ibm ms-lg-2" href="{{ url_for('auth.register') }}">Get Started</a></li>
         {% endif %}
         <li class="nav-item">
-          <button class="btn btn-sm btn-ghost ms-2" id="themeToggle" title="Toggle dark mode">
+          <button class="btn btn-sm btn-ghost ms-lg-2" id="themeToggle" title="Toggle dark mode">
             <i class="bi bi-moon-stars" id="themeIcon"></i>
           </button>
         </li>

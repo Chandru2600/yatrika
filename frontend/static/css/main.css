@@ -166,6 +166,103 @@ body {
 }
 .nav-wizard-link:hover { opacity: .9; color: #fff !important; background: linear-gradient(135deg, #0043CE, #4d1b99) !important; }
 
+/* ── Mobile navbar overrides ──────────────────────────────────────── */
+@media (max-width: 991.98px) {
+  /* Allow navbar to grow taller when menu is open */
+  .navbar-glass {
+    height: auto;
+    min-height: var(--navbar-h);
+  }
+
+  /* Collapsed menu panel */
+  .navbar-collapse {
+    background: rgba(255,255,255,.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border-color);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    padding: 12px 16px 16px;
+    margin-top: 4px;
+  }
+
+  [data-theme="dark"] .navbar-collapse {
+    background: rgba(22,22,22,.98);
+  }
+
+  /* Each nav item full width with spacing */
+  .navbar-nav .nav-item {
+    width: 100%;
+  }
+
+  .navbar-nav .nav-link {
+    display: flex !important;
+    align-items: center;
+    padding: 10px 12px !important;
+    min-height: 44px;          /* tap-friendly */
+    border-radius: var(--radius-sm);
+    color: var(--text-primary) !important;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .navbar-nav .nav-item:last-child .nav-link {
+    border-bottom: none;
+  }
+
+  .navbar-nav .nav-link:hover {
+    background: rgba(0,98,255,.07);
+    color: var(--ibm-blue) !important;
+  }
+
+  /* Wizard button stays styled on mobile */
+  .nav-wizard-link {
+    border-bottom: none !important;
+    margin: 6px 0;
+    color: #fff !important;
+    justify-content: center;
+  }
+
+  /* User dropdown full width on mobile */
+  .navbar-nav .dropdown {
+    width: 100%;
+  }
+  .navbar-nav .dropdown .nav-link {
+    width: 100%;
+  }
+  .navbar-nav .dropdown-menu {
+    position: static !important;
+    transform: none !important;
+    box-shadow: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    margin-top: 4px;
+    background: var(--bg-card);
+  }
+
+  /* Theme toggle button on mobile */
+  .btn-ghost {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px 12px;
+    text-align: left;
+    min-height: 44px;
+  }
+
+  /* Toggler icon visible in both themes */
+  .navbar-toggler {
+    border: 1px solid var(--border-color);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    background: transparent;
+  }
+  .navbar-toggler i {
+    font-size: 1.3rem;
+    color: var(--text-primary);
+  }
+  .navbar-toggler:focus { box-shadow: none; outline: none; }
+}
+
 /* ── Buttons ──────────────────────────────────────────────────────── */
 .btn-ibm {
   background: var(--ibm-blue);

@@ -112,9 +112,15 @@
                     <span class="ms-2"><i class="bi bi-wallet2 me-1"></i>${{ "%.0f" | format(trip.budget) }}</span>
                   </div>
                 </div>
-                <div class="trip-actions d-flex gap-2 align-items-center">
+                <div class="trip-actions d-flex gap-2 align-items-center flex-wrap">
                   <span class="status-badge status-{{ trip.status }}">{{ trip.status|title }}</span>
                   <a href="{{ url_for('planner.view_trip', trip_id=trip.id) }}" class="btn btn-xs btn-primary">View</a>
+                  <form method="POST" action="{{ url_for('planner.delete_trip_route', trip_id=trip.id) }}"
+                        onsubmit="return confirm('Delete this trip?')" class="d-inline m-0">
+                    <button class="btn btn-xs btn-outline-danger" title="Delete trip">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
                 </div>
               </div>
               {% endfor %}

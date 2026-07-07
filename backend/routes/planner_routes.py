@@ -193,54 +193,54 @@ def save_wizard():
         for d in range(1, num_days + 1):
             day_key = str(d)
             day_plan = day_planner.get(day_key, {})
-            
-            # Map slots from frontend day_planner
-            morning_acts = day_plan.get("morning", [])
+
+            # Map ALL attractions per slot — keep full list so every place is shown
+            morning_acts   = day_plan.get("morning", [])
             afternoon_acts = day_plan.get("afternoon", [])
-            evening_acts = day_plan.get("evening", [])
-            night_acts = day_plan.get("night", [])
-            
-            # Construct activities string for slot
-            morning_activity = ", ".join(a.get("name", "") for a in morning_acts) if morning_acts else "Sightseeing and leisure"
-            afternoon_activity = ", ".join(a.get("name", "") for a in afternoon_acts) if afternoon_acts else "Exploring local spots"
-            
-            # Merge evening and night into evening slot
-            evening_list = [a.get("name", "") for a in evening_acts] + [a.get("name", "") for a in night_acts]
-            evening_activity = ", ".join(evening_list) if evening_list else "Relaxing in the evening"
-            
-            morning_dur = morning_acts[0].get("dur", "2h") if morning_acts else "2h"
-            afternoon_dur = afternoon_acts[0].get("dur", "2h") if afternoon_acts else "2h"
-            evening_dur = evening_acts[0].get("dur", "2h") if evening_acts else "2h"
-            
+            evening_acts   = day_plan.get("evening", []) + day_plan.get("night", [])
+
+            def make_places(acts, fallback_activity, tip):
+                if not acts:
+                    return {
+                        "activity": fallback_activity,
+                        "place":    destination,
+                        "duration": "2h",
+                        "entry_fee": "Free",
+                        "tips": tip,
+                        "places": []
+                    }
+                # Primary display still uses first item for legacy fields
+                first = acts[0]
+                return {
+                    "activity":  first.get("name", fallback_activity),
+                    "place":     first.get("category", destination),
+                    "duration":  first.get("dur", "2h"),
+                    "entry_fee": f"₹{first.get('fee', 0)}" if first.get("fee") else "Free",
+                    "tips": tip,
+                    # Full list for rich display in view_trip.html
+                    "places": [
+                        {
+                            "name":     a.get("name", "—"),
+                            "category": a.get("category", ""),
+                            "duration": a.get("dur", "2h"),
+                            "fee":      f"₹{a['fee']}" if a.get("fee") else "Free",
+                            "icon":     a.get("icon", "📍")
+                        }
+                        for a in acts
+                    ]
+                }
+
             itinerary_days.append({
-                "day": d,
-                "theme": f"Exploring {destination}",
-                "date": f"Day {d}",
-                "morning": {
-                    "activity": morning_activity,
-                    "place": destination,
-                    "duration": morning_dur,
-                    "entry_fee": "Free",
-                    "tips": "Carry a camera and light jacket."
-                },
-                "afternoon": {
-                    "activity": afternoon_activity,
-                    "place": destination,
-                    "duration": afternoon_dur,
-                    "entry_fee": "Free",
-                    "tips": "Try local food nearby."
-                },
-                "evening": {
-                    "activity": evening_activity,
-                    "place": destination,
-                    "duration": evening_dur,
-                    "entry_fee": "Free",
-                    "tips": "Perfect time for photography."
-                },
+                "day":       d,
+                "theme":     f"Exploring {destination}",
+                "date":      f"Day {d}",
+                "morning":   make_places(morning_acts,   "Sightseeing and leisure",      "Carry a camera and light jacket."),
+                "afternoon": make_places(afternoon_acts, "Exploring local spots",        "Try local food nearby."),
+                "evening":   make_places(evening_acts,   "Relaxing in the evening",      "Perfect time for photography."),
                 "food_recommendations": [
-                    {"meal": "Breakfast", "restaurant": "Local Cafe", "cuisine": "Local Coffee & Snacks", "price_range": "₹"},
-                    {"meal": "Lunch", "restaurant": "Traditional Diner", "cuisine": "Traditional meals", "price_range": "₹₹"},
-                    {"meal": "Dinner", "restaurant": "Central Restaurant", "cuisine": "Multi-cuisine", "price_range": "₹₹"}
+                    {"meal": "Breakfast", "restaurant": "Local Cafe",         "cuisine": "Local Coffee & Snacks", "price_range": "₹"},
+                    {"meal": "Lunch",     "restaurant": "Traditional Diner",   "cuisine": "Traditional meals",   "price_range": "₹₹"},
+                    {"meal": "Dinner",    "restaurant": "Central Restaurant",   "cuisine": "Multi-cuisine",       "price_range": "₹₹"}
                 ],
                 "daily_budget": round(total_spend / num_days) if num_days > 0 else total_spend,
                 "local_tips": "Interact with locals to discover off-beat locations.",

@@ -6,7 +6,10 @@ Run with:  python app.py
 
 import os
 from dotenv import load_dotenv
-load_dotenv()                          # Load .env before anything else reads os.environ
+
+# Load .env using absolute path so it works regardless of Cwd (e.g. on PythonAnywhere)
+base_dir = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(dotenv_path=os.path.join(base_dir, ".env"))
 
 from flask import Flask
 from backend.config import get_config
