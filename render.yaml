@@ -1,5 +1,4 @@
 # Render Blueprint Specification
-# Deploy both Flask API and Streamlit UI in a single click!
 services:
   - type: web
     name: travel-planner-api
@@ -26,21 +25,7 @@ services:
       - key: IBM_WATSONX_URL
         value: https://us-south.ml.cloud.ibm.com
       - key: GRANITE_MODEL_ID
-        value: ibm/granite-13b-instruct-v2
+        value: ibm/granite-4-h-small
       - key: WEATHER_API_KEY
         sync: false # User will fill this in Render UI
-
-  - type: web
-    name: travel-planner-ui
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: streamlit run streamlit_app.py --server.port $PORT --server.address 0.0.0.0
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
-      - key: BACKEND_URL
-        fromService:
-          name: travel-planner-api
-          type: web
-          property: url
 
