@@ -160,6 +160,27 @@ function _prominenceScore(tags) {
   return score;
 }
 
+function isMuslimPlaceOfWorship(tags) {
+  if (!tags) return false;
+  const religion = (tags.religion || '').toLowerCase();
+  const denomination = (tags.denomination || '').toLowerCase();
+  if (religion === 'muslim' || religion === 'islam' || denomination === 'sunni' || denomination === 'shia') {
+    return true;
+  }
+  const name = (tags.name || '').toLowerCase();
+  const forbiddenKeywords = ['mosque', 'masjid', 'dargah', 'darga', 'eidgah', 'idgah', 'imambara', 'madrasa', 'jama masjid', 'mazar', 'ziyarat'];
+  if (forbiddenKeywords.some(keyword => name.includes(keyword))) {
+    return true;
+  }
+  const amenity = (tags.amenity || '').toLowerCase();
+  if (amenity === 'place_of_worship') {
+    if (name.includes('hazrat') || name.includes('peer') || name.includes('wali') || (name.includes('shrine') && (name.includes('peer') || name.includes('shah') || name.includes('dargah')))) {
+      return true;
+    }
+  }
+  return false;
+}
+
 async function fetchAttractions(lat, lon) {
   const RADIUS = 40000; // fixed 40 km — user requested
   let elements = [];
@@ -171,7 +192,7 @@ async function fetchAttractions(lat, lon) {
     });
     if (!res.ok) return [];
     const data = await res.json();
-    elements = (data.elements || []).filter(e => e.tags && e.tags.name);
+    elements = (data.elements || []).filter(e => e.tags && e.tags.name && !isMuslimPlaceOfWorship(e.tags));
   } catch { return []; }
 
   return elements

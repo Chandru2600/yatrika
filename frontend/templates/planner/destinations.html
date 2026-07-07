@@ -335,7 +335,7 @@ async function runSearch(lat, lon, cityName) {
   const ovQuery = `[out:json][timeout:45];
 (
   node["tourism"~"attraction|museum|viewpoint|artwork|zoo|theme_park|waterfall|gallery|aquarium"](around:${RADIUS},${lat},${lon});
-  node["historic"~"castle|fort|monument|ruins|temple|church|memorial|mosque|shrine|palace"](around:${RADIUS},${lat},${lon});
+  node["historic"~"castle|fort|monument|ruins|temple|church|memorial|shrine|palace"](around:${RADIUS},${lat},${lon});
   node["natural"~"peak|waterfall|hot_spring|beach|cave_entrance|glacier"](around:${RADIUS},${lat},${lon});
   node["leisure"~"park|garden|nature_reserve|beach_resort"](around:${RADIUS},${lat},${lon});
   node["amenity"~"place_of_worship|theatre|library"](around:${RADIUS},${lat},${lon});
@@ -346,12 +346,33 @@ async function runSearch(lat, lon, cityName) {
 );
 out center tags 120;`;
 
+  function isMuslimPlaceOfWorship(tags) {
+    if (!tags) return false;
+    const religion = (tags.religion || '').toLowerCase();
+    const denomination = (tags.denomination || '').toLowerCase();
+    if (religion === 'muslim' || religion === 'islam' || denomination === 'sunni' || denomination === 'shia') {
+      return true;
+    }
+    const name = (tags.name || '').toLowerCase();
+    const forbiddenKeywords = ['mosque', 'masjid', 'dargah', 'darga', 'eidgah', 'idgah', 'imambara', 'madrasa', 'jama masjid', 'mazar', 'ziyarat'];
+    if (forbiddenKeywords.some(keyword => name.includes(keyword))) {
+      return true;
+    }
+    const amenity = (tags.amenity || '').toLowerCase();
+    if (amenity === 'place_of_worship') {
+      if (name.includes('hazrat') || name.includes('peer') || name.includes('wali') || (name.includes('shrine') && (name.includes('peer') || name.includes('shah') || name.includes('dargah')))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   try {
     const res = await fetch('/planner/api/overpass', { method:'POST', body:'data='+encodeURIComponent(ovQuery), headers:{'Content-Type':'application/x-www-form-urlencoded'} });
     if (!res.ok) { showGridError('Overpass API is temporarily unavailable. Please try again in a moment.'); return; }
     const data = await res.json();
     const elements = (data.elements || [])
-      .filter(e => e.tags && e.tags.name)
+      .filter(e => e.tags && e.tags.name && !isMuslimPlaceOfWorship(e.tags))
       .filter(e => {
         const lt = e.lat || e.center?.lat;
         const ln = e.lon || e.center?.lon;

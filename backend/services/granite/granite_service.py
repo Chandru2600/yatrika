@@ -129,7 +129,8 @@ def _call1_itinerary(dest, days, style, interests, reqs, start_date):
     prompt = (
         f"You are an expert travel guide for {dest}. "
         f"Create a complete {days}-day {style} itinerary. "
-        f"Interests: {interests}. Requirements: {reqs or 'none'}.\n\n"
+        f"Interests: {interests}. Requirements: {reqs or 'none'}.\n"
+        f"IMPORTANT CONSTRAINT: Do NOT include any mosques, masjids, dargahs, or Islamic places of worship in the itinerary.\n\n"
         f"First write:\n"
         f"Summary: [2 sentence trip overview]\n"
         f"Language: [local language]\n"
