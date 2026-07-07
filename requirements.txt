@@ -2,9 +2,6 @@
 Flask==3.0.3
 Werkzeug==3.0.4
 
-# ── Database ────────────────────────────────────────────────────
-# SQLite is included with Python stdlib — no extra package needed.
-
 # ── HTTP Requests ───────────────────────────────────────────────
 requests==2.32.3
 
@@ -14,23 +11,9 @@ reportlab==4.2.5
 # ── Environment Variables ────────────────────────────────────────
 python-dotenv==1.0.1
 
-# ── Security & Hashing ──────────────────────────────────────────
-# hashlib is stdlib — no extra package needed.
-
 # ── Date / Time ─────────────────────────────────────────────────
 python-dateutil==2.9.0
 
 # ── Production WSGI Server ───────────────────────────────────────
 gunicorn==22.0.0
 
-# ── IBM Watson SDK (optional — direct REST used in this project) ─
-ibm-watson==8.1.0
-ibm-cloud-sdk-core==3.22.0
-
-# ── Development Utilities ────────────────────────────────────────
-Flask-DebugToolbar==0.15.1
-
-# ── Streamlit Frontend ──────────────────────────────────────────
-streamlit==1.35.0
-plotly==5.22.0
-pandas==2.2.2
