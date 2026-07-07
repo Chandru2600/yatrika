@@ -1,6 +1,5 @@
 /**
  * AI Travel Planner — Main JavaScript
- * IBM SkillsBuild Internship Project
  */
 
 "use strict";

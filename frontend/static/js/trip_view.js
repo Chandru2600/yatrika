@@ -1,7 +1,6 @@
 /**
  * AI Travel Planner — Trip View JavaScript
  * Charts, Maps, Interactive Features
- * IBM SkillsBuild Internship Project
  */
 
 "use strict";

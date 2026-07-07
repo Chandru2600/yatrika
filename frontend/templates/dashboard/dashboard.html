@@ -1,6 +1,29 @@
 {% extends "base.html" %}
 {% block title %}Dashboard — AI Travel Planner{% endblock %}
 
+{% block extra_css %}
+<style>
+.wizard-launch-card {
+  background: linear-gradient(135deg, #0062FF 0%, #6929C4 60%, #009D9A 100%);
+  border-radius: 20px; padding: 28px 32px; color: #fff; position: relative; overflow: hidden;
+  border: none; box-shadow: 0 8px 32px rgba(0,98,255,.3);
+}
+.wizard-launch-card::before {
+  content: '✈️'; position: absolute; right: -10px; bottom: -20px;
+  font-size: 8rem; opacity: .1; user-select: none;
+}
+.wizard-steps-mini { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.wsm-item {
+  background: rgba(255,255,255,.18); border-radius: 100px;
+  padding: 4px 12px; font-size: .72rem; font-weight: 700;
+}
+.stat-card { border-radius: 18px; padding: 20px; background: var(--bg-card); border: 1px solid var(--border-color); }
+.stat-card-value { font-size: 2rem; font-weight: 800; }
+.stat-card-label { font-size: .78rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
+.stat-card-icon { font-size: 1.6rem; margin-bottom: 8px; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-wrapper">
   <div class="container py-4">
@@ -11,9 +34,38 @@
         <h1 class="page-title mb-1">Good Day, {{ user_name }} 👋</h1>
         <p class="text-muted mb-0">Here's an overview of your travel plans</p>
       </div>
-      <a href="{{ url_for('planner.new_trip') }}" class="btn btn-ibm">
-        <i class="bi bi-plus-lg me-2"></i>Plan New Trip
-      </a>
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('planner.wizard') }}" class="btn btn-ibm" style="background:linear-gradient(135deg,#0062FF,#6929C4);border:none">
+          <i class="bi bi-magic me-2"></i>Smart Wizard
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Smart Wizard Launch Card ────────────────────────────── -->
+    <div class="wizard-launch-card mb-4 scroll-reveal">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <div class="fw-bold mb-1" style="font-size:.8rem;opacity:.8;text-transform:uppercase;letter-spacing:.08em">Featured Tool</div>
+          <h3 class="fw-bold mb-2">Smart Travel Wizard</h3>
+          <p class="mb-2" style="opacity:.85;font-size:.9rem">Plan any trip in 10 interactive steps — real-time attractions from OpenStreetMap, live route planning via OSRM, and a full trip overview. No AI credits needed.</p>
+          <div class="wizard-steps-mini">
+            {% for s in ['Journey Details','Explore','Select','Route','Timeline','Details','Map','Day Planner','Analytics','Overview'] %}
+            <span class="wsm-item">{{ loop.index }}. {{ s }}</span>
+            {% endfor %}
+          </div>
+          <div class="d-flex gap-3 mt-3 flex-wrap">
+            <a href="{{ url_for('planner.wizard') }}" class="btn btn-light fw-bold px-4">
+              <i class="bi bi-magic me-2"></i>Launch Wizard
+            </a>
+            <a href="{{ url_for('planner.destinations') }}" class="btn btn-outline-light">
+              <i class="bi bi-compass me-2"></i>Browse Destinations
+            </a>
+          </div>
+        </div>
+        <div class="col-lg-4 d-none d-lg-flex justify-content-center">
+          <div style="font-size:5rem;filter:drop-shadow(0 4px 16px rgba(0,0,0,.2))">🗺️</div>
+        </div>
+      </div>
     </div>
 
     <!-- ── Stat Cards ─────────────────────────────────────────── -->
@@ -22,7 +74,7 @@
         ("bi-airplane", "Total Trips",   stats.total_trips,  "#0062FF"),
         ("bi-bookmark", "Saved Trips",   stats.saved_trips,  "#6929C4"),
         ("bi-check2-circle","Completed", stats.completed,    "#198038"),
-        ("bi-wallet2",  "Total Budget",  "$ {:,.0f}".format(stats.total_budget), "#B28600"),
+        ("bi-wallet2",  "Total Budget",  "₹{:,.0f}".format(stats.total_budget), "#B28600"),
       ] %}
       <div class="col-6 col-lg-3">
         <div class="stat-card h-100">
@@ -41,7 +93,7 @@
         <div class="card-panel h-100">
           <div class="panel-header d-flex justify-content-between align-items-center">
             <h5 class="panel-title mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Trips</h5>
-            <a href="{{ url_for('planner.new_trip') }}" class="btn btn-sm btn-outline-primary">+ New</a>
+            <a href="{{ url_for('planner.wizard') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-magic me-1"></i>New</a>
           </div>
           {% if trips %}
             <div class="trip-list mt-3">
@@ -71,7 +123,7 @@
             <div class="empty-state mt-4">
               <div class="empty-icon">🗺️</div>
               <p class="text-muted">No trips yet. Plan your first adventure!</p>
-              <a href="{{ url_for('planner.new_trip') }}" class="btn btn-ibm btn-sm">Plan a Trip</a>
+              <a href="{{ url_for('planner.wizard') }}" class="btn btn-ibm btn-sm"><i class="bi bi-magic me-1"></i>Start Wizard</a>
             </div>
           {% endif %}
         </div>
@@ -138,6 +190,39 @@
       </div>
     </div>
 
+    <!-- ── Top Destinations Quick Links ──────────────────────────── -->
+    <div class="card-panel mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="panel-title mb-0"><i class="bi bi-compass me-2 text-primary"></i>Explore Destinations</h5>
+        <a href="{{ url_for('planner.destinations') }}" class="btn btn-sm btn-outline-primary">All Destinations →</a>
+      </div>
+      <div class="row g-2">
+        {% for dest, slug, emoji, desc in [
+          ('Coorg','coorg','🌿','Scotland of India'),
+          ('Goa','goa','🏖️','Pearl of the Orient'),
+          ('Manali','manali','🏔️','Gateway to Himalayas'),
+          ('Jaipur','jaipur','🏯','The Pink City'),
+          ('Kerala','kerala','🌴','God\'s Own Country'),
+          ('Rishikesh','rishikesh','🌊','Yoga Capital'),
+          ('Andaman','andaman','🐠','Emerald Islands'),
+          ('Varanasi','varanasi','🕌','City of Light'),
+        ] %}
+        <div class="col-6 col-md-3">
+          <a href="{{ url_for('planner.destination_detail', slug=slug) }}"
+            class="d-flex align-items-center gap-2 p-3 text-decoration-none rounded-3"
+            style="background:var(--bg-surface);border:1px solid var(--border-color);transition:all .2s"
+            onmouseover="this.style.borderColor='#0062FF'" onmouseout="this.style.borderColor='var(--border-color)'">
+            <span style="font-size:1.5rem">{{ emoji }}</span>
+            <div>
+              <div class="fw-bold" style="font-size:.85rem">{{ dest }}</div>
+              <div class="text-muted" style="font-size:.72rem">{{ desc }}</div>
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
   </div>
 </div>
 {% endblock %}
@@ -150,6 +235,12 @@
   const greet = h < 12 ? 'Morning' : h < 18 ? 'Afternoon' : 'Evening';
   const el = document.querySelector('.page-title');
   if (el) el.textContent = el.textContent.replace('Good Day', 'Good ' + greet);
+
+  // Scroll reveal
+  const obs = new IntersectionObserver(entries => entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+  }), { threshold: .1 });
+  document.querySelectorAll('.scroll-reveal').forEach(el => obs.observe(el));
 })();
 </script>
 {% endblock %}

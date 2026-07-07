@@ -1,7 +1,5 @@
 """
 TravelPlannerAgent - IBM Granite / watsonx.ai Service
-IBM SkillsBuild Internship Project
-
 Optimised: 2 API calls only per trip (fast generation).
 """
 

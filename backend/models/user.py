@@ -1,6 +1,5 @@
 """
 TravelPlannerAgent - User Model
-IBM SkillsBuild Internship Project
 """
 
 import hashlib

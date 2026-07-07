@@ -1,6 +1,5 @@
 """
 TravelPlannerAgent - Database Initialization & Helper
-IBM SkillsBuild Internship Project
 """
 
 import sqlite3

@@ -36,7 +36,8 @@
                 <span class="input-group-text"><i class="bi bi-geo-alt-fill text-primary"></i></span>
                 <input type="text" name="destination" class="form-control"
                   placeholder="e.g. Paris, France or Tokyo, Japan"
-                  id="destinationInput" required autocomplete="off" />
+                  id="destinationInput" required autocomplete="off"
+                  value="{{ values.get('destination', '') }}" />
                 <button type="button" class="btn btn-outline-secondary" id="checkWeatherBtn" title="Preview weather">
                   <i class="bi bi-cloud-sun"></i>
                 </button>
@@ -47,17 +48,17 @@
             <div class="col-md-4">
               <label class="form-label fw-semibold">Start Date *</label>
               <input type="date" name="start_date" id="startDate" class="form-control" required
-                     min="{{ today }}" />
+                     min="{{ today }}" value="{{ values.get('start_date', '') }}" />
             </div>
             <div class="col-md-4">
               <label class="form-label fw-semibold">End Date *</label>
               <input type="date" name="end_date" id="endDate" class="form-control" required
-                     min="{{ today }}" />
+                     min="{{ today }}" value="{{ values.get('end_date', '') }}" />
             </div>
             <div class="col-md-4">
               <label class="form-label fw-semibold">Number of Days</label>
               <input type="number" name="num_days" id="numDays" class="form-control"
-                     value="3" min="1" max="30" readonly />
+                     value="{{ values.get('num_days', 3) }}" min="1" max="30" readonly />
             </div>
           </div>
         </div>
@@ -78,7 +79,7 @@
               <div class="counter-input d-flex align-items-center gap-3">
                 <button type="button" class="btn btn-outline-secondary" onclick="changeCount('num_travelers', -1)">−</button>
                 <input type="number" name="num_travelers" id="numTravelers" class="form-control text-center fw-bold"
-                       value="1" min="1" max="50" style="width:80px" />
+                       value="{{ values.get('num_travelers', 1) }}" min="1" max="50" style="width:80px" />
                 <button type="button" class="btn btn-outline-secondary" onclick="changeCount('num_travelers', 1)">+</button>
               </div>
             </div>
@@ -87,12 +88,12 @@
               <div class="input-group">
                 <span class="input-group-text">$</span>
                 <input type="number" name="budget" id="budgetInput" class="form-control"
-                       value="1500" min="100" max="500000" step="100" />
+                       value="{{ values.get('budget', 1500) }}" min="100" max="500000" step="100" />
                 <span class="input-group-text">USD</span>
               </div>
               <div class="budget-range mt-2">
                 <input type="range" class="form-range" min="100" max="50000" step="100"
-                       value="1500" id="budgetRange" oninput="syncBudget(this.value)" />
+                       value="{{ values.get('budget', 1500) }}" id="budgetRange" oninput="syncBudget(this.value)" />
                 <div class="d-flex justify-content-between text-muted small">
                   <span>$100</span><span>$50,000</span>
                 </div>
@@ -109,8 +110,8 @@
                   ("solo", "🧍", "Independent & free"),
                   ("friends", "👫", "Group & social")
                 ] %}
-                <label class="style-card {{ 'selected' if loop.first }}">
-                  <input type="radio" name="travel_style" value="{{ style }}" {{ 'checked' if loop.first }} hidden />
+                <label class="style-card {% if style == values.get('travel_style', 'budget') %}selected{% endif %}">
+                  <input type="radio" name="travel_style" value="{{ style }}" {% if style == values.get('travel_style', 'budget') %}checked{% endif %} hidden />
                   <span class="style-emoji">{{ icon }}</span>
                   <span class="style-name">{{ style|title }}</span>
                   <span class="style-desc">{{ desc }}</span>
@@ -122,8 +123,8 @@
               <label class="form-label fw-semibold">Preferred Transport *</label>
               <div class="transport-grid">
                 {% for mode, icon in [("flight","bi-airplane"), ("train","bi-train-front"), ("bus","bi-bus-front"), ("car","bi-car-front")] %}
-                <label class="transport-card {{ 'selected' if loop.first }}">
-                  <input type="radio" name="transport" value="{{ mode }}" {{ 'checked' if loop.first }} hidden />
+                <label class="transport-card {% if mode == values.get('transport', 'flight') %}selected{% endif %}">
+                  <input type="radio" name="transport" value="{{ mode }}" {% if mode == values.get('transport', 'flight') %}checked{% endif %} hidden />
                   <i class="bi {{ icon }} transport-icon"></i>
                   <span>{{ mode|title }}</span>
                 </label>

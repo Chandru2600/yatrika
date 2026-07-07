@@ -1,6 +1,5 @@
 """
 TravelPlannerAgent - Weather Service (OpenWeatherMap)
-IBM SkillsBuild Internship Project
 """
 
 import requests

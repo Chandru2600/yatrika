@@ -1,6 +1,4 @@
-# AI Travel Planner Agent — IBM SkillsBuild Internship Project
-
-<div align="center">
+# AI Travel Planner Agent — <div align="center">
 
 **AI-powered travel planning using IBM Granite through IBM watsonx.ai**
 
@@ -360,8 +358,6 @@ All prompts request **structured JSON output** for reliable parsing.
 ---
 
 ## 👨‍💻 Author
-
-IBM SkillsBuild Internship Project  
 AI Travel Planner Agent using IBM Granite and IBM Cloud Lite
 
 ---

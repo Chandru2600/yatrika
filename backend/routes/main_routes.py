@@ -1,6 +1,5 @@
 """
 TravelPlannerAgent - Main / Dashboard Routes (Blueprint)
-IBM SkillsBuild Internship Project
 """
 
 from flask import (

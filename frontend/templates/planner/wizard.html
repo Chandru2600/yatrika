@@ -1,0 +1,588 @@
+{% extends "base.html" %}
+{% block title %}Smart Travel Wizard — AI Travel Planner{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/wizard.css') }}?v=1.3" />
+{% endblock %}
+
+{% block content %}
+<div class="wizard-root">
+
+  <!-- ── Sticky Progress Bar ─────────────────────────────── -->
+  <div class="wizard-progress-bar sticky-top">
+    <div class="container">
+      <div class="progress-track">
+        {% for i, label, icon in [
+          (1,'Journey','bi-geo-alt'),
+          (2,'Explore','bi-binoculars'),
+          (3,'Select','bi-check2-square'),
+          (4,'Details','bi-card-text'),
+          (5,'Planner','bi-calendar3'),
+          (6,'Timeline','bi-clock'),
+          (7,'Route','bi-signpost-split'),
+          (8,'Map','bi-map'),
+          (9,'Summary','bi-bar-chart'),
+          (10,'Overview','bi-flag')
+        ] %}
+        <div class="progress-step {% if i==1 %}active{% endif %}" data-step="{{ i }}" onclick="goToStep({{ i }})">
+          <div class="ps-icon"><i class="bi {{ icon }}"></i></div>
+          <div class="ps-label">{{ label }}</div>
+          <div class="ps-num">{{ i }}</div>
+        </div>
+        {% if i < 10 %}<div class="ps-connector"></div>{% endif %}
+        {% endfor %}
+      </div>
+      <div class="progress-fill-bar"><div class="progress-fill" id="progressFill" style="width:10%"></div></div>
+    </div>
+  </div>
+
+  <!-- ── Breadcrumb ───────────────────────────────────────── -->
+  <div class="container pt-3 pb-1">
+    <nav class="wizard-breadcrumb" id="wizardBreadcrumb">
+      <span class="bc-item active">Journey Details</span>
+    </nav>
+  </div>
+
+  <!-- ── Wizard Body ──────────────────────────────────────── -->
+  <div class="container wizard-container">
+
+    <!-- ══════════════════ STEP 1: JOURNEY DETAILS ══════════════ -->
+    <div class="wizard-step active" id="wstep-1">
+      <div class="step-hero-header">
+        <div class="step-title-group">
+          <span class="step-badge">Step 1 of 10</span>
+          <h2 class="step-title">Plan Your Journey</h2>
+          <p class="step-subtitle">Type any city in the world — live geocoding, real attractions, real road distances.</p>
+        </div>
+        <div class="step-hero-icon">🗺️</div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-8">
+          <div class="glass-card">
+
+            <!-- API notice banner -->
+            <div class="api-info-banner mb-4">
+              <div class="d-flex gap-2 align-items-start">
+                <span style="font-size:1.2rem">🌐</span>
+                <div>
+                  <strong>Powered by real APIs</strong> — Nominatim (OpenStreetMap geocoding) ·
+                  Overpass API (live tourist attractions) · OSRM (real road routing) ·
+                  OpenWeatherMap (live weather)
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-3">
+
+              <!-- Source autocomplete -->
+              <div class="col-md-6">
+                <label class="form-label label-fancy">📍 From (Source City)</label>
+                <div class="ac-wrapper">
+                  <input type="text" class="form-control fancy-input" id="w_source"
+                    placeholder="Type your city… e.g. Bengaluru" autocomplete="off" />
+                  <div class="ac-dropdown d-none" id="ac_source_list"></div>
+                </div>
+              </div>
+
+              <!-- Destination autocomplete -->
+              <div class="col-md-6">
+                <label class="form-label label-fancy">🏁 To (Destination)</label>
+                <div class="ac-wrapper">
+                  <input type="text" class="form-control fancy-input" id="w_dest"
+                    placeholder="Type destination… e.g. Coorg" autocomplete="off" />
+                  <div class="ac-dropdown d-none" id="ac_dest_list"></div>
+                </div>
+                <!-- Live weather result appears here -->
+                <div id="weatherPreviewCard" class="d-none mt-2"></div>
+              </div>
+
+              <!-- Dates -->
+              <div class="col-md-4">
+                <label class="form-label label-fancy">📅 Travel Date</label>
+                <input type="date" class="form-control fancy-input" id="w_travel_date" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label label-fancy">🔙 Return Date</label>
+                <input type="date" class="form-control fancy-input" id="w_return_date" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label label-fancy">🌙 Number of Days</label>
+                <input type="number" class="form-control fancy-input" id="w_days" value="3" min="1" max="30" readonly />
+              </div>
+
+              <!-- Travelers -->
+              <div class="col-md-6">
+                <label class="form-label label-fancy">👥 Travelers</label>
+                <div class="counter-row">
+                  <button class="counter-btn" onclick="adjustCounter('w_travelers', -1)">−</button>
+                  <input type="number" class="form-control fancy-input text-center" id="w_travelers" value="2" min="1" max="20" />
+                  <button class="counter-btn" onclick="adjustCounter('w_travelers', 1)">+</button>
+                </div>
+              </div>
+
+              <!-- Budget -->
+              <div class="col-md-6">
+                <label class="form-label label-fancy">💰 Budget Range (₹)</label>
+                <input type="range" class="fancy-range" id="w_budget_range" min="5000" max="500000" step="5000" value="30000"
+                  oninput="document.getElementById('w_budget_val').textContent='₹'+parseInt(this.value).toLocaleString('en-IN')" />
+                <div class="range-labels">
+                  <span>₹5K</span>
+                  <span id="w_budget_val" class="fw-bold text-primary">₹30,000</span>
+                  <span>₹5L</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Transport Mode -->
+            <div class="mt-4">
+              <label class="form-label label-fancy">🚗 Transport Mode</label>
+              <div class="transport-selector">
+                {% for mode, icon, label in [('car','🚗','Car'),('bike','🏍️','Bike'),('bus','🚌','Bus'),('train','🚂','Train'),('flight','✈️','Flight')] %}
+                <label class="transport-tile {% if loop.first %}selected{% endif %}">
+                  <input type="radio" name="w_transport" value="{{ mode }}" {% if loop.first %}checked{% endif %} hidden />
+                  <span class="tt-icon">{{ icon }}</span>
+                  <span class="tt-label">{{ label }}</span>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Travel Style -->
+            <div class="mt-4">
+              <label class="form-label label-fancy">🎯 Travel Style</label>
+              <div class="style-selector">
+                {% for style, icon, color in [
+                  ('Adventure','🏔️','#ff6b35'),('Nature','🌿','#2ecc71'),('Family','👨‍👩‍👧‍👦','#3498db'),
+                  ('Solo','🧘','#9b59b6'),('Luxury','💎','#f1c40f'),('Budget','💰','#e74c3c'),
+                  ('Photography','📸','#1abc9c'),('Food','🍜','#e67e22'),('Spiritual','🕌','#8e44ad')
+                ] %}
+                <label class="style-tile {% if loop.first %}selected{% endif %}" style="--accent: {{ color }}">
+                  <input type="radio" name="w_style" value="{{ style }}" {% if loop.first %}checked{% endif %} hidden />
+                  <span class="st-icon">{{ icon }}</span>
+                  <span class="st-label">{{ style }}</span>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Panel: Live Preview Card -->
+        <div class="col-lg-4">
+          <div class="preview-card sticky-sidebar">
+            <div class="pc-header">
+              <span class="pc-label">✈️ Trip Preview</span>
+            </div>
+            <div class="pc-body">
+              <div class="pc-dest" id="pc_dest">—</div>
+              <div class="pc-from small" id="pc_from" style="opacity:.8">From: —</div>
+              <div class="pc-stats mt-3">
+                <div class="pc-stat"><span class="pcs-icon">🛣️</span><span id="pc_route_dist">Select source &amp; destination</span></div>
+                <div class="pc-stat"><span class="pcs-icon">📅</span><span id="pc_days">3 Days</span></div>
+                <div class="pc-stat"><span class="pcs-icon">👥</span><span id="pc_travelers">2 Travelers</span></div>
+                <div class="pc-stat"><span class="pcs-icon">💰</span><span id="pc_budget">₹30,000</span></div>
+                <div class="pc-stat"><span class="pcs-icon">🚗</span><span id="pc_transport">Car</span></div>
+                <div class="pc-stat"><span class="pcs-icon">🎯</span><span id="pc_style">Adventure</span></div>
+              </div>
+              <div class="api-badges mt-3">
+                <span class="api-badge">🌐 Nominatim</span>
+                <span class="api-badge">📍 Overpass</span>
+                <span class="api-badge">🗺️ OSRM</span>
+                <span class="api-badge">🌤 OWM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-footer">
+        <div></div>
+        <button class="btn btn-wizard-next" onclick="goToStep(2)">
+          Fetch Live Attractions <i class="bi bi-arrow-right ms-2"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══════════════════ STEP 2: DESTINATION EXPLORER ══════════════ -->
+    <div class="wizard-step d-none" id="wstep-2">
+      <div class="step-hero-header">
+        <div class="step-title-group">
+          <span class="step-badge">Step 2 of 10</span>
+          <h2 class="step-title">Explore <span id="dest-name-title">Coorg</span></h2>
+          <p class="step-subtitle">Discover all attractions. Tap a card to add it to your itinerary.</p>
+        </div>
+        <div class="step-hero-icon">🌄</div>
+      </div>
+
+      <!-- Filter Bar + Search -->
+      <div class="filter-bar mb-4 d-flex flex-wrap gap-2 align-items-center">
+        <button class="filter-btn active" onclick="filterAttractions('all', this)">All</button>
+        <button class="filter-btn" onclick="filterAttractions('Morning', this)">🌅 Morning</button>
+        <button class="filter-btn" onclick="filterAttractions('Afternoon', this)">☀️ Afternoon</button>
+        <button class="filter-btn" onclick="filterAttractions('Sunset', this)">🌇 Sunset</button>
+        <button class="filter-btn" onclick="filterAttractions('Night', this)">🌙 Night</button>
+        <button class="filter-btn" onclick="filterAttractions('Family', this)">👨‍👩‍👧 Family</button>
+        <button class="filter-btn" onclick="filterAttractions('Adventure', this)">🏄 Adventure</button>
+        <button class="filter-btn" onclick="filterAttractions('Nature', this)">🌿 Nature</button>
+        <button class="filter-btn" onclick="filterAttractions('Hidden', this)">💎 Hidden Gems</button>
+        <div class="ms-auto ac-wrapper" style="min-width:200px">
+          <input type="text" class="form-control fancy-input" id="attrSearch"
+            placeholder="🔍 Search attractions…" autocomplete="off"
+            oninput="searchAttractions(this.value)" style="font-size:.82rem;padding:6px 12px" />
+        </div>
+      </div>
+
+      <div class="explorer-layout">
+        <!-- Attraction Grid -->
+        <div class="attraction-grid" id="attractionGrid">
+          <!-- Cards injected by JS -->
+        </div>
+
+        <!-- Floating Itinerary Sidebar -->
+        <div class="itinerary-sidebar" id="itinerarySidebar">
+          <div class="isb-header">
+            <span class="isb-title">📋 My Itinerary</span>
+            <span class="isb-count badge bg-primary" id="selectedCount">0</span>
+          </div>
+          <div class="isb-stats">
+            <div class="isb-stat"><span>🕐 Sightseeing</span><span id="totalDuration">0h</span></div>
+            <div class="isb-stat"><span>📍 Distance</span><span id="totalDistance">0 km</span></div>
+            <div class="isb-stat"><span>💰 Est. Budget</span><span id="estBudget">₹0</span></div>
+            <div class="isb-stat"><span>⏳ Time Left</span><span id="timeLeft">8h</span></div>
+          </div>
+          <div class="isb-list" id="selectedAttractions"></div>
+          <button class="btn btn-wizard-next w-100 mt-2" onclick="goToStep(3)">Continue →</button>
+        </div>
+      </div>
+
+      <div class="step-footer">
+        <button class="btn btn-wizard-back" onclick="goToStep(1)"><i class="bi bi-arrow-left me-2"></i>Back</button>
+        <button class="btn btn-wizard-next" onclick="goToStep(3)">Confirm Selections <i class="bi bi-arrow-right ms-2"></i></button>
+      </div>
+    </div>
+
+    <!-- ══════════════════ STEP 3: ATTRACTION SELECTION ══════════════ -->
+    <div class="wizard-step d-none" id="wstep-3">
+      <div class="step-hero-header">
+        <div class="step-title-group">
+          <span class="step-badge">Step 3 of 10</span>
+          <h2 class="step-title">Confirm Your Selection</h2>
+          <p class="step-subtitle">Review and reorder your chosen attractions before building the route.</p>
+        </div>
+        <div class="step-hero-icon">✅</div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-8">
+          <div class="glass-card">
+            <h5 class="fw-semibold mb-3"><i class="bi bi-list-check me-2 text-primary"></i>Selected Attractions</h5>
+            <div id="selectedList" class="selected-list">
+              <!-- Items injected by JS -->
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="summary-stats-card glass-card">
+            <h5 class="fw-semibold mb-3">📊 Trip Summary</h5>
+            <div class="summary-stat-row"><span>Places Selected</span><strong id="ss_places">0</strong></div>
+            <div class="summary-stat-row"><span>Total Duration</span><strong id="ss_duration">0h</strong></div>
+            <div class="summary-stat-row"><span>Total Distance</span><strong id="ss_distance">0 km</strong></div>
+            <div class="summary-stat-row"><span>Est. Entry Fees</span><strong id="ss_fees">₹0</strong></div>
+            <div class="summary-stat-row"><span>Days Covered</span><strong id="ss_days">1</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-footer">
+        <button class="btn btn-wizard-back" onclick="goToStep(2)"><i class="bi bi-arrow-left me-2"></i>Back</button>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-primary" onclick="optimizeRouteTSP()">
+            <i class="bi bi-lightning-charge me-1"></i>Optimize Sequence
+          </button>
+          <button class="btn btn-wizard-next" onclick="goToStep(4)">Attraction Details <i class="bi bi-arrow-right ms-2"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ STEP 4: ATTRACTION DETAILS ══════════════ -->
+    <div class="wizard-step d-none" id="wstep-4">
+      <div class="step-hero-header">
+        <div class="step-title-group">
+          <span class="step-badge">Step 4 of 10</span>
+          <h2 class="step-title">Attraction Deep Dive</h2>
+          <p class="step-subtitle">Click any attraction card to explore full details in the side drawer.</p>
+        </div>
+        <div class="step-hero-icon">🔍</div>
+      </div>
+
+      <div class="detail-grid" id="detailAttractionGrid"></div>
+
+      <div class="step-footer">
+        <button class="btn btn-wizard-back" onclick="goToStep(3)"><i class="bi bi-arrow-left me-2"></i>Back</button>
+        <button class="btn btn-wizard-next" onclick="goToStep(5)">Day Planner <i class="bi bi-arrow-right ms-2"></i></button>
+      </div>
+    </div>
+
+    <!-- ══════════════════ STEP 5: DAY PLANNER ══════════════ -->
+    <div class="wizard-step d-none" id="wstep-5">
+      <div class="step-hero-header">
+        <div class="step-title-group">
+          <span class="step-badge">Step 5 of 10</span>
+          <h2 class="step-title">Day Planner</h2>
+          <p class="step-subtitle">Drag and drop activities to build your perfect day schedule.</p>
+        </div>
+        <div class="step-hero-icon">📅</div>
+      </div>
+
+      <div class="day-selector mb-3" id="daySelector"></div>
+
+      <div class="day-planner-grid" id="dayPlannerGrid">
+        <div class="time-column" id="morningCol">
+          <div class="time-col-header morning-header">🌅 Morning <span class="time-range">6 AM – 12 PM</span></div>
+          <div class="drop-zone" id="morning-drop" ondragover="allowDrop(event)" ondrop="dropActivity(event,'morning')"></div>
+        </div>
+        <div class="time-column" id="afternoonCol">
+          <div class="time-col-header afternoon-header">☀️ Afternoon <span class="time-range">12 PM – 5 PM</span></div>
+          <div class="drop-zone" id="afternoon-drop" ondragover="allowDrop(event)" ondrop="dropActivity(event,'afternoon')"></div>
+        </div>
+        <div class="time-column" id="eveningCol">
+          <div class="time-col-header evening-header">🌆 Evening <span class="time-range">5 PM – 9 PM</span></div>
+          <div class="drop-zone" id="evening-drop" ondragover="allowDrop(event)" ondrop="dropActivity(event,'evening')"></div>
+        </div>
+        <div class="time-column" id="nightCol">
+          <div class="time-col-header night-header">🌙 Night <span class="time-range">9 PM – 12 AM</span></div>
+          <div class="drop-zone" id="night-drop" ondragover="allowDrop(event)" ondrop="dropActivity(event,'night')"></div>
+        </div>
+      </div>
+
+      <div class="unassigned-pool glass-card mt-3">
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+          <h6 class="fw-semibold mb-0">🎯 Unscheduled Activities &amp; Custom Creator</h6>
+          <div class="d-flex gap-2 align-items-center">
+            <input type="text" id="customActName" class="form-control form-control-sm" placeholder="Activity name (e.g. Scuba)..." style="width:200px;border-radius:100px;background:var(--bg-surface);color:var(--text-primary);border-color:var(--border-color);">
+            <select id="customActType" class="form-select form-select-sm" style="width:110px;border-radius:100px;background:var(--bg-surface);color:var(--text-primary);border-color:var(--border-color);">
+              <option value="leisure">Leisure</option>
+              <option value="food">Food</option>
+              <option value="travel">Travel</option>
+            </select>
+            <input type="text" id="customActDur" class="form-control form-control-sm" placeholder="1h or 30m..." style="width:90px;border-radius:100px;background:var(--bg-surface);color:var(--text-primary);border-color:var(--border-color);">
+            <button class="btn btn-primary btn-sm py-1 px-3" onclick="addCustomActivityPool()" style="font-size:.8rem;height:31px;border-radius:100px;">+ Add</button>
+          </div>
+        </div>
+        <div class="pool-items" id="poolItems"></div>
+      </div>
+
+      <div class="step-footer">
+        <button class="btn btn-wizard-back" onclick="goToStep(4)"><i class="bi bi-arrow-left me-2"></i>Back</button>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-primary" onclick="optimizeRouteTSP()">
+            <i class="bi bi-lightning-charge me-1"></i>Optimize Sequence
+          </button>
+          <button class="btn btn-wizard-next" onclick="goToStep(6)">Generate Timeline <i class="bi bi-arrow-right ms-2"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ STEP 6: SMART TIMELINE ══════════════ -->
+    <div class="wizard-step d-none" id="wstep-6">
+      <div class="step-hero-header">
+        <div class="step-title-group">
+          <span class="step-badge">Step 6 of 10</span>
+          <h2 class="step-title">📅 Smart Day-by-Day Timeline</h2>
+          <p class="step-subtitle">
+            Hour-by-hour schedule built from your selected attractions &amp; trip plan.
+            Check-in at <strong>8:00 AM</strong> · Attractions distributed optimally across your days.
+          </p>
+        </div>
+        <div class="step-hero-icon">⏰</div>
+      </div>
+
+      <div id="smartTimeline" style="padding: 4px 0 24px;"></div>
+
+      <div class="step-footer">
+        <button class="btn btn-wizard-back" onclick="goToStep(5)"><i class="bi bi-arrow-left me-2"></i>Back to Day Planner</button>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary btn-sm" onclick="window.print()" title="Print timeline">
+            <i class="bi bi-printer me-1"></i>Print
+          </button>
+          <button class="btn btn-wizard-next" onclick="goToStep(7)">Route Planner <i class="bi bi-arrow-right ms-2"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ STEP 7: ROUTE PLANNER ══════════════ -->
+    <div class="wizard-step d-none" id="wstep-7">
+      <div class="step-hero-header">
+        <div class="step-title-group">
+          <span class="step-badge">Step 7 of 10</span>
+          <h2 class="step-title">Interactive Route Planner</h2>
+          <p class="step-subtitle">Visualize your journey route with travel details at each stop.</p>
+        </div>
+        <div class="step-hero-icon">🗺️</div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-7">
+          <div class="route-timeline-card glass-card" id="routeTimeline"></div>
+        </div>
+        <div class="col-lg-5">
+          <div class="glass-card mb-3">
+            <h5 class="fw-semibold mb-3">🚗 Journey Statistics</h5>
+            <div class="journey-stats" id="journeyStats"></div>
+          </div>
+          <div class="glass-card">
+            <h5 class="fw-semibold mb-3">⛽ Cost Estimate</h5>
+            <div class="cost-breakdown" id="costBreakdown"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-footer">
+        <button class="btn btn-wizard-back" onclick="goToStep(6)"><i class="bi bi-arrow-left me-2"></i>Back</button>
+        <button class="btn btn-wizard-next" onclick="goToStep(8)">Interactive Map <i class="bi bi-arrow-right ms-2"></i></button>
+      </div>
+    </div>
+
+    <!-- ══════════════════ STEP 8: INTERACTIVE MAP ══════════════ -->
+    <div class="wizard-step d-none" id="wstep-8">
+      <div class="step-hero-header">
+        <div class="step-title-group">
+          <span class="step-badge">Step 8 of 10</span>
+          <h2 class="step-title">Interactive Map</h2>
+          <p class="step-subtitle">Live OpenStreetMap with your route and all attraction pins.</p>
+        </div>
+        <div class="step-hero-icon">🗺️</div>
+      </div>
+
+      <div class="map-page-layout">
+        <!-- Real MapLibre tile map -->
+        <div style="border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15);position:relative;">
+          <div id="mapLibreMap" style="height:540px;width:100%;"></div>
+          <div class="map-controls">
+            <button class="map-ctrl-btn active" onclick="mapFlyToRoute()"><i class="bi bi-geo-alt-fill"></i> Fly to Route</button>
+            <button class="map-ctrl-btn" onclick="mapToggleSatellite()"><i class="bi bi-layers"></i> Satellite</button>
+            <button class="map-ctrl-btn" onclick="mapShowNearby()"><i class="bi bi-search"></i> Show Nearby</button>
+          </div>
+        </div>
+        <div class="map-legend-panel">
+          <h6 class="fw-semibold mb-3">Map Legend</h6>
+          <div class="legend-row"><span class="pin-dot blue"></span>Hotels</div>
+          <div class="legend-row"><span class="pin-dot red"></span>Restaurants</div>
+          <div class="legend-row"><span class="pin-dot green"></span>Attractions</div>
+          <div class="legend-row"><span class="pin-dot yellow"></span>Fuel Stations</div>
+          <div class="legend-row"><span class="pin-dot orange"></span>Parking</div>
+          <div class="legend-row"><span class="pin-dot pink"></span>Hospital</div>
+          <div class="legend-row"><span class="pin-dot purple"></span>Police</div>
+          <h6 class="fw-semibold mb-2 mt-3">Nearby Places</h6>
+          <div class="nearby-list" id="nearbyList"></div>
+        </div>
+      </div>
+
+      <div class="step-footer">
+        <button class="btn btn-wizard-back" onclick="goToStep(7)"><i class="bi bi-arrow-left me-2"></i>Back</button>
+        <button class="btn btn-wizard-next" onclick="goToStep(9)">View Summary <i class="bi bi-arrow-right ms-2"></i></button>
+      </div>
+    </div>
+
+    <!-- ══════════════════ STEP 9: TRAVEL SUMMARY ══════════════ -->
+    <div class="wizard-step d-none" id="wstep-9">
+      <div class="step-hero-header">
+        <div class="step-title-group">
+          <span class="step-badge">Step 9 of 10</span>
+          <h2 class="step-title">Travel Analytics</h2>
+          <p class="step-subtitle">Your complete trip statistics and budget breakdown.</p>
+        </div>
+        <div class="step-hero-icon">📊</div>
+      </div>
+
+      <div class="analytics-grid" id="analyticsGrid"></div>
+
+      <div class="row g-4 mt-2">
+        <div class="col-lg-6">
+          <div class="glass-card">
+            <h5 class="fw-semibold mb-3">💰 Budget Breakdown</h5>
+            <canvas id="budgetChart" height="220"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="glass-card">
+            <h5 class="fw-semibold mb-3">⏱️ Time Distribution</h5>
+            <canvas id="timeChart" height="220"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-footer">
+        <button class="btn btn-wizard-back" onclick="goToStep(8)"><i class="bi bi-arrow-left me-2"></i>Back</button>
+        <button class="btn btn-wizard-next" onclick="goToStep(10)">Trip Overview <i class="bi bi-arrow-right ms-2"></i></button>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════ STEP 10: TRIP OVERVIEW ══════════════ -->
+    <div class="wizard-step d-none" id="wstep-10">
+      <div class="trip-overview-hero" id="tripOverviewHero">
+        <div class="toh-content">
+          <span class="step-badge">Step 10 of 10</span>
+          <h1 class="toh-title" id="toh-title">Coorg, Karnataka</h1>
+          <p class="toh-sub" id="toh-sub">3 Days · 2 Travelers · Adventure</p>
+          <div class="toh-actions">
+            <button class="btn-toh-action" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print</button>
+            <button class="btn-toh-action" onclick="downloadItinerary()"><i class="bi bi-download me-1"></i>Download .txt</button>
+            <button class="btn-toh-action" onclick="shareTrip()"><i class="bi bi-share me-1"></i>Share</button>
+            <button class="btn-toh-action" onclick="clearWizard()" style="background:rgba(239,68,68,.25)"><i class="bi bi-arrow-repeat me-1"></i>Start Fresh</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="container py-4" id="overviewBody"></div>
+
+      <!-- Save to Dashboard banner -->
+      <div class="container mb-4">
+        <div class="glass-card" style="background:linear-gradient(135deg,#0062FF10,#6929C410);border-color:#0062FF44;">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="fw-bold" style="font-size:1rem"><i class="bi bi-floppy me-2 text-primary"></i>Save This Trip Plan</div>
+              <div class="text-muted small mt-1">Save your exact customized itinerary, or use IBM Granite AI to plan a new one from your preferences.</div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="btn btn-success fw-bold" onclick="saveCustomWizardTripDirectly()">
+                <i class="bi bi-floppy me-2"></i>Save Custom Itinerary
+              </button>
+              <button class="btn btn-primary fw-bold" onclick="saveWizardToDashboard()">
+                <i class="bi bi-magic me-2"></i>Save with IBM Granite AI
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-footer">
+        <button class="btn btn-wizard-back" onclick="goToStep(9)"><i class="bi bi-arrow-left me-2"></i>Back to Summary</button>
+        <a href="{{ url_for('planner.destinations') }}" class="btn btn-ibm">
+          <i class="bi bi-compass me-2"></i>Explore More Destinations
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /wizard-container -->
+</div><!-- /wizard-root -->
+
+<!-- Attraction Detail Drawer -->
+<div class="detail-drawer" id="detailDrawer">
+  <div class="drawer-overlay" onclick="closeDrawer()"></div>
+  <div class="drawer-panel">
+    <button class="drawer-close" onclick="closeDrawer()"><i class="bi bi-x-lg"></i></button>
+    <div class="drawer-content" id="drawerContent"></div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.css" />
+<script src="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/wizard.js') }}?v=1.3"></script>
+{% endblock %}

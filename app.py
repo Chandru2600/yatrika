@@ -1,7 +1,5 @@
 """
 TravelPlannerAgent - Flask Application Factory
-IBM SkillsBuild Internship Project
-
 Entry point for the Flask web application.
 Run with:  python app.py
 """
@@ -44,13 +42,11 @@ def create_app(env: str = "development") -> Flask:
     from backend.routes.main_routes    import main_bp
     from backend.routes.planner_routes import planner_bp
     from backend.routes.admin_routes   import admin_bp
-    from backend.routes.api_routes     import api_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(planner_bp)
     app.register_blueprint(admin_bp)
-    app.register_blueprint(api_bp)
 
     # ── CORS Middleware ──────────────────────────────────────
     from flask import request

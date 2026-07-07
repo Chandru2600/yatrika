@@ -1,6 +1,5 @@
 """
 TravelPlannerAgent - Configuration Module
-IBM SkillsBuild Internship Project
 """
 
 import os

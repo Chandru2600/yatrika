@@ -1,6 +1,5 @@
 """
 TravelPlannerAgent - Trip Model
-IBM SkillsBuild Internship Project
 """
 
 import json

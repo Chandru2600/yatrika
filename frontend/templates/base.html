@@ -32,9 +32,14 @@
     <div class="collapse navbar-collapse" id="mainNav">
       <ul class="navbar-nav ms-auto align-items-center gap-1">
         <li class="nav-item"><a class="nav-link" href="{{ url_for('main.home') }}"><i class="bi bi-house me-1"></i>Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('planner.destinations') }}"><i class="bi bi-compass me-1"></i>Destinations</a></li>
         {% if user_id %}
           <li class="nav-item"><a class="nav-link" href="{{ url_for('main.dashboard') }}"><i class="bi bi-grid me-1"></i>Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('planner.new_trip') }}"><i class="bi bi-map me-1"></i>Plan Trip</a></li>
+          <li class="nav-item">
+            <a class="nav-link nav-wizard-link" href="{{ url_for('planner.wizard') }}">
+              <i class="bi bi-magic me-1"></i>Smart Wizard
+            </a>
+          </li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('planner.saved_trips') }}"><i class="bi bi-bookmark me-1"></i>Saved</a></li>
           {% if user_role == 'admin' %}
             <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('admin.admin_dashboard') }}"><i class="bi bi-shield me-1"></i>Admin</a></li>
@@ -93,7 +98,7 @@
           <span class="brand-icon">✈</span>
           <span class="ms-2"><strong>AI Travel Planner</strong></span>
         </div>
-        <p class="text-muted mt-2">Powered by IBM Granite and IBM watsonx.ai. An IBM SkillsBuild internship project.</p>
+        <p class="text-muted mt-2">Powered by IBM Granite and IBM watsonx.ai. </p>
         <div class="d-flex gap-2 mt-3">
           <span class="badge badge-ibm">IBM Granite</span>
           <span class="badge badge-ibm">watsonx.ai</span>
@@ -105,7 +110,7 @@
         <ul class="list-unstyled footer-links">
           <li><a href="{{ url_for('main.home') }}">Home</a></li>
           <li><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
-          <li><a href="{{ url_for('planner.new_trip') }}">Plan a Trip</a></li>
+          <li><a href="{{ url_for('planner.wizard') }}">Smart Wizard</a></li>
         </ul>
       </div>
       <div class="col-lg-3">
@@ -127,7 +132,7 @@
     </div>
     <hr class="mt-4 mb-3" />
     <div class="d-flex flex-wrap justify-content-between align-items-center">
-      <p class="text-muted small mb-0">© 2024 AI Travel Planner — IBM SkillsBuild Internship Project</p>
+      <p class="text-muted small mb-0">© 2024 AI Travel Planner</p>
       <p class="text-muted small mb-0">Built with Flask · Bootstrap 5 · IBM Granite</p>
     </div>
   </div>

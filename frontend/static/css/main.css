@@ -1,6 +1,5 @@
 /* =====================================================================
    AI Travel Planner — Main CSS
-   IBM SkillsBuild Internship Project
    Minimal, Modern, Professional
    ===================================================================== */
 
@@ -156,6 +155,16 @@ body {
   color: var(--text-muted);
   border-radius: var(--radius-sm);
 }
+
+/* ── Wizard Nav Link ──────────────────────────────────────────────── */
+.nav-wizard-link {
+  background: linear-gradient(135deg, #0062FF, #6929C4) !important;
+  color: #fff !important;
+  border-radius: var(--radius-sm) !important;
+  font-weight: 700 !important;
+  padding: 5px 14px !important;
+}
+.nav-wizard-link:hover { opacity: .9; color: #fff !important; background: linear-gradient(135deg, #0043CE, #4d1b99) !important; }
 
 /* ── Buttons ──────────────────────────────────────────────────────── */
 .btn-ibm {

@@ -1,6 +1,5 @@
 """
 TravelPlannerAgent - Authentication Routes (Blueprint)
-IBM SkillsBuild Internship Project
 """
 
 from flask import (

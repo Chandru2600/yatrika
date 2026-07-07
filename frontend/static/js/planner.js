@@ -1,7 +1,6 @@
 /**
  * AI Travel Planner — Planner Form JavaScript
  * Multi-step form with live preview and weather fetch
- * IBM SkillsBuild Internship Project
  */
 
 "use strict";

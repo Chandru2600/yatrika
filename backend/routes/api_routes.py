@@ -1,6 +1,5 @@
 """
 TravelPlannerAgent - REST API Routes (Blueprint)
-IBM SkillsBuild Internship Project
 """
 
 import json

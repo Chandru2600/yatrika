@@ -1,0 +1,1035 @@
+{% extends "base.html" %}
+{% block title %}Destination Guide — AI Travel Planner{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Destination Detail Styles */
+.dest-detail-hero {
+  min-height: 500px; position: relative; overflow: hidden;
+  display: flex; align-items: flex-end;
+}
+.dest-detail-hero-img {
+  position: absolute; inset: 0; background-size: cover; background-position: center;
+  transition: transform 10s ease;
+}
+.dest-detail-hero:hover .dest-detail-hero-img { transform: scale(1.05); }
+.dest-detail-hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.85) 0%, rgba(0,0,0,.3) 60%, transparent 100%);
+}
+.dest-detail-hero-content { position: relative; z-index: 1; padding: 48px; color: #fff; width: 100%; }
+.ddh-breadcrumb { font-size: .78rem; opacity: .75; margin-bottom: 12px; }
+.ddh-breadcrumb a { color: rgba(255,255,255,.75); text-decoration: none; }
+.ddh-name { font-size: 3.5rem; font-weight: 900; text-shadow: 0 3px 16px rgba(0,0,0,.3); }
+.ddh-tagline { font-size: 1.15rem; opacity: .85; margin-bottom: 16px; }
+.ddh-meta { display: flex; gap: 16px; flex-wrap: wrap; }
+.ddh-meta-item { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,.15); backdrop-filter: blur(8px); border-radius: 100px; padding: 6px 14px; font-size: .82rem; font-weight: 600; }
+
+/* Quick Stats Bar */
+.quick-stats-bar {
+  background: var(--bg-card); border-bottom: 1px solid var(--border-color);
+  padding: 16px 0; position: sticky; top: 64px; z-index: 100;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+.qsb-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.qsb-stat { text-align: center; }
+.qsb-val { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); }
+.qsb-label { font-size: .7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+
+/* Tab nav */
+.dest-tabs { border-bottom: 2px solid var(--border-color); margin-bottom: 28px; overflow-x: auto; display: flex; gap: 0; scrollbar-width: none; }
+.dest-tabs::-webkit-scrollbar { display: none; }
+.dest-tab { padding: 12px 20px; border: none; background: transparent; font-weight: 600; font-size: .88rem; cursor: pointer; color: var(--text-muted); border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all .15s; }
+.dest-tab:hover { color: #0062FF; }
+.dest-tab.active { color: #0062FF; border-bottom-color: #0062FF; }
+
+/* Weather Card */
+.weather-month-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; }
+@media (max-width: 576px) { .weather-month-grid { grid-template-columns: repeat(3,1fr); } }
+.month-card { background: var(--bg-surface); border-radius: 12px; padding: 10px 8px; text-align: center; border: 2px solid transparent; transition: all .2s; }
+.month-card.best { border-color: #10b981; background: #d1fae5; }
+.month-card.worst { border-color: #ef4444; background: #fee2e2; }
+.mc-month { font-size: .72rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+.mc-temp { font-size: 1rem; font-weight: 800; }
+.mc-icon { font-size: 1.2rem; }
+.mc-tag { font-size: .62rem; font-weight: 700; margin-top: 3px; }
+
+/* Attraction mini-cards */
+.attr-mini-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.attr-mini-card {
+  background: var(--bg-card); border-radius: 16px; overflow: hidden;
+  border: 1px solid var(--border-color); transition: all .25s; cursor: pointer;
+}
+.attr-mini-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+.amc-image { height: 130px; background-size: cover; background-position: center; position: relative; }
+.amc-category { position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,.6); color: #fff; padding: 3px 8px; border-radius: 6px; font-size: .68rem; font-weight: 700; }
+.amc-body { padding: 10px 12px; }
+.amc-name { font-weight: 700; font-size: .88rem; margin-bottom: 3px; }
+.amc-meta { font-size: .73rem; color: var(--text-muted); display: flex; gap: 8px; }
+
+/* Hotels */
+.hotel-tier-card {
+  background: var(--bg-card); border-radius: 18px; padding: 16px;
+  border: 1px solid var(--border-color); transition: box-shadow .2s;
+}
+.hotel-tier-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+.htc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.htc-name { font-weight: 700; font-size: .95rem; }
+.htc-price { font-weight: 800; color: #0062FF; font-size: 1.05rem; }
+.htc-stars { color: #f59e0b; font-size: .85rem; }
+.htc-tier { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: .65rem; font-weight: 700; margin-left: 6px; }
+.htc-amenities { display: flex; flex-wrap: wrap; gap: 6px; }
+.amenity { background: var(--bg-surface); border-radius: 100px; padding: 3px 10px; font-size: .7rem; font-weight: 600; color: var(--text-muted); }
+
+/* Food cards */
+.food-card { background: var(--bg-card); border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); }
+.food-card-img { height: 140px; background-size: cover; background-position: center; }
+.food-card-body { padding: 12px; }
+.food-name { font-weight: 700; font-size: .9rem; }
+.food-type { font-size: .75rem; color: #0062FF; font-weight: 600; }
+.food-desc { font-size: .8rem; color: var(--text-muted); margin-top: 4px; }
+
+/* Itinerary timeline */
+.itin-day-block { margin-bottom: 24px; }
+.idb-header {
+  background: linear-gradient(135deg, #0062FF, #6929C4); color: #fff;
+  border-radius: 12px 12px 0 0; padding: 12px 16px; font-weight: 700;
+}
+.idb-events { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 0 0 12px 12px; overflow: hidden; }
+.idb-event { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
+.idb-event:last-child { border-bottom: none; }
+.idb-time { min-width: 52px; font-weight: 700; font-size: .78rem; color: #0062FF; }
+.idb-icon { width: 30px; height: 30px; border-radius: 50%; background: var(--bg-surface); display: flex; align-items: center; justify-content: center; font-size: .85rem; flex-shrink: 0; }
+.idb-body { flex: 1; }
+.idb-title { font-weight: 700; font-size: .88rem; }
+.idb-sub { font-size: .75rem; color: var(--text-muted); }
+
+/* Gallery grid */
+.gallery-grid { display: grid; grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(2, 160px); gap: 10px; }
+.gallery-item { border-radius: 12px; overflow: hidden; background-size: cover; background-position: center; cursor: pointer; transition: transform .2s; }
+.gallery-item:hover { transform: scale(1.03); }
+.gallery-item.main { grid-column: 1 / span 2; grid-row: 1 / span 2; border-radius: 16px; }
+
+/* Transport options */
+.transport-option { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-surface); border-radius: 12px; margin-bottom: 8px; }
+.to-icon { font-size: 1.5rem; }
+.to-info { flex: 1; }
+.to-name { font-weight: 700; font-size: .88rem; }
+.to-details { font-size: .78rem; color: var(--text-muted); }
+.to-cost { font-weight: 700; color: #0062FF; }
+
+/* Loading skeleton */
+.skeleton { background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.skeleton-hero { min-height:500px; }
+.skeleton-line { height:16px; margin-bottom:10px; }
+.skeleton-line.wide { width:80%; }
+.skeleton-line.narrow { width:40%; }
+
+/* Scroll reveal */
+.scroll-reveal { opacity: 0; transform: translateY(24px); transition: opacity .5s ease, transform .5s ease; }
+.scroll-reveal.visible { opacity: 1; transform: translateY(0); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="destDetailPage" data-slug="{{ slug }}">
+
+<!-- ── Hero Section ──────────────────────────────────────────────── -->
+<div class="dest-detail-hero" id="destHero">
+  <div class="dest-detail-hero-img" id="heroImg"></div>
+  <div class="dest-detail-hero-overlay"></div>
+  <div class="dest-detail-hero-content">
+    <div class="ddh-breadcrumb">
+      <a href="{{ url_for('main.home') }}">Home</a> › 
+      <a href="{{ url_for('planner.destinations') }}">Destinations</a> › 
+      <span id="heroBreadcrumb">Loading...</span>
+    </div>
+    <div class="ddh-name" id="heroName">Loading...</div>
+    <div class="ddh-tagline" id="heroTagline"></div>
+    <div class="ddh-meta" id="heroMeta"></div>
+    <div class="mt-4 d-flex gap-3 flex-wrap">
+      <a href="{{ url_for('planner.wizard') if user_id else url_for('auth.register') }}" class="btn btn-ibm btn-lg px-4">
+        <i class="bi bi-magic me-2"></i>Plan This Trip
+      </a>
+      <button class="btn btn-outline-light btn-lg" onclick="scrollToSection('attractions')">
+        <i class="bi bi-binoculars me-2"></i>View Attractions
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Quick Stats Bar ───────────────────────────────────────────── -->
+<div class="quick-stats-bar">
+  <div class="container">
+    <div class="qsb-inner" id="quickStatsBar">
+      <div class="skeleton skeleton-line" style="width:100%;height:32px;border-radius:8px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Destination Content ──────────────────────────────────────── -->
+<div class="container py-4">
+
+  <!-- Tab Navigation -->
+  <div class="dest-tabs" id="destTabsNav">
+    <button class="dest-tab active" onclick="showTab('overview',this)">📋 Overview</button>
+    <button class="dest-tab" onclick="showTab('attractions',this)">📍 Attractions</button>
+    <button class="dest-tab" onclick="showTab('weather',this)">🌤 Weather</button>
+    <button class="dest-tab" onclick="showTab('hotels',this)">🏨 Hotels</button>
+    <button class="dest-tab" onclick="showTab('food',this)">🍽️ Local Food</button>
+    <button class="dest-tab" onclick="showTab('itinerary',this)">📅 Itinerary</button>
+    <button class="dest-tab" onclick="showTab('gallery',this)">📷 Gallery</button>
+    <button class="dest-tab" onclick="showTab('transport',this)">🚗 Transport</button>
+  </div>
+
+  <!-- Overview Tab -->
+  <div class="tab-content-section" id="tab-overview">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card-panel mb-4 scroll-reveal">
+          <h4 class="panel-title mb-3">About the Destination</h4>
+          <p id="destDescription" class="text-muted" style="line-height:1.8"></p>
+          <div class="row g-3 mt-2" id="destHighlights"></div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card-panel mb-3 scroll-reveal">
+          <h5 class="fw-semibold mb-3">🌡️ Best Visiting Months</h5>
+          <div class="weather-month-grid" id="monthGrid"></div>
+        </div>
+        <div class="card-panel scroll-reveal">
+          <h5 class="fw-semibold mb-3">ℹ️ Quick Facts</h5>
+          <div id="quickFacts"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attractions Tab -->
+  <div class="tab-content-section d-none" id="tab-attractions">
+    <div class="mb-4 scroll-reveal">
+      <h4 class="fw-bold mb-3">All Attractions</h4>
+      <div class="attr-mini-grid" id="attractionsMiniGrid"></div>
+    </div>
+  </div>
+
+  <!-- Weather Tab -->
+  <div class="tab-content-section d-none" id="tab-weather">
+    <div class="row g-4 scroll-reveal">
+      <div class="col-lg-5">
+        <div class="card-panel weather-widget">
+          <h5 class="panel-title mb-3">☀️ Current Weather</h5>
+          <div id="currentWeatherPanel"></div>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="card-panel">
+          <h5 class="fw-semibold mb-3">📅 Monthly Weather Guide</h5>
+          <div class="weather-month-grid" id="fullMonthGrid"></div>
+        </div>
+        <div class="card-panel mt-3">
+          <h5 class="fw-semibold mb-3">💡 Travel Weather Tips</h5>
+          <div id="weatherTips"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hotels Tab -->
+  <div class="tab-content-section d-none" id="tab-hotels">
+    <div class="scroll-reveal" id="hotelsSection"></div>
+  </div>
+
+  <!-- Food Tab -->
+  <div class="tab-content-section d-none" id="tab-food">
+    <div class="scroll-reveal" id="foodSection"></div>
+  </div>
+
+  <!-- Itinerary Tab -->
+  <div class="tab-content-section d-none" id="tab-itinerary">
+    <div class="scroll-reveal" id="itinerarySection"></div>
+  </div>
+
+  <!-- Gallery Tab -->
+  <div class="tab-content-section d-none" id="tab-gallery">
+    <div class="scroll-reveal" id="gallerySection"></div>
+  </div>
+
+  <!-- Transport Tab -->
+  <div class="tab-content-section d-none" id="tab-transport">
+    <div class="scroll-reveal" id="transportSection"></div>
+  </div>
+
+</div><!-- /container -->
+</div><!-- /destDetailPage -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   destination_detail.html — 100 % live data, zero hardcoded places
+   APIs used:
+     • Nominatim  — geocoding slug → lat/lon + display name
+     • Wikipedia REST API — description + hero thumbnail
+     • Flask /planner/api/weather/<city> — live weather
+     • Overpass API — attractions, hotels, restaurants, transport hubs
+   ══════════════════════════════════════════════════════════════════ */
+
+// ── helpers ──────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+// Category → OSM tags mapping (same as wizard.js)
+const CAT_TAGS = {
+  'Tourism':   ['tourism~"attraction|museum|gallery|aquarium|viewpoint|theme_park|zoo"'],
+  'Historic':  ['historic~"castle|ruins|monument|memorial|archaeological_site|palace|fort"'],
+  'Nature':    ['natural~"peak|waterfall|glacier|beach|cliff|cave_entrance"','leisure~"nature_reserve|park"'],
+  'Spiritual': ['amenity~"place_of_worship"','historic~"shrine|monastery|temple"'],
+  'Leisure':   ['leisure~"park|garden|stadium|sports_centre|amusement_arcade"'],
+  'Adventure': ['sport~"climbing|surfing|diving|paragliding|hiking"','leisure~"water_park|adventure_park"']
+};
+
+const CAT_ICONS = {
+  'Tourism':'🏛','Historic':'🏰','Nature':'🌿','Spiritual':'🙏','Leisure':'🎡','Adventure':'🧗',
+  'museum':'🏛','viewpoint':'👁️','waterfall':'💧','beach':'🏖️','park':'🌳','temple':'⛩️',
+  'castle':'🏰','zoo':'🦁','garden':'🌸','monument':'🗿','restaurant':'🍽️','hotel':'🏨'
+};
+
+const UNSPLASH_QUERY_MAP = {
+  'Tourism':'travel+landmark', 'Historic':'ancient+ruins', 'Nature':'nature+landscape',
+  'Spiritual':'temple+spiritual', 'Leisure':'park+leisure', 'Adventure':'adventure+outdoor'
+};
+
+const FALLBACK_IMGS = [
+  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
+  'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800',
+  'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800',
+  'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800',
+  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+  'https://images.unsplash.com/photo-1516802273409-68526ee1bdd6?w=800'
+];
+
+function slugToQuery(slug) {
+  return slug.replace(/-/g, ' ');
+}
+
+function capitalize(s) {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+
+function formatDistKm(m) {
+  if (!m) return 'Nearby';
+  const k = m / 1000;
+  return k < 1 ? `${Math.round(m)} m` : `${k.toFixed(1)} km`;
+}
+
+function catFromTags(tags) {
+  if (!tags) return 'Place';
+  const t = tags.tourism, h = tags.historic, n = tags.natural, l = tags.leisure, a = tags.amenity;
+  if (t === 'museum') return 'Museum';
+  if (t === 'viewpoint') return 'Viewpoint';
+  if (t === 'zoo') return 'Zoo';
+  if (t === 'theme_park') return 'Theme Park';
+  if (t === 'gallery') return 'Gallery';
+  if (t === 'aquarium') return 'Aquarium';
+  if (t === 'attraction') return 'Attraction';
+  if (h === 'castle' || h === 'fort') return 'Fort / Castle';
+  if (h === 'monument' || h === 'memorial') return 'Monument';
+  if (h === 'ruins' || h === 'archaeological_site') return 'Historical';
+  if (h === 'monastery') return 'Monastery';
+  if (h === 'shrine' || h === 'temple') return 'Temple';
+  if (n === 'peak') return 'Mountain Peak';
+  if (n === 'waterfall') return 'Waterfall';
+  if (n === 'beach') return 'Beach';
+  if (n === 'cave_entrance') return 'Cave';
+  if (n === 'glacier') return 'Glacier';
+  if (l === 'nature_reserve') return 'Nature Reserve';
+  if (l === 'park') return 'Park';
+  if (l === 'garden') return 'Garden';
+  if (l === 'water_park') return 'Water Park';
+  if (a === 'place_of_worship') return tags.religion === 'muslim' ? 'Mosque' : (tags.religion === 'christian' ? 'Church' : 'Temple');
+  return 'Attraction';
+}
+
+function iconForCat(cat) {
+  const c = cat.toLowerCase();
+  if (c.includes('museum')) return '🏛️';
+  if (c.includes('waterfall')) return '💧';
+  if (c.includes('beach')) return '🏖️';
+  if (c.includes('mountain') || c.includes('peak')) return '⛰️';
+  if (c.includes('temple') || c.includes('church') || c.includes('mosque') || c.includes('shrine')) return '⛩️';
+  if (c.includes('fort') || c.includes('castle')) return '🏰';
+  if (c.includes('park') || c.includes('garden') || c.includes('nature')) return '🌿';
+  if (c.includes('viewpoint')) return '👁️';
+  if (c.includes('market')) return '🛒';
+  if (c.includes('zoo') || c.includes('wildlife')) return '🦁';
+  if (c.includes('cave')) return '🗿';
+  if (c.includes('historical') || c.includes('ruins')) return '🏛️';
+  if (c.includes('adventure') || c.includes('water park')) return '🎢';
+  return '📍';
+}
+
+function weatherIconFor(code) {
+  if (!code && code !== 0) return '🌤';
+  if ([0].includes(code)) return '☀️';
+  if ([1,2,3].includes(code)) return '⛅';
+  if ([45,48].includes(code)) return '🌫️';
+  if ([51,53,55,61,63,65,80,81,82].includes(code)) return '🌧';
+  if ([71,73,75,77,85,86].includes(code)) return '❄️';
+  if ([95,96,99].includes(code)) return '⛈️';
+  return '🌤';
+}
+
+function tempForMonth(wmoCode) {
+  // Returns a descriptive tag based on WMO code approximation
+  if ([0,1].includes(wmoCode)) return 'Sunny';
+  if ([2,3].includes(wmoCode)) return 'Cloudy';
+  if ([51,53,55,61,63,65,80,81,82].includes(wmoCode)) return 'Rainy';
+  if ([71,73,75,77].includes(wmoCode)) return 'Snowy';
+  return 'Mixed';
+}
+
+// ── SKELETON helpers ─────────────────────────────────────────────
+function showHeroSkeleton() {
+  $('heroImg').style.background = 'linear-gradient(135deg,#1e3a5f,#0f2340)';
+  $('heroName').innerHTML = '<span class="skeleton skeleton-line wide" style="height:3rem;display:inline-block;width:60%;"></span>';
+  $('heroTagline').innerHTML = '<span class="skeleton skeleton-line" style="height:1.2rem;display:inline-block;width:40%;"></span>';
+}
+
+function showOverviewSkeleton() {
+  $('destDescription').innerHTML = [1,2,3].map(()=>`<div class="skeleton skeleton-line ${['wide','narrow','wide'][Math.floor(Math.random()*3)]}"></div>`).join('');
+  $('quickFacts').innerHTML = [1,2,3,4].map(()=>`<div class="d-flex justify-content-between py-2 border-bottom"><span class="skeleton skeleton-line" style="width:35%;"></span><span class="skeleton skeleton-line" style="width:45%;"></span></div>`).join('');
+}
+
+// ── NOMINATIM geocode ─────────────────────────────────────────────
+async function geocode(query) {
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=1`;
+  const r = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+  const data = await r.json();
+  if (!data.length) throw new Error('Location not found: ' + query);
+  return data[0];
+}
+
+// ── WIKIPEDIA summary ─────────────────────────────────────────────
+async function fetchWikiSummary(name) {
+  try {
+    const title = name.replace(/ /g, '_');
+    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+// ── WEATHER from Flask proxy ──────────────────────────────────────
+async function fetchWeather(city) {
+  try {
+    const r = await fetch(`/planner/api/weather/${encodeURIComponent(city)}`);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+// ── OVERPASS query ────────────────────────────────────────────────
+async function overpassQuery(ql) {
+  const body = `[out:json][timeout:40];${ql}`;
+  const r = await fetch('https://overpass-api.de/api/interpreter', {
+    method: 'POST',
+    body: 'data=' + encodeURIComponent(body)
+  });
+  return r.json();
+}
+
+function _detailHaversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function _detailProminence(tags) {
+  let s = 0;
+  if (tags.wikidata)              s += 40;
+  if (tags.wikipedia)             s += 35;
+  if (tags.wikimedia_commons)     s += 10;
+  if (tags.tourism === 'attraction') s += 30;
+  if (tags.tourism === 'museum')     s += 28;
+  if (tags.tourism === 'theme_park') s += 25;
+  if (tags.tourism === 'zoo')        s += 22;
+  if (tags.tourism === 'viewpoint')  s += 18;
+  if (tags.historic === 'castle' || tags.historic === 'fort' || tags.historic === 'palace') s += 30;
+  if (tags.historic === 'monument' || tags.historic === 'ruins')                             s += 20;
+  if (tags.historic === 'temple'  || tags.historic === 'shrine')                             s += 18;
+  if (tags.natural === 'peak')        s += 25;
+  if (tags.natural === 'waterfall')   s += 22;
+  if (tags.natural === 'beach')       s += 20;
+  if (tags.leisure === 'nature_reserve') s += 18;
+  if (tags.leisure === 'park')        s += 10;
+  const nl = (tags.name || '').length;
+  if (nl > 0 && nl <= 10) s += 8; else if (nl <= 20) s += 4;
+  if (tags.description || tags['description:en']) s += 5;
+  if (tags.website)       s += 3;
+  if (tags.opening_hours) s += 2;
+  return s;
+}
+
+async function fetchAttractions(lat, lon) {
+  const RADIUS = 40000; // 40 km fixed
+  let elements = [];
+  try {
+    const tagFilters = Object.values(CAT_TAGS).flat()
+      .map(t => `node[${t}](around:${RADIUS},${lat},${lon});way[${t}](around:${RADIUS},${lat},${lon});`)
+      .join('');
+    const ql = `(${tagFilters});out center tags 120;`;
+    const data = await overpassQuery(ql);
+    elements = (data.elements || []).filter(e => e.tags && e.tags.name);
+  } catch { return []; }
+
+  return elements
+    .map(e => {
+      const lt = e.lat || e.center?.lat;
+      const ln = e.lon || e.center?.lon;
+      if (!lt || !ln) return null;
+      const dist = _detailHaversineKm(lat, lon, lt, ln);
+      if (dist > 40) return null;
+      return { element: e, dist, prominence: _detailProminence(e.tags) };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.prominence - a.prominence || a.dist - b.dist)
+    .slice(0, 50)
+    .map(x => x.element);
+}
+
+async function fetchOsmHotels(lat, lon, radiusM = 20000) {
+  const ql = `(node[tourism~"hotel|hostel|guest_house|motel|resort"](around:${radiusM},${lat},${lon});way[tourism~"hotel|hostel|guest_house|motel|resort"](around:${radiusM},${lat},${lon}););out center 20;`;
+  const data = await overpassQuery(ql);
+  return (data.elements || []).filter(e => e.tags && e.tags.name).slice(0, 12);
+}
+
+async function fetchOsmRestaurants(lat, lon, radiusM = 10000) {
+  const ql = `(node[amenity~"restaurant|cafe|food_court"](around:${radiusM},${lat},${lon}););out center 15;`;
+  const data = await overpassQuery(ql);
+  return (data.elements || []).filter(e => e.tags && e.tags.name).slice(0, 12);
+}
+
+// ── DISTANCE between two geo points ─────────────────────────────
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000, dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ── RENDER helpers ────────────────────────────────────────────────
+function renderMonthGrid(containerId, months) {
+  $(containerId).innerHTML = months.map(m => `
+    <div class="month-card ${m.best?'best':m.worst?'worst':''}">
+      <div class="mc-month">${m.m}</div>
+      <div class="mc-icon">${m.icon}</div>
+      <div class="mc-temp">${m.temp}</div>
+      <div class="mc-tag" style="color:${m.best?'#10b981':m.worst?'#ef4444':'#6b7280'}">${m.tag}</div>
+    </div>
+  `).join('');
+}
+
+function renderQuickFacts(facts) {
+  $('quickFacts').innerHTML = facts.map(([k,v]) => `
+    <div class="d-flex justify-content-between py-2 border-bottom" style="font-size:.85rem">
+      <span class="text-muted">${k}</span><strong>${v}</strong>
+    </div>
+  `).join('');
+}
+
+function renderAttractions(attractions) {
+  if (!attractions.length) {
+    $('attractionsMiniGrid').innerHTML = '<p class="text-muted">No attractions found nearby via OpenStreetMap.</p>';
+    return;
+  }
+  $('attractionsMiniGrid').innerHTML = attractions.map((a, i) => {
+    const cat = catFromTags(a.tags);
+    const icon = iconForCat(cat);
+    const name = a.tags.name;
+    const img = FALLBACK_IMGS[i % FALLBACK_IMGS.length];
+    const wikiImg = a.tags['wikimedia_commons'] ? '' : '';
+    const fee = a.tags.fee || a.tags['charge'] || 'See local info';
+    const dur = a.tags['duration'] || '1–2 hrs';
+    const opening = a.tags.opening_hours || 'Check locally';
+    return `
+      <div class="attr-mini-card">
+        <div class="amc-image" style="background-image:url('${img}')">
+          <div class="amc-category">${icon} ${cat}</div>
+        </div>
+        <div class="amc-body">
+          <div class="amc-name">${name}</div>
+          <div class="amc-meta">
+            <span>⏱ ${dur}</span>
+            <span>🎟 ${fee}</span>
+          </div>
+          <div class="amc-meta mt-1" style="font-size:.68rem;color:#6b7280">${opening !== 'Check locally' ? '🕐 ' + opening : ''}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderHotels(hotels) {
+  if (!hotels.length) {
+    $('hotelsSection').innerHTML = '<p class="text-muted py-3">No hotels found on OpenStreetMap for this area. Try booking.com or hotels.com for this destination.</p>';
+    return;
+  }
+  const tiers = [
+    { label: 'Found on OpenStreetMap', color: '#0062FF', items: hotels }
+  ];
+  $('hotelsSection').innerHTML = `
+    <h5 class="fw-bold mb-3 mt-2"><span class="badge" style="background:#0062FF;color:#fff">Hotels &amp; Accommodation</span>
+      <small class="text-muted ms-2" style="font-size:.75rem;font-weight:400">Real listings from OpenStreetMap</small>
+    </h5>
+    <div class="row g-3">
+      ${hotels.map(h => {
+        const name = h.tags.name;
+        const type = capitalize(h.tags.tourism) || 'Hotel';
+        const stars = parseInt(h.tags.stars || h.tags['hotel:stars'] || '0') || 0;
+        const phone = h.tags.phone || h.tags['contact:phone'] || '';
+        const website = h.tags.website || h.tags['contact:website'] || '';
+        const addr = [h.tags['addr:street'], h.tags['addr:city']].filter(Boolean).join(', ') || '';
+        const amenities = [
+          h.tags.internet_access === 'wlan' ? 'WiFi' : null,
+          h.tags.swimming_pool === 'yes' ? 'Pool' : null,
+          h.tags.parking === 'yes' ? 'Parking' : null,
+          h.tags.breakfast === 'yes' ? 'Breakfast' : null,
+          h.tags.air_conditioning === 'yes' ? 'AC' : null,
+          h.tags.restaurant === 'yes' ? 'Restaurant' : null,
+          h.tags.bar === 'yes' ? 'Bar' : null,
+        ].filter(Boolean);
+        return `
+          <div class="col-md-6">
+            <div class="hotel-tier-card">
+              <div class="htc-header">
+                <div>
+                  <div class="htc-name">${name}</div>
+                  <div class="htc-stars">${stars ? '★'.repeat(stars) + '☆'.repeat(Math.max(0,5-stars)) : type}</div>
+                </div>
+                <div>${website ? `<a href="${website}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary" style="font-size:.72rem;">🌐 Website</a>` : ''}</div>
+              </div>
+              ${addr ? `<div style="font-size:.78rem;color:#6b7280;margin-bottom:8px;">📍 ${addr}</div>` : ''}
+              ${phone ? `<div style="font-size:.78rem;color:#6b7280;margin-bottom:8px;">📞 ${phone}</div>` : ''}
+              ${amenities.length ? `<div class="htc-amenities">${amenities.map(a=>`<span class="amenity">${a}</span>`).join('')}</div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderRestaurants(restaurants) {
+  if (!restaurants.length) {
+    $('foodSection').innerHTML = '<h4 class="fw-bold mb-3">Local Dining</h4><p class="text-muted">No restaurants found on OpenStreetMap for this area.</p>';
+    return;
+  }
+  $('foodSection').innerHTML = `
+    <h4 class="fw-bold mb-3">Local Dining</h4>
+    <p class="text-muted mb-3" style="font-size:.85rem"><i class="bi bi-info-circle me-1"></i>Real restaurants and cafes sourced from OpenStreetMap</p>
+    <div class="row g-3">
+      ${restaurants.map((r, i) => {
+        const name = r.tags.name;
+        const cuisine = r.tags.cuisine ? r.tags.cuisine.replace(/_/g,' ').split(';')[0] : 'Local Cuisine';
+        const opening = r.tags.opening_hours || '';
+        const phone = r.tags.phone || r.tags['contact:phone'] || '';
+        const img = FALLBACK_IMGS[(i + 2) % FALLBACK_IMGS.length];
+        return `
+          <div class="col-md-6 col-lg-4">
+            <div class="food-card">
+              <div class="food-card-img" style="background-image:url('${img}')"></div>
+              <div class="food-card-body">
+                <div class="food-name">${name}</div>
+                <div class="food-type">${capitalize(cuisine)}</div>
+                <div class="food-desc">${opening ? '🕐 ' + opening : ''}${phone ? (opening?'  ·  ':'') + '📞 ' + phone : ''}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function buildItinerary(cityName, attractions, numDays) {
+  const days = Math.min(numDays, 5);
+  const chunkSize = Math.ceil(attractions.length / days);
+  const result = [];
+  const themes = ['Arrival & Exploration','Main Attractions','Culture & Heritage','Nature & Adventure','Leisure & Departure'];
+  for (let d = 0; d < days; d++) {
+    const dayAttrs = attractions.slice(d * chunkSize, (d + 1) * chunkSize).slice(0, 4);
+    const events = [];
+    if (d === 0) {
+      events.push({ t: '10:00', icon: '🚗', title: `Arrive in ${cityName}`, sub: 'Check in and freshen up' });
+      events.push({ t: '13:00', icon: '🍽️', title: 'Welcome Lunch', sub: 'Try the local cuisine' });
+    } else {
+      events.push({ t: '07:30', icon: '🥞', title: 'Breakfast', sub: 'At hotel / local café' });
+    }
+    let hour = d === 0 ? 15 : 9;
+    dayAttrs.forEach((a, i) => {
+      const cat = catFromTags(a.tags);
+      const icon = iconForCat(cat);
+      const name = a.tags.name;
+      events.push({
+        t: `${String(hour).padStart(2,'0')}:00`,
+        icon,
+        title: name,
+        sub: `${cat} · approx. 1.5 hrs`
+      });
+      hour += 2;
+      if (hour === 12 || hour === 13) {
+        events.push({ t: '13:00', icon: '🍽️', title: 'Lunch Break', sub: 'At nearby restaurant' });
+        hour = 14;
+      }
+    });
+    if (d === days - 1) {
+      events.push({ t: '16:00', icon: '🛍️', title: 'Local Shopping', sub: 'Souvenirs and local goods' });
+      events.push({ t: '18:00', icon: '👋', title: 'Farewell Dinner', sub: 'Best local restaurant in town' });
+    } else {
+      events.push({ t: `${String(Math.min(hour,20)).padStart(2,'0')}:00`, icon: '🏨', title: 'Return to Hotel', sub: 'Dinner and rest' });
+    }
+    result.push({ day: d + 1, theme: themes[d] || `Day ${d+1} Exploration`, events });
+  }
+  return result;
+}
+
+function renderItinerary(cityName, attractions) {
+  const itinerary = buildItinerary(cityName, attractions, Math.max(2, Math.min(Math.ceil(attractions.length / 4), 5)));
+  $('itinerarySection').innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="fw-bold">Suggested ${itinerary.length}-Day Itinerary</h4>
+      <a href="/planner/wizard" class="btn btn-ibm btn-sm"><i class="bi bi-magic me-1"></i>Customize in Wizard</a>
+    </div>
+    <p class="text-muted mb-3" style="font-size:.85rem"><i class="bi bi-info-circle me-1"></i>Auto-generated from real attractions fetched live from OpenStreetMap</p>
+    ${itinerary.map(day => `
+      <div class="itin-day-block">
+        <div class="idb-header">Day ${day.day} — ${day.theme}</div>
+        <div class="idb-events">
+          ${day.events.map(e => `
+            <div class="idb-event">
+              <span class="idb-time">${e.t}</span>
+              <div class="idb-icon">${e.icon}</div>
+              <div class="idb-body">
+                <div class="idb-title">${e.title}</div>
+                <div class="idb-sub">${e.sub}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderGallery(heroImg, attractions, cityName) {
+  // Use hero image + attraction-mapped fallback images
+  const imgs = [heroImg, ...FALLBACK_IMGS].filter(Boolean).slice(0, 6);
+  $('gallerySection').innerHTML = `
+    <h4 class="fw-bold mb-3">Photo Gallery</h4>
+    <div class="gallery-grid">
+      ${imgs.map((img, i) => `
+        <div class="gallery-item ${i===0?'main':''}" style="background-image:url('${img}')"></div>
+      `).join('')}
+    </div>
+    <p class="text-muted small mt-2">📷 Representative photos. Actual scenes may vary.</p>
+  `;
+}
+
+function renderTransport(lat, lon, cityName, address) {
+  const country = address.country || '';
+  const isIndia = country.toLowerCase().includes('india');
+  const nearestCity = address.city || address.town || address.state || cityName;
+  $('transportSection').innerHTML = `
+    <h4 class="fw-bold mb-3">Getting to ${cityName}</h4>
+    <p class="text-muted mb-3" style="font-size:.85rem">
+      <i class="bi bi-geo-alt me-1"></i>
+      Located at: ${[address.city||address.town, address.state, address.country].filter(Boolean).join(', ')}
+      &nbsp;·&nbsp; Coordinates: ${parseFloat(lat).toFixed(4)}, ${parseFloat(lon).toFixed(4)}
+    </p>
+    <div class="transport-option">
+      <div class="to-icon">✈️</div>
+      <div class="to-info">
+        <div class="to-name">By Air</div>
+        <div class="to-details">Search for nearest airport to ${cityName}. Check airlines serving the region.</div>
+      </div>
+      <div class="to-cost">Varies</div>
+    </div>
+    <div class="transport-option">
+      <div class="to-icon">🚂</div>
+      <div class="to-info">
+        <div class="to-name">By Train</div>
+        <div class="to-details">${isIndia ? 'Check Indian Railways (irctc.co.in) for trains to ' + nearestCity : 'Check national rail services for trains to ' + nearestCity}</div>
+      </div>
+      <div class="to-cost">Budget option</div>
+    </div>
+    <div class="transport-option">
+      <div class="to-icon">🚌</div>
+      <div class="to-info">
+        <div class="to-name">By Bus / Coach</div>
+        <div class="to-details">State transport and private coaches connect to ${cityName} from major nearby cities.</div>
+      </div>
+      <div class="to-cost">Cheapest option</div>
+    </div>
+    <div class="transport-option">
+      <div class="to-icon">🚗</div>
+      <div class="to-info">
+        <div class="to-name">Self Drive / Taxi</div>
+        <div class="to-details">Drive via national highway network. Check Google Maps for routes to ${lat},${lon}.</div>
+      </div>
+      <div class="to-cost">Most flexible</div>
+    </div>
+    <div class="mt-3">
+      <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-map me-1"></i>Get Directions on Google Maps
+      </a>
+    </div>
+  `;
+}
+
+function buildWeatherMonths(weatherData) {
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  // Build from forecast daily data or use sensible defaults
+  if (weatherData && weatherData.forecast && weatherData.forecast.daily) {
+    const daily = weatherData.forecast.daily;
+    // Group by month using time array
+    const monthly = {};
+    (daily.time || []).forEach((t, i) => {
+      const m = new Date(t).getMonth();
+      if (!monthly[m]) monthly[m] = { temps: [], codes: [] };
+      if (daily.temperature_2m_max) monthly[m].temps.push(daily.temperature_2m_max[i]);
+      if (daily.weathercode) monthly[m].codes.push(daily.weathercode[i]);
+    });
+    return MONTHS.map((name, idx) => {
+      const md = monthly[idx];
+      const avgTemp = md && md.temps.length ? Math.round(md.temps.reduce((a,b)=>a+b,0)/md.temps.length) : null;
+      const dominantCode = md && md.codes.length ? md.codes[Math.floor(md.codes.length/2)] : null;
+      const icon = weatherIconFor(dominantCode);
+      const tag = dominantCode !== null ? tempForMonth(dominantCode) : '–';
+      const isRainy = dominantCode && [51,53,55,61,63,65,80,81,82,95,96,99].includes(dominantCode);
+      const isSunny = dominantCode !== null && [0,1].includes(dominantCode);
+      return {
+        m: name,
+        temp: avgTemp !== null ? `${avgTemp}°C` : '–',
+        icon,
+        best: isSunny && !isRainy,
+        worst: isRainy,
+        tag
+      };
+    });
+  }
+  // Generic fallback 12-month pattern
+  return MONTHS.map((m, i) => {
+    const summer = i >= 3 && i <= 7;
+    const monsoon = i >= 5 && i <= 8;
+    return {
+      m, temp: summer ? '28°C' : '20°C',
+      icon: monsoon ? '🌧' : summer ? '☀️' : '🌤',
+      best: !monsoon && !summer,
+      worst: monsoon,
+      tag: monsoon ? 'Rainy' : summer ? 'Warm' : 'Best'
+    };
+  });
+}
+
+function renderWeatherPanel(weatherData, cityName) {
+  const cur = weatherData && weatherData.current;
+  if (cur && (cur.temperature !== undefined || cur.temperature_2m !== undefined)) {
+    const temp = cur.temperature !== undefined ? cur.temperature : cur.temperature_2m;
+    const feelsLike = cur.feels_like || cur.apparent_temperature || temp;
+    const humidity = cur.humidity || cur.relative_humidity_2m || '–';
+    const wind = cur.wind_speed || cur.windspeed_10m || cur.wind_speed_10m || '–';
+    const desc = cur.description || cur.weather_description || cur.condition || '–';
+    const uv = cur.uv_index || '–';
+    const vis = cur.visibility || '–';
+    $('currentWeatherPanel').innerHTML = `
+      <div class="weather-temp" style="font-size:2.5rem;font-weight:900;color:var(--text-primary)">${Math.round(temp)}°C</div>
+      <div class="weather-desc" style="font-size:1rem;color:var(--text-muted);margin-bottom:12px">${typeof desc === 'string' ? desc : 'Current conditions'}</div>
+      <div class="row g-2">
+        ${[
+          ['💧 Humidity', typeof humidity === 'number' ? humidity+'%' : humidity],
+          ['💨 Wind', typeof wind === 'number' ? wind+' km/h' : wind],
+          ['🌡 Feels Like', Math.round(feelsLike)+'°C'],
+          ['☀️ UV Index', uv]
+        ].map(([k,v]) => `<div class="col-6"><div class="d-flex flex-column"><span style="font-size:.72rem;color:var(--text-muted)">${k}</span><strong style="font-size:.9rem">${v}</strong></div></div>`).join('')}
+      </div>
+    `;
+  } else {
+    $('currentWeatherPanel').innerHTML = `
+      <div style="text-align:center;padding:20px">
+        <div style="font-size:2rem">🌤</div>
+        <div class="text-muted mt-2">Weather data not available.<br>
+          <a href="https://wttr.in/${encodeURIComponent(cityName)}" target="_blank" rel="noopener" class="text-primary">Check wttr.in for ${cityName}</a>
+        </div>
+      </div>`;
+  }
+}
+
+function renderWeatherTips(weatherData) {
+  const alerts = weatherData && weatherData.alerts;
+  const tips = alerts && alerts.length
+    ? alerts.slice(0, 4)
+    : [
+        'Check weather forecasts before your trip.',
+        'Pack layers for changing mountain/coastal conditions.',
+        'Carry rain gear if travelling during wet season.',
+        'Morning hours are usually the best for sightseeing.'
+      ];
+  $('weatherTips').innerHTML = tips.map(t => `
+    <div class="d-flex gap-2 mb-2"><span>💡</span><span style="font-size:.85rem">${t}</span></div>
+  `).join('');
+}
+
+// ── MAIN entry point ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const slug = $('destDetailPage').dataset.slug || '';
+  const query = slugToQuery(slug);
+
+  showHeroSkeleton();
+  showOverviewSkeleton();
+
+  let geo, wiki, weather, attractions, hotels, restaurants;
+
+  try {
+    // 1. Geocode
+    geo = await geocode(query);
+  } catch(e) {
+    $('heroName').textContent = capitalize(query);
+    $('heroBreadcrumb').textContent = capitalize(query);
+    $('destDescription').textContent = 'Could not locate this destination. Please check the URL.';
+    return;
+  }
+
+  const lat = parseFloat(geo.lat);
+  const lon = parseFloat(geo.lon);
+  const displayName = geo.display_name ? geo.display_name.split(',')[0].trim() : capitalize(query);
+  const address = geo.address || {};
+  const cityName = address.city || address.town || address.village || address.county || displayName;
+  const countryName = address.country || '';
+  const stateName = address.state || '';
+  const fullLocation = [stateName, countryName].filter(Boolean).join(', ');
+
+  // Update hero basics immediately
+  $('heroName').textContent = displayName;
+  $('heroBreadcrumb').textContent = displayName;
+  document.title = `${displayName} — AI Travel Planner`;
+
+  // 2. Wikipedia (parallel with weather + overpass)
+  const [wikiResult, weatherResult, attrResult, hotelResult, restResult] = await Promise.allSettled([
+    fetchWikiSummary(displayName),
+    fetchWeather(cityName),
+    fetchAttractions(lat, lon),
+    fetchOsmHotels(lat, lon),
+    fetchOsmRestaurants(lat, lon)
+  ]);
+
+  wiki       = wikiResult.status       === 'fulfilled' ? wikiResult.value       : null;
+  weather    = weatherResult.status    === 'fulfilled' ? weatherResult.value    : null;
+  attractions= attrResult.status       === 'fulfilled' ? attrResult.value       : [];
+  hotels     = hotelResult.status      === 'fulfilled' ? hotelResult.value      : [];
+  restaurants= restResult.status       === 'fulfilled' ? restResult.value       : [];
+
+  // ── Hero ─────────────────────────────────────────────────────────
+  const heroImg = (wiki && wiki.thumbnail && wiki.thumbnail.source) ||
+    FALLBACK_IMGS[Math.floor(Math.random() * FALLBACK_IMGS.length)];
+  const description = (wiki && wiki.extract) ||
+    `${displayName} is a destination in ${fullLocation || 'the world'}. Explore its attractions, local culture, cuisine, and hidden gems.`;
+  const tagline = (wiki && wiki.description) || fullLocation || 'Explore this destination';
+
+  $('heroImg').style.backgroundImage = `url('${heroImg}')`;
+  $('heroTagline').textContent = tagline;
+
+  const curTemp = weather && weather.current && (weather.current.temperature !== undefined ? weather.current.temperature : weather.current.temperature_2m);
+  $('heroMeta').innerHTML = [
+    `<span class="ddh-meta-item"><i class="bi bi-geo-alt me-1"></i>${fullLocation || countryName || 'World'}</span>`,
+    `<span class="ddh-meta-item"><i class="bi bi-geo me-1"></i>${lat.toFixed(3)}, ${lon.toFixed(3)}</span>`,
+    attractions.length ? `<span class="ddh-meta-item"><i class="bi bi-binoculars me-1"></i>${attractions.length} Attractions</span>` : '',
+    curTemp !== undefined && curTemp !== null ? `<span class="ddh-meta-item"><i class="bi bi-thermometer me-1"></i>${Math.round(curTemp)}°C Now</span>` : ''
+  ].filter(Boolean).join('');
+
+  // ── Quick Stats Bar ──────────────────────────────────────────────
+  $('quickStatsBar').innerHTML = [
+    { val: fullLocation || countryName || '–', label: 'Region' },
+    { val: `${lat.toFixed(3)}, ${lon.toFixed(3)}`, label: 'Coordinates' },
+    { val: attractions.length ? attractions.length + ' found' : '–', label: 'Attractions' },
+    { val: hotels.length ? hotels.length + ' found' : '–', label: 'Hotels' },
+    { val: restaurants.length ? restaurants.length + ' found' : '–', label: 'Restaurants' },
+    { val: curTemp !== undefined && curTemp !== null ? Math.round(curTemp) + '°C' : '–', label: 'Temp Now' }
+  ].map(s => `<div class="qsb-stat"><div class="qsb-val">${s.val}</div><div class="qsb-label">${s.label}</div></div>`).join('');
+
+  // ── Overview Tab ─────────────────────────────────────────────────
+  $('destDescription').textContent = description;
+
+  // Highlights from attraction categories
+  const cats = [...new Set(attractions.slice(0,16).map(a => catFromTags(a.tags)))].slice(0,6);
+  const highlights = cats.length >= 3 ? cats : ['Natural Landscapes','Local Culture','Historical Sites','Cuisine','Adventure Activities','Scenic Views'];
+  $('destHighlights').innerHTML = highlights.map(h => `
+    <div class="col-md-4">
+      <div class="d-flex align-items-center gap-2 py-2 border-bottom"><span class="text-primary fw-bold">✓</span><span>${h}</span></div>
+    </div>
+  `).join('');
+
+  // Month grid
+  const months = buildWeatherMonths(weather);
+  renderMonthGrid('monthGrid', months);
+  renderMonthGrid('fullMonthGrid', months);
+
+  // Quick facts
+  renderQuickFacts([
+    ['🌍 Region', fullLocation || countryName || '–'],
+    ['📍 Coordinates', `${lat.toFixed(4)}° N, ${lon.toFixed(4)}° E`],
+    ['🏛 Attractions', attractions.length ? attractions.length + ' places on OpenStreetMap' : 'Loading…'],
+    ['🏨 Hotels', hotels.length ? hotels.length + ' listed on OSM' : 'Search online'],
+    ['🍽 Restaurants', restaurants.length ? restaurants.length + ' listed on OSM' : 'Search online'],
+    ['🌐 Country', countryName || '–']
+  ]);
+
+  // ── Attractions Tab ──────────────────────────────────────────────
+  renderAttractions(attractions);
+
+  // ── Weather Tab ──────────────────────────────────────────────────
+  renderWeatherPanel(weather, cityName);
+  renderWeatherTips(weather);
+
+  // ── Hotels Tab ───────────────────────────────────────────────────
+  renderHotels(hotels);
+
+  // ── Food Tab ─────────────────────────────────────────────────────
+  renderRestaurants(restaurants);
+
+  // ── Itinerary Tab ─────────────────────────────────────────────────
+  renderItinerary(displayName, attractions);
+
+  // ── Gallery Tab ───────────────────────────────────────────────────
+  renderGallery(heroImg, attractions, displayName);
+
+  // ── Transport Tab ────────────────────────────────────────────────
+  renderTransport(lat, lon, displayName, address);
+
+  // ── Scroll reveal ────────────────────────────────────────────────
+  initScrollReveal();
+});
+
+// ── Tab switching ─────────────────────────────────────────────────
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-content-section').forEach(s => s.classList.add('d-none'));
+  document.querySelectorAll('.dest-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.remove('d-none');
+  btn.classList.add('active');
+}
+
+function scrollToSection(section) {
+  showTab('attractions', document.querySelector('.dest-tab:nth-child(2)'));
+  document.querySelector('.dest-tabs').scrollIntoView({ behavior: 'smooth' });
+}
+
+function initScrollReveal() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
+}
+</script>
+{% endblock %}
