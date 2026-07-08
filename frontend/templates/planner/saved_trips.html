@@ -29,6 +29,7 @@
           {% endif %}
           <div class="d-flex gap-2 mt-3">
             <a href="{{ url_for('planner.view_trip', trip_id=t.trip_id) }}" class="btn btn-ibm btn-sm flex-grow-1">View Trip</a>
+            <button class="btn btn-sm btn-outline-success" onclick="shareTrip({{ t.trip_id }})" title="Share Trip Link"><i class="bi bi-share"></i></button>
             <form method="POST" action="{{ url_for('planner.remove_saved', saved_id=t.saved_id) }}" class="d-inline">
               <button class="btn btn-sm btn-outline-danger"><i class="bi bi-bookmark-x"></i></button>
             </form>
@@ -46,4 +47,18 @@
     {% endif %}
   </div>
 </div>
+
+{% block extra_js %}
+<script>
+function shareTrip(tripId) {
+  const shareUrl = window.location.origin + '/planner/share/' + tripId;
+  navigator.clipboard.writeText(shareUrl).then(() => {
+    alert("🔗 Public share link copied to clipboard!\nSend it to your friend: " + shareUrl);
+  }).catch(err => {
+    console.error("Copy failed: ", err);
+    alert("Share Link:\n" + shareUrl);
+  });
+}
+</script>
+{% endblock %}
 {% endblock %}

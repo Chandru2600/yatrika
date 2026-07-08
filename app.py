@@ -26,8 +26,8 @@ def create_app(env: str = "development") -> Flask:
     # ── Flask instance ──────────────────────────────────────
     app = Flask(
         __name__,
-        template_folder=os.path.join("frontend", "templates"),
-        static_folder=os.path.join("frontend", "static")
+        template_folder=os.path.join(base_dir, "frontend", "templates"),
+        static_folder=os.path.join(base_dir, "frontend", "static")
     )
     app.config.from_object(cfg)
     app.secret_key = cfg.SECRET_KEY

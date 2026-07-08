@@ -147,14 +147,24 @@ def generate_trip_pdf(trip_row, itinerary: dict, budget: dict,
         story.append(Paragraph(day_title, styles["h2"]))
 
         for period in ["morning", "afternoon", "evening"]:
-            slot = day.get(period, {})
+            slot = day.get(period)
             if slot:
-                story.append(Paragraph(
-                    f"<b>{period.title()}:</b> {slot.get('activity', '—')} "
-                    f"<i>({slot.get('place', '')})</i> — "
-                    f"{slot.get('duration', '')} | Entry: {slot.get('entry_fee', 'Free')}",
-                    styles["body"]
-                ))
+                places_list = slot.get("places", [])
+                if places_list:
+                    for pl in places_list:
+                        story.append(Paragraph(
+                            f"<b>{period.title()}:</b> {pl.get('icon', '📍')} {pl.get('name', '—')} "
+                            f"<i>({pl.get('category', '')})</i> — "
+                            f"{pl.get('duration', '')} | Entry: {pl.get('fee', 'Free')}",
+                            styles["body"]
+                        ))
+                else:
+                    story.append(Paragraph(
+                        f"<b>{period.title()}:</b> {slot.get('activity', '—')} "
+                        f"<i>({slot.get('place', '')})</i> — "
+                        f"{slot.get('duration', '')} | Entry: {slot.get('entry_fee', 'Free')}",
+                        styles["body"]
+                    ))
                 if slot.get("tips"):
                     story.append(Paragraph(f"  💡 {slot['tips']}", styles["small"]))
 

@@ -1,6 +1,53 @@
 {% extends "base.html" %}
 {% block title %}{{ trip.destination }} — Itinerary{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/wizard.css') }}?v=1.3" />
+<style>
+  /* Standard styles for clean saved trip details view */
+  .overview-section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 6px;
+  }
+  .glass-card {
+    margin-bottom: 20px;
+  }
+  .tl-day-col {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+  .tl-event-dot {
+    font-size: 1.1rem;
+  }
+  .time-column {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .activity-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .act-icon { font-size: 1.25rem; }
+  .act-name { font-weight: 600; font-size: 0.88rem; flex-grow: 1; }
+  .act-duration { font-size: 0.75rem; color: var(--text-muted); }
+  .act-type-badge { font-size: 0.65rem; padding: 2px 6px; border-radius: 100px; }
+  .type-attraction { background: rgba(25,128,56,0.1); color: #198038; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-wrapper">
   <div class="container py-4">
@@ -14,21 +61,26 @@
             <span class="meta-badge"><i class="bi bi-calendar3 me-1"></i>{{ trip.start_date }} → {{ trip.end_date }}</span>
             <span class="meta-badge"><i class="bi bi-clock me-1"></i>{{ trip.num_days }} days</span>
             <span class="meta-badge"><i class="bi bi-people me-1"></i>{{ trip.num_travelers }} traveler(s)</span>
-            <span class="meta-badge"><i class="bi bi-wallet2 me-1"></i>${{ "%.0f"|format(trip.budget) }}</span>
+            <span class="meta-badge"><i class="bi bi-wallet2 me-1"></i>₹{{ "%.0f"|format(trip.budget) }}</span>
             <span class="meta-badge status-{{ trip.status }}">{{ trip.status|title }}</span>
           </div>
         </div>
         <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-outline-success btn-sm" onclick="shareTrip({{ trip.id }})">
+            <i class="bi bi-share me-1"></i>Share Link
+          </button>
           <button class="btn btn-outline-primary btn-sm" onclick="printItinerary()">
             <i class="bi bi-printer me-1"></i>Print
           </button>
           <a href="{{ url_for('planner.download_pdf', trip_id=trip.id) }}" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-file-pdf me-1"></i>PDF
           </a>
+          {% if not is_shared %}
           <form method="POST" action="{{ url_for('planner.delete_trip_route', trip_id=trip.id) }}"
                 onsubmit="return confirm('Delete this trip?')" class="d-inline">
             <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Delete</button>
           </form>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -36,11 +88,14 @@
     <!-- ── Tab Navigation ──────────────────────────────────── -->
     <ul class="nav nav-pills nav-itinerary mb-4 flex-wrap gap-2" id="itineraryTabs">
       <li class="nav-item"><a class="nav-link active" data-bs-toggle="pill" href="#tab-itinerary"><i class="bi bi-calendar3 me-1"></i>Itinerary</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-planner" onclick="setTimeout(renderDayPlanner, 50)"><i class="bi bi-calendar-week me-1"></i>Planner</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-timeline" onclick="setTimeout(renderTimeline, 50)"><i class="bi bi-clock me-1"></i>Timeline</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-route" onclick="setTimeout(renderRoute, 50)"><i class="bi bi-signpost-split me-1"></i>Route</a></li>
       <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-weather"><i class="bi bi-cloud-sun me-1"></i>Weather</a></li>
       <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-budget"><i class="bi bi-wallet2 me-1"></i>Budget</a></li>
       <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-hotels"><i class="bi bi-building me-1"></i>Hotels</a></li>
       <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-packing"><i class="bi bi-bag me-1"></i>Packing</a></li>
-      <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-map"><i class="bi bi-map me-1"></i>Map</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-map" onclick="setTimeout(renderMap, 50)"><i class="bi bi-map me-1"></i>Map</a></li>
       <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-expenses"><i class="bi bi-receipt me-1"></i>Expenses</a></li>
     </ul>
 
@@ -52,7 +107,6 @@
           <div class="alert alert-warning">
             <i class="bi bi-exclamation-triangle me-2"></i>
             AI generation note: {{ itinerary.error }}
-            <br><small>This may be a demo result. Configure IBM API keys in <code>.env</code> for live results.</small>
           </div>
         {% endif %}
 
@@ -64,13 +118,13 @@
               <h5 class="fw-semibold mb-1">Trip Overview</h5>
               <p class="mb-0">{{ itinerary.trip_summary }}</p>
               <div class="row g-2 mt-2">
-                {% for k, v in [("best_time_to_visit", itinerary.get("best_time_to_visit", "")),
+                {% for key, val in [("best_time_to_visit", itinerary.get("best_time_to_visit", "")),
                                 ("local_language", itinerary.get("local_language", "")),
                                 ("currency", itinerary.get("currency", "")),
                                 ("time_zone", itinerary.get("time_zone", ""))] %}
-                {% if v %}
+                {% if val %}
                 <div class="col-auto">
-                  <span class="info-chip">{{ k.replace('_', ' ')|title }}: {{ v }}</span>
+                  <span class="info-chip">{{ key.replace('_', ' ')|title }}: {{ val }}</span>
                 </div>
                 {% endif %}
                 {% endfor %}
@@ -80,131 +134,188 @@
         </div>
         {% endif %}
 
-        <!-- Day Cards -->
-        {% for day in itinerary.get("days", []) %}
-        <div class="day-card mb-4">
-          <div class="day-header">
-            <div class="day-number">Day {{ day.day }}</div>
-            <div class="day-theme">{{ day.theme }}</div>
-            <div class="day-date text-muted small">{{ day.date }}</div>
-          </div>
-          <div class="day-body">
-            <div class="row g-3">
-              <!-- Morning / Afternoon / Evening -->
-              {% for period, emoji_label in [("morning","🌅 Morning"),("afternoon","☀️ Afternoon"),("evening","🌆 Evening")] %}
-              {% set slot = day.get(period, {}) %}
-              {% if slot %}
-              <div class="col-md-4">
-                <div class="time-slot time-{{ period }}">
-                  <div class="time-label">{{ emoji_label }}</div>
-
-                  {# Show ALL places if the places list exists, otherwise fallback to legacy single activity #}
-                  {% if slot.get("places") %}
-                    {% for pl in slot.places %}
-                    <div class="place-card mt-2 p-2 rounded-2" style="background:rgba(0,98,255,.06);border:1px solid rgba(0,98,255,.15)">
-                      <div class="d-flex align-items-start gap-2">
-                        <span style="font-size:1.1rem;line-height:1.3">{{ pl.icon }}</span>
-                        <div class="flex-grow-1">
-                          <div class="fw-semibold" style="font-size:.88rem">{{ pl.name }}</div>
-                          {% if pl.category %}<div class="text-muted" style="font-size:.75rem">{{ pl.category }}</div>{% endif %}
-                          <div class="d-flex gap-2 mt-1 flex-wrap">
-                            <span class="badge bg-light text-dark" style="font-size:.7rem"><i class="bi bi-clock me-1"></i>{{ pl.duration }}</span>
-                            <span class="badge bg-light text-dark" style="font-size:.7rem">Entry: {{ pl.fee }}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    {% endfor %}
-                  {% else %}
-                    {# Legacy / Granite fallback: single activity string #}
-                    <div class="time-activity fw-semibold mt-1">{{ slot.get("activity", "—") }}</div>
-                    <div class="text-muted small mt-1">
-                      <i class="bi bi-geo-alt me-1"></i>{{ slot.get("place", "") }}
-                    </div>
-                    {% if slot.get("duration") %}
-                    <div class="text-muted small"><i class="bi bi-clock me-1"></i>{{ slot.duration }}</div>
-                    {% endif %}
-                    {% if slot.get("entry_fee") %}
-                    <div class="small mt-1"><span class="badge bg-light text-dark">Entry: {{ slot.entry_fee }}</span></div>
-                    {% endif %}
-                  {% endif %}
-
-                  {% if slot.get("tips") %}
-                  <div class="time-tip mt-2"><i class="bi bi-lightbulb me-1 text-warning"></i>{{ slot.tips }}</div>
-                  {% endif %}
-                </div>
-              </div>
-              {% endif %}
-              {% endfor %}
-            </div>
-
-            <!-- Food Recommendations -->
-            {% if day.get("food_recommendations") %}
-            <div class="food-section mt-3">
-              <h6 class="fw-semibold mb-2"><i class="bi bi-fork-knife me-1 text-danger"></i>Food Recommendations</h6>
-              <div class="d-flex flex-wrap gap-2">
-                {% for food in day.food_recommendations %}
-                <div class="food-chip">
-                  <strong>{{ food.meal }}:</strong> {{ food.restaurant }}
-                  <span class="text-muted"> · {{ food.cuisine }} · {{ food.price_range }}</span>
+        <div class="row g-4">
+          <!-- Left Column: Statistics, Attractions, Emergency Contacts -->
+          <div class="col-lg-8">
+            
+            <!-- Trip Statistics -->
+            <div class="overview-section">
+              <div class="overview-section-title"><span>📊</span> Trip Statistics</div>
+              <div class="row g-3">
+                {% set budget_sum = budget.total_budget if budget else trip.budget %}
+                {% for emoji, label, val in [
+                  ('📅', 'Travel Dates', trip.start_date ~ ' → ' ~ trip.end_date),
+                  ('⏰', 'Duration', trip.num_days ~ ' Days'),
+                  ('👥', 'Travelers', trip.num_travelers ~ ' Person(s)'),
+                  ('💰', 'Est. Spend', '₹' ~ "{:,.0f}".format(budget_sum)),
+                  ('🚗', 'Transport', trip.transport|title),
+                  ('🎯', 'Style', trip.travel_style|title)
+                ] %}
+                <div class="col-6 col-md-4">
+                  <div class="glass-card text-center p-3" style="border-radius:12px;">
+                    <div style="font-size:1.6rem; margin-bottom: 4px;">{{ emoji }}</div>
+                    <div class="fw-bold" style="font-size: 0.95rem;">{{ val }}</div>
+                    <div class="text-muted small">{{ label }}</div>
+                  </div>
                 </div>
                 {% endfor %}
               </div>
             </div>
-            {% endif %}
 
-            <!-- Daily Budget + Tips -->
-            <div class="d-flex flex-wrap justify-content-between align-items-center mt-3 gap-3">
-              {% if day.get("daily_budget") %}
-              <div class="daily-budget-chip">
-                <i class="bi bi-wallet me-1"></i>Daily Budget: <strong>${{ day.daily_budget }}</strong>
+            <!-- Selected Attractions -->
+            <div class="overview-section mt-4">
+              <div class="overview-section-title"><span>📍</span> Selected Attractions</div>
+              <div class="row g-2">
+                {% set attractions = itinerary.get("selected_attractions", []) %}
+                {% if attractions %}
+                  {% for a in attractions %}
+                  <div class="col-md-6">
+                    <div class="glass-card d-flex align-items-center gap-3 p-3" style="border-radius:12px;">
+                      <span style="font-size:1.8rem;">{{ a.icon }}</span>
+                      <div>
+                        <div class="fw-bold" style="font-size:.9rem;">{{ loop.index }}. {{ a.name }}</div>
+                        <div class="text-muted small">{{ a.cat }} · {{ a.dist }} km · {{ (a.dur / 60)|round(1) }}h visit</div>
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="text-muted p-2 small">No specific attractions selected.</div>
+                {% endif %}
               </div>
-              {% endif %}
-              {% if day.get("local_tips") %}
-              <div class="local-tip flex-grow-1 ms-2">
-                <i class="bi bi-info-circle me-1 text-info"></i>{{ day.local_tips }}
-              </div>
-              {% endif %}
             </div>
 
-            {% if day.get("hidden_gems") %}
-            <div class="hidden-gems mt-2">
-              <span class="fw-semibold small"><i class="bi bi-gem me-1 text-purple"></i>Hidden Gems: </span>
-              {% for gem in day.hidden_gems %}
-                <span class="gem-chip">{{ gem }}</span>
-              {% endfor %}
+            <!-- Notes Trigger Button -->
+            {% if not is_shared %}
+            <div class="mt-4">
+              <button class="btn btn-primary fw-bold text-white px-4 py-2" data-bs-toggle="modal" data-bs-target="#saveModal">
+                <i class="bi bi-bookmark-plus me-1"></i>Edit Personal Trip Notes
+              </button>
             </div>
             {% endif %}
+
+          </div>
+
+          <!-- Right Column: Emergency & Personal Notes Preview -->
+          <div class="col-lg-4">
+            
+            {% if trip.notes %}
+            <div class="overview-section">
+              <div class="overview-section-title"><span>📝</span> Personal Notes</div>
+              <div class="glass-card p-3" style="border-radius:12px; background: rgba(255,193,7,0.08); border-color: rgba(255,193,7,0.25);">
+                <p class="mb-0 small" style="white-space: pre-line;">{{ trip.notes }}</p>
+              </div>
+            </div>
+            {% endif %}
+
+            <div class="overview-section">
+              <div class="overview-section-title"><span>🚨</span> Emergency Contacts</div>
+              <div class="emergency-cards d-flex flex-column gap-2">
+                <div class="ec-card p-3 border rounded d-flex justify-content-between align-items-center" style="background: var(--bg-surface); border-radius:12px;">
+                  <div class="ec-label fw-bold small">Police</div><div class="ec-value text-danger fw-bold">100</div>
+                </div>
+                <div class="ec-card p-3 border rounded d-flex justify-content-between align-items-center" style="background: var(--bg-surface); border-radius:12px;">
+                  <div class="ec-label fw-bold small">Ambulance</div><div class="ec-value text-danger fw-bold">108</div>
+                </div>
+                <div class="ec-card p-3 border rounded d-flex justify-content-between align-items-center" style="background: var(--bg-surface); border-radius:12px;">
+                  <div class="ec-label fw-bold small">Tourist Helpline</div><div class="ec-value text-danger fw-bold">1363</div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
-        {% else %}
-          <div class="empty-state"><div class="empty-icon">📅</div><p>No day data generated.</p></div>
-        {% endfor %}
+      </div>
 
-        <!-- Safety & Emergency -->
-        {% if itinerary.get("safety_tips") or itinerary.get("emergency_numbers") %}
-        <div class="card-panel mt-4 border-danger-subtle">
-          <h5 class="panel-title text-danger"><i class="bi bi-shield-exclamation me-2"></i>Safety & Emergency</h5>
-          <div class="row g-3 mt-1">
-            <div class="col-md-8">
-              {% for tip in itinerary.get("safety_tips", []) %}
-              <div class="safety-tip"><i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>{{ tip }}</div>
-              {% endfor %}
-            </div>
-            {% set emg = itinerary.get("emergency_numbers", {}) %}
-            {% if emg %}
-            <div class="col-md-4">
-              <div class="emergency-box">
-                <div class="emg-title">📞 Emergency Numbers</div>
-                <div class="emg-item"><span>Police:</span> <strong>{{ emg.police }}</strong></div>
-                <div class="emg-item"><span>Ambulance:</span> <strong>{{ emg.ambulance }}</strong></div>
-                <div class="emg-item"><span>Tourist Helpline:</span> <strong>{{ emg.tourist_helpline }}</strong></div>
-              </div>
-            </div>
-            {% endif %}
+      <!-- ╔═ TAB 1.5: PLANNER (EDITABLE) ═════════════════════╗ -->
+      <div class="tab-pane fade" id="tab-planner">
+        <div class="step-hero-header">
+          <div class="step-title-group">
+            <h2 class="step-title" style="font-size: 1.5rem;">Day Planner</h2>
+            <p class="step-subtitle text-muted">Drag and drop activities to build your perfect day schedule.</p>
           </div>
+        </div>
+
+        <div class="day-selector mb-3" id="daySelector"></div>
+
+        <div class="day-planner-grid" id="dayPlannerGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px;">
+          <div class="time-column" id="morningCol">
+            <div class="time-col-header morning-header">🌅 Morning <span class="time-range">6 AM – 12 PM</span></div>
+            <div class="drop-zone border rounded p-2" id="morning-drop" ondragover="allowDrop(event)" ondrop="dropActivity(event,'morning')" style="min-height:150px; background: rgba(0,0,0,0.02);"></div>
+          </div>
+          <div class="time-column" id="afternoonCol">
+            <div class="time-col-header afternoon-header">☀️ Afternoon <span class="time-range">12 PM – 5 PM</span></div>
+            <div class="drop-zone border rounded p-2" id="afternoon-drop" ondragover="allowDrop(event)" ondrop="dropActivity(event,'afternoon')" style="min-height:150px; background: rgba(0,0,0,0.02);"></div>
+          </div>
+          <div class="time-column" id="eveningCol">
+            <div class="time-col-header evening-header">🌆 Evening <span class="time-range">5 PM – 9 PM</span></div>
+            <div class="drop-zone border rounded p-2" id="evening-drop" ondragover="allowDrop(event)" ondrop="dropActivity(event,'evening')" style="min-height:150px; background: rgba(0,0,0,0.02);"></div>
+          </div>
+        </div>
+
+        {% if not is_shared %}
+        <div class="unassigned-pool glass-card mt-3">
+          <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+            <h6 class="fw-semibold mb-0">🎯 Unscheduled Activities &amp; Custom Creator</h6>
+            <div class="d-flex gap-2 align-items-center">
+              <input type="text" id="customActName" class="form-control form-control-sm" placeholder="Activity name (e.g. Scuba)..." style="width:200px;border-radius:100px;background:var(--bg-surface);color:var(--text-primary);border-color:var(--border-color);">
+              <select id="customActType" class="form-select form-select-sm" style="width:110px;border-radius:100px;background:var(--bg-surface);color:var(--text-primary);border-color:var(--border-color);">
+                <option value="leisure">Leisure</option>
+                <option value="food">Food</option>
+                <option value="travel">Travel</option>
+              </select>
+              <input type="text" id="customActDur" class="form-control form-control-sm" placeholder="1h or 30m..." style="width:90px;border-radius:100px;background:var(--bg-surface);color:var(--text-primary);border-color:var(--border-color);">
+              <button class="btn btn-primary btn-sm py-1 px-3" onclick="addCustomActivityPool()" style="font-size:.8rem;height:31px;border-radius:100px;">+ Add</button>
+              <button class="btn btn-success btn-sm py-1 px-3 fw-bold ms-2" onclick="savePlannerChangesToServer()" style="font-size:.8rem;height:31px;border-radius:100px;"><i class="bi bi-floppy me-1"></i>Save Changes</button>
+            </div>
+          </div>
+          <div class="pool-items" id="poolItems"></div>
         </div>
         {% endif %}
+      </div>
+
+      <!-- ╔═ TAB 1.6: TIMELINE ═══════════════════════════════╗ -->
+      <div class="tab-pane fade" id="tab-timeline">
+        <div class="step-hero-header">
+          <div class="step-title-group">
+            <h2 class="step-title" style="font-size: 1.5rem;">📅 Smart Day-by-Day Timeline</h2>
+            <p class="step-subtitle text-muted">Hour-by-hour schedule built from your selected activities.</p>
+          </div>
+        </div>
+
+        <div class="tl-summary-bar mb-3">
+          <span>📅 {{ trip.num_days }} Day{{ 's' if trip.num_days > 1 else '' }}</span>
+          <span>🚗 {{ trip.transport|title }}</span>
+          <span>🎯 {{ trip.travel_style|title }}</span>
+        </div>
+
+        <div id="smartTimeline" style="padding: 4px 0 24px;"></div>
+      </div>
+
+      <!-- ╔═ TAB 1.7: ROUTE ══════════════════════════════════╗ -->
+      <div class="tab-pane fade" id="tab-route">
+        <div class="step-hero-header">
+          <div class="step-title-group">
+            <h2 class="step-title" style="font-size: 1.5rem;">Interactive Route Planner</h2>
+            <p class="step-subtitle text-muted">Visualize your journey route with travel details at each stop.</p>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-lg-7">
+            <div class="route-timeline-card glass-card" id="routeTimeline"></div>
+          </div>
+          <div class="col-lg-5">
+            <div class="glass-card mb-3">
+              <h5 class="fw-semibold mb-3">🚗 Journey Statistics</h5>
+              <div class="journey-stats" id="journeyStats"></div>
+            </div>
+            <div class="glass-card">
+              <h5 class="fw-semibold mb-3">⛽ Cost Estimate</h5>
+              <div class="cost-breakdown" id="costBreakdown"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- ╔═ TAB 2: WEATHER ══════════════════════════════════╗ -->
@@ -284,13 +395,13 @@
                 <div class="budget-row-bar">
                   <div class="budget-bar-fill" style="width: {{ info.percentage }}%"></div>
                 </div>
-                <div class="budget-row-amount">${{ "{:,.0f}".format(info.amount) }}</div>
+                <div class="budget-row-amount">₹{{ "{:,.0f}".format(info.amount) }}</div>
                 <div class="budget-row-pct text-muted small">{{ "%.1f"|format(info.percentage) }}%</div>
               </div>
               {% endfor %}
               <div class="budget-total-row mt-3">
-                Total: <strong>${{ "{:,.0f}".format(budget.total_budget) }}</strong>
-                &nbsp;|&nbsp; Per day: <strong>${{ "{:,.0f}".format(budget.daily_average) }}</strong>
+                Total: <strong>₹{{ "{:,.0f}".format(budget.total_budget) }}</strong>
+                &nbsp;|&nbsp; Per day: <strong>₹{{ "{:,.0f}".format(budget.daily_average) }}</strong>
                 &nbsp;|&nbsp; Status:
                 <span class="badge bg-{{ 'success' if budget.budget_status == 'comfortable' else 'warning' }}">
                   {{ budget.budget_status|title }}
@@ -334,7 +445,7 @@
                   <span class="ms-1 small">{{ h.rating }}</span>
                 </div>
               </div>
-              <div class="hotel-price">${{ h.price_per_night }}<span class="text-muted">/night</span></div>
+              <div class="hotel-price">₹{{ h.price_per_night }}<span class="text-muted">/night</span></div>
               <div class="hotel-distance text-muted small"><i class="bi bi-geo me-1"></i>{{ h.distance_from_center }}</div>
               {% if h.amenities %}
               <div class="hotel-amenities mt-2 d-flex flex-wrap gap-1">
@@ -413,6 +524,7 @@
       <!-- ╔═ TAB 7: EXPENSES ═════════════════════════════════╗ -->
       <div class="tab-pane fade" id="tab-expenses">
         <div class="row g-4">
+          {% if not is_shared %}
           <div class="col-lg-5">
             <div class="card-panel">
               <h5 class="panel-title mb-3">Add Expense</h5>
@@ -426,7 +538,7 @@
                   </select>
                 </div>
                 <div class="mb-3">
-                  <label class="form-label">Amount (USD)</label>
+                  <label class="form-label">Amount (INR)</label>
                   <input type="number" name="amount" class="form-control" min="0" step="0.01" required />
                 </div>
                 <div class="mb-3">
@@ -437,7 +549,8 @@
               </form>
             </div>
           </div>
-          <div class="col-lg-7">
+          {% endif %}
+          <div class="{% if is_shared %}col-lg-12{% else %}col-lg-7{% endif %}">
             <div class="card-panel">
               <h5 class="panel-title mb-3">Expense Log</h5>
               {% if expenses %}
@@ -450,12 +563,12 @@
                       <td class="text-muted small">{{ e.date[:10] }}</td>
                       <td><span class="badge bg-light text-dark">{{ e.category|title }}</span></td>
                       <td>{{ e.description or '—' }}</td>
-                      <td class="text-end fw-semibold">${{ "%.2f"|format(e.amount) }}</td>
+                      <td class="text-end fw-semibold">₹{{ "%.2f"|format(e.amount) }}</td>
                     </tr>
                     {% endfor %}
                     <tr class="table-active">
                       <td colspan="3" class="fw-bold">Total Spent</td>
-                      <td class="text-end fw-bold">${{ "%.2f"|format(expenses|sum(attribute='amount')) }}</td>
+                      <td class="text-end fw-bold">₹{{ "%.2f"|format(expenses|sum(attribute='amount')) }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -475,7 +588,7 @@
   </div>
 </div>
 
-<!-- Save Modal -->
+<!-- Save Notes Modal -->
 <div class="modal fade" id="saveModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -487,7 +600,7 @@
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label">Personal Notes (optional)</label>
-            <textarea name="notes" class="form-control" rows="3" placeholder="Add notes about this trip..."></textarea>
+            <textarea name="notes" class="form-control" rows="3" placeholder="Add notes about this trip...">{{ trip.notes or '' }}</textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -506,7 +619,30 @@
 <script src="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.js"></script>
 
 <script>
+const TRIP_ID = {{ trip.id }};
 const TRIP_DEST = "{{ trip.destination|e }}";
+const IS_SHARED = {% if is_shared %}true{% else %}false{% endif %};
+
+window.shareTrip = function(tripId) {
+  const shareUrl = window.location.origin + '/planner/share/' + tripId;
+  navigator.clipboard.writeText(shareUrl).then(() => {
+    alert("🔗 Public share link copied to clipboard!\nSend it to your friend: " + shareUrl);
+  }).catch(err => {
+    console.error("Copy failed: ", err);
+    alert("Share Link:\n" + shareUrl);
+  });
+};
+
+const ITINERARY_DATA = {{ itinerary|tojson }};
+const WEATHER_DATA = {{ weather|tojson }};
+const BUDGET_DATA_FULL = {{ budget|tojson }};
+const HOTELS_DATA = {{ hotels|tojson }};
+const TRANSPORT_MODE = "{{ trip.transport }}";
+const TRAVEL_DAYS = {{ trip.num_days }};
+const TRAVELERS = {{ trip.num_travelers }};
+const BUDGET = {{ trip.budget }};
+const STYLE = "{{ trip.travel_style }}";
+
 {% if budget.breakdown %}
 const BUDGET_LABELS = {{ budget.breakdown.keys()|list|tojson }};
 const BUDGET_DATA   = {{ budget.breakdown.values()|map(attribute='amount')|list|tojson }};
@@ -520,8 +656,8 @@ const EXP_LABELS = {{ expenses|map(attribute='category')|list|tojson }};
 const EXP_DATA   = {{ expenses|map(attribute='amount')|list|tojson }};
 {% else %}
 const EXP_LABELS = [];
-const EXP_DATA   = [];
+const EXP_DATA = [];
 {% endif %}
 </script>
-<script src="{{ url_for('static', filename='js/trip_view.js') }}"></script>
+<script src="{{ url_for('static', filename='js/trip_view.js') }}?v=1.3"></script>
 {% endblock %}

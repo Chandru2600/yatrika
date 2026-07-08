@@ -501,37 +501,52 @@ function showWeatherResult(w) {
 }
 
 /* ── Step Navigation ─────────────────────────────────────────────── */
-const STEP_LABELS = ['','Journey Details','Destination Explorer','Attraction Selection','Attraction Details','Day Planner','Smart Timeline','Route Planner','Interactive Map','Travel Summary','Trip Overview'];
+const STEP_LABELS = ['','Journey Details','Destination Explorer','Attraction Details','Day Planner','Smart Timeline','Route Planner','Interactive Map','Travel Summary','Trip Overview'];
 
-async function goToStep(n) {
-  if (n === 2 && !State.destLat) {
+const STEP_MAP = {
+  1: 1, // wstep-1 Journey Details
+  2: 2, // wstep-2 Destination Explorer (selection cards)
+  3: 4, // wstep-4 Attraction Details (details of selected places)
+  4: 5, // wstep-5 Day Planner
+  5: 6, // wstep-6 Timeline
+  6: 7, // wstep-7 Route
+  7: 8, // wstep-8 Map
+  8: 9, // wstep-9 Summary
+  9: 10 // wstep-10 Overview
+};
+
+async function goToStep(logicalStep) {
+  if (logicalStep === 2 && !State.destLat) {
     showToast('⚠️ Please select a destination from the autocomplete suggestions first.', 'warning');
     return;
   }
-  const cur = document.getElementById('wstep-' + State.step);
-  const nxt = document.getElementById('wstep-' + n);
+  const htmlStep = STEP_MAP[logicalStep];
+  const curHtml = STEP_MAP[State.step] || 1;
+  
+  const cur = document.getElementById('wstep-' + curHtml);
+  const nxt = document.getElementById('wstep-' + htmlStep);
   if (!nxt) return;
   if (cur) cur.classList.add('d-none');
   nxt.classList.remove('d-none');
-  State.step = n;
-  updateProgressBar(n);
-  updateBreadcrumb(n);
+  
+  State.step = logicalStep;
+  updateProgressBar(logicalStep);
+  updateBreadcrumb(logicalStep);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  if (n === 2) await loadStep2();
-  if (n === 3) renderSelectedList();
-  if (n === 4) renderDetailGrid();   // Attraction Details
-  if (n === 5) renderDayPlanner();   // Day Planner
-  if (n === 6) renderTimeline();     // Smart Timeline
-  if (n === 7) await renderRoute();  // Route Planner
-  if (n === 8) renderMap();          // Interactive Map
-  if (n === 9) renderAnalytics();
-  if (n === 10) renderOverview();
+  if (logicalStep === 2) await loadStep2();
+  if (logicalStep === 3) renderDetailGrid();
+  if (logicalStep === 4) renderDayPlanner();
+  if (logicalStep === 5) renderTimeline();
+  if (logicalStep === 6) await renderRoute();
+  if (logicalStep === 7) renderMap();
+  if (logicalStep === 8) renderAnalytics();
+  if (logicalStep === 9) renderOverview();
 }
 
 function updateProgressBar(n) {
   const fill = document.getElementById('progressFill');
-  if (fill) fill.style.width = ((n/10)*100)+'%';
+  if (fill) fill.style.width = ((n/9)*100)+'%';
   document.querySelectorAll('.progress-step').forEach(s => {
     const sn = +s.dataset.step;
     s.classList.remove('active','done');
@@ -615,6 +630,12 @@ function buildAttractionCard(a) {
         <div class="ac-meta-item"><i class="bi bi-people me-1"></i>${a.difficulty}</div>
         ${a.opening !== 'Check locally' ? `<div class="ac-meta-item"><i class="bi bi-door-open me-1"></i>${a.opening}</div>` : ''}
       </div>
+      <div class="d-flex gap-2 mt-2">
+        <button class="btn btn-sm btn-outline-primary flex-grow-1" onclick="openDrawer('${a.id}'); event.stopPropagation();" style="font-size:0.75rem;"><i class="bi bi-info-circle"></i> Details</button>
+        <button class="btn btn-sm ${sel ? 'btn-success' : 'btn-primary'} select-btn-explore" onclick="toggleSelection('${a.id}'); event.stopPropagation();" style="width: 85px; font-size:0.75rem; font-weight:600;">
+          ${sel ? '✓ Added' : '+ Add'}
+        </button>
+      </div>
     </div>
   </div>`;
 }
@@ -633,6 +654,12 @@ function toggleSelection(id) {
     if (ind) ind.style.display = added ? 'flex' : 'none';
     const favBtn = card.querySelector('.ac-fav-btn');
     if (favBtn) favBtn.style.display = added ? 'none' : '';
+    
+    const selectBtn = card.querySelector('.select-btn-explore');
+    if (selectBtn) {
+      selectBtn.className = `btn btn-sm ${added ? 'btn-success' : 'btn-primary'} select-btn-explore`;
+      selectBtn.textContent = added ? '✓ Added' : '+ Add';
+    }
   }
 }
 function toggleFav(id, btn) {
@@ -1178,18 +1205,23 @@ function renderDetailGrid() {
   const grid = document.getElementById('detailAttractionGrid');
   if (!grid) return;
   const sel = State.selectedAttractions;
-  if (!sel.length) { grid.innerHTML=`<div class="text-center py-5 text-muted" style="grid-column:1/-1"><p>No attractions selected. <a href="#" onclick="goToStep(2)">Go back to Step 2</a></p></div>`; return; }
-  grid.innerHTML = sel.map(a=>`
-    <div class="dg-card">
-      <div class="dg-image" style="background-image:url('${a.img}');background-color:#e5e7eb">
-        <div class="dg-overlay"><div class="dg-name">${a.name}</div></div>
+  if (!sel.length) { grid.innerHTML=`<div class="text-center py-5 text-muted" style="grid-column:1/-1"><p>No attractions selected. <a href="#" onclick="goToStep(2)">Go back to Destination Explorer</a></p></div>`; return; }
+  
+  grid.innerHTML = sel.map(a => `
+    <div class="dg-card" data-id="${a.id}" style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: var(--bg-card);">
+      <div class="dg-image" style="background-image:url('${a.img}');background-color:#e5e7eb; height: 160px; background-size: cover; position: relative;">
+        <div class="dg-overlay" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 8px 12px; color: white;"><div class="dg-name" style="font-weight:700; font-size:0.95rem;">${a.name}</div></div>
       </div>
-      <div class="dg-body">
-        <div class="dg-tags"><span class="dg-tag">${a.icon} ${a.cat}</span><span class="dg-tag">${a.dist} km</span></div>
-        <button class="dg-explore" onclick="openDrawer('${a.id}')"><i class="bi bi-info-circle me-2"></i>Full Details</button>
+      <div class="dg-body" style="padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+        <div class="dg-tags" style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <span class="dg-tag" style="background: rgba(0,98,255,0.08); color: #0062FF; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight:600;">${a.icon} ${a.cat}</span>
+          <span class="dg-tag" style="background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 4px; font-size: 0.72rem;">${a.dist} km</span>
+        </div>
+        <button class="btn btn-sm btn-outline-primary w-100 mt-2" onclick="openDrawer('${a.id}')" style="font-size:0.8rem;"><i class="bi bi-info-circle"></i> View Details</button>
       </div>
     </div>`).join('');
 }
+
 function openDrawer(id) {
   const a = State.selectedAttractions.find(x=>x.id===id) || State.liveAttractions.find(x=>x.id===id);
   if (!a) return;
@@ -1512,7 +1544,7 @@ function dropActivity(e, zone) {
     if (id.startsWith('osm_')) {
       const attraction = State.selectedAttractions.find(a => a.id === id);
       if (attraction) {
-        actObject = { id: attraction.id, icon: attraction.icon, name: attraction.name, dur: fmtHrs(attraction.dur), type: 'attraction' };
+        actObject = { id: attraction.id, icon: attraction.icon, name: attraction.name, dur: fmtHrs(attraction.dur), type: 'attraction', category: attraction.cat || '', fee: attraction.fee || 0 };
       }
     } else if (id.startsWith('custom_')) {
       const customAct = State.customPoolActivities.find(c => c.id === id);

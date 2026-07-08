@@ -15,24 +15,23 @@
         {% for i, label, icon in [
           (1,'Journey','bi-geo-alt'),
           (2,'Explore','bi-binoculars'),
-          (3,'Select','bi-check2-square'),
-          (4,'Details','bi-card-text'),
-          (5,'Planner','bi-calendar3'),
-          (6,'Timeline','bi-clock'),
-          (7,'Route','bi-signpost-split'),
-          (8,'Map','bi-map'),
-          (9,'Summary','bi-bar-chart'),
-          (10,'Overview','bi-flag')
+          (3,'Details','bi-card-text'),
+          (4,'Planner','bi-calendar3'),
+          (5,'Timeline','bi-clock'),
+          (6,'Route','bi-signpost-split'),
+          (7,'Map','bi-map'),
+          (8,'Summary','bi-bar-chart'),
+          (9,'Overview','bi-flag')
         ] %}
         <div class="progress-step {% if i==1 %}active{% endif %}" data-step="{{ i }}" onclick="goToStep({{ i }})">
           <div class="ps-icon"><i class="bi {{ icon }}"></i></div>
           <div class="ps-label">{{ label }}</div>
           <div class="ps-num">{{ i }}</div>
         </div>
-        {% if i < 10 %}<div class="ps-connector"></div>{% endif %}
+        {% if i < 9 %}<div class="ps-connector"></div>{% endif %}
         {% endfor %}
       </div>
-      <div class="progress-fill-bar"><div class="progress-fill" id="progressFill" style="width:10%"></div></div>
+      <div class="progress-fill-bar"><div class="progress-fill" id="progressFill" style="width:11.1%"></div></div>
     </div>
   </div>
 
@@ -252,7 +251,6 @@
             <div class="isb-stat"><span>⏳ Time Left</span><span id="timeLeft">8h</span></div>
           </div>
           <div class="isb-list" id="selectedAttractions"></div>
-          <button class="btn btn-wizard-next w-100 mt-2" onclick="goToStep(3)">Continue →</button>
         </div>
       </div>
 
@@ -295,12 +293,12 @@
       </div>
 
       <div class="step-footer">
-        <button class="btn btn-wizard-back" onclick="goToStep(2)"><i class="bi bi-arrow-left me-2"></i>Back</button>
+        <button class="btn btn-wizard-back" onclick="goToStep(3)"><i class="bi bi-arrow-left me-2"></i>Back</button>
         <div class="d-flex gap-2">
           <button class="btn btn-outline-primary" onclick="optimizeRouteTSP()">
             <i class="bi bi-lightning-charge me-1"></i>Optimize Sequence
           </button>
-          <button class="btn btn-wizard-next" onclick="goToStep(4)">Attraction Details <i class="bi bi-arrow-right ms-2"></i></button>
+          <button class="btn btn-wizard-next" onclick="goToStep(5)">Day Planner <i class="bi bi-arrow-right ms-2"></i></button>
         </div>
       </div>
     </div>
@@ -319,8 +317,8 @@
       <div class="detail-grid" id="detailAttractionGrid"></div>
 
       <div class="step-footer">
-        <button class="btn btn-wizard-back" onclick="goToStep(3)"><i class="bi bi-arrow-left me-2"></i>Back</button>
-        <button class="btn btn-wizard-next" onclick="goToStep(5)">Day Planner <i class="bi bi-arrow-right ms-2"></i></button>
+        <button class="btn btn-wizard-back" onclick="goToStep(2)"><i class="bi bi-arrow-left me-2"></i>Back</button>
+        <button class="btn btn-wizard-next" onclick="goToStep(4)">Day Planner <i class="bi bi-arrow-right ms-2"></i></button>
       </div>
     </div>
 
@@ -374,12 +372,12 @@
       </div>
 
       <div class="step-footer">
-        <button class="btn btn-wizard-back" onclick="goToStep(4)"><i class="bi bi-arrow-left me-2"></i>Back</button>
+        <button class="btn btn-wizard-back" onclick="goToStep(3)"><i class="bi bi-arrow-left me-2"></i>Back</button>
         <div class="d-flex gap-2">
           <button class="btn btn-outline-primary" onclick="optimizeRouteTSP()">
             <i class="bi bi-lightning-charge me-1"></i>Optimize Sequence
           </button>
-          <button class="btn btn-wizard-next" onclick="goToStep(6)">Generate Timeline <i class="bi bi-arrow-right ms-2"></i></button>
+          <button class="btn btn-wizard-next" onclick="goToStep(5)">Generate Timeline <i class="bi bi-arrow-right ms-2"></i></button>
         </div>
       </div>
     </div>
@@ -401,12 +399,9 @@
       <div id="smartTimeline" style="padding: 4px 0 24px;"></div>
 
       <div class="step-footer">
-        <button class="btn btn-wizard-back" onclick="goToStep(5)"><i class="bi bi-arrow-left me-2"></i>Back to Day Planner</button>
+        <button class="btn btn-wizard-back" onclick="goToStep(4)"><i class="bi bi-arrow-left me-2"></i>Back to Day Planner</button>
         <div class="d-flex gap-2">
-          <button class="btn btn-outline-secondary btn-sm" onclick="window.print()" title="Print timeline">
-            <i class="bi bi-printer me-1"></i>Print
-          </button>
-          <button class="btn btn-wizard-next" onclick="goToStep(7)">Route Planner <i class="bi bi-arrow-right ms-2"></i></button>
+          <button class="btn btn-wizard-next" onclick="goToStep(6)">Route Planner <i class="bi bi-arrow-right ms-2"></i></button>
         </div>
       </div>
     </div>
@@ -439,8 +434,8 @@
       </div>
 
       <div class="step-footer">
-        <button class="btn btn-wizard-back" onclick="goToStep(6)"><i class="bi bi-arrow-left me-2"></i>Back</button>
-        <button class="btn btn-wizard-next" onclick="goToStep(8)">Interactive Map <i class="bi bi-arrow-right ms-2"></i></button>
+        <button class="btn btn-wizard-back" onclick="goToStep(5)"><i class="bi bi-arrow-left me-2"></i>Back</button>
+        <button class="btn btn-wizard-next" onclick="goToStep(7)">Interactive Map <i class="bi bi-arrow-right ms-2"></i></button>
       </div>
     </div>
 
@@ -480,8 +475,8 @@
       </div>
 
       <div class="step-footer">
-        <button class="btn btn-wizard-back" onclick="goToStep(7)"><i class="bi bi-arrow-left me-2"></i>Back</button>
-        <button class="btn btn-wizard-next" onclick="goToStep(9)">View Summary <i class="bi bi-arrow-right ms-2"></i></button>
+        <button class="btn btn-wizard-back" onclick="goToStep(6)"><i class="bi bi-arrow-left me-2"></i>Back</button>
+        <button class="btn btn-wizard-next" onclick="goToStep(8)">View Summary <i class="bi bi-arrow-right ms-2"></i></button>
       </div>
     </div>
 
@@ -514,8 +509,8 @@
       </div>
 
       <div class="step-footer">
-        <button class="btn btn-wizard-back" onclick="goToStep(8)"><i class="bi bi-arrow-left me-2"></i>Back</button>
-        <button class="btn btn-wizard-next" onclick="goToStep(10)">Trip Overview <i class="bi bi-arrow-right ms-2"></i></button>
+        <button class="btn btn-wizard-back" onclick="goToStep(7)"><i class="bi bi-arrow-left me-2"></i>Back</button>
+        <button class="btn btn-wizard-next" onclick="goToStep(9)">Trip Overview <i class="bi bi-arrow-right ms-2"></i></button>
       </div>
     </div>
 
@@ -544,14 +539,11 @@
           <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div>
               <div class="fw-bold" style="font-size:1rem"><i class="bi bi-floppy me-2 text-primary"></i>Save This Trip Plan</div>
-              <div class="text-muted small mt-1">Save your exact customized itinerary, or use IBM Granite AI to plan a new one from your preferences.</div>
+              <div class="text-muted small mt-1">Save your customized itinerary directly to your dashboard.</div>
             </div>
             <div class="d-flex gap-2 flex-wrap">
               <button class="btn btn-success fw-bold" onclick="saveCustomWizardTripDirectly()">
-                <i class="bi bi-floppy me-2"></i>Save Custom Itinerary
-              </button>
-              <button class="btn btn-primary fw-bold" onclick="saveWizardToDashboard()">
-                <i class="bi bi-magic me-2"></i>Save with IBM Granite AI
+                <i class="bi bi-floppy me-2"></i>Save Trip
               </button>
             </div>
           </div>
@@ -559,7 +551,7 @@
       </div>
 
       <div class="step-footer">
-        <button class="btn btn-wizard-back" onclick="goToStep(9)"><i class="bi bi-arrow-left me-2"></i>Back to Summary</button>
+        <button class="btn btn-wizard-back" onclick="goToStep(8)"><i class="bi bi-arrow-left me-2"></i>Back to Summary</button>
         <a href="{{ url_for('planner.destinations') }}" class="btn btn-ibm">
           <i class="bi bi-compass me-2"></i>Explore More Destinations
         </a>

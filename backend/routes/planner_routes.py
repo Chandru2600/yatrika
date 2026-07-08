@@ -152,6 +152,34 @@ def save_wizard():
         selected_attractions = data.get("selected_attractions", [])
         day_planner = data.get("day_planner", {})
         weather_state = data.get("weather", {})
+
+        # ── Auto-distribute attractions across days when the day planner
+        #    was not used (day_planner is empty or has no assigned activities)
+        def _is_planner_empty(dp):
+            """Return True if no attraction was placed in any day/zone."""
+            for day_obj in dp.values():
+                if isinstance(day_obj, dict):
+                    for acts in day_obj.values():
+                        if acts:
+                            return False
+            return True
+
+        if selected_attractions and _is_planner_empty(day_planner):
+            # Distribute attractions evenly across days in morning/afternoon/evening slots
+            zones = ["morning", "afternoon", "evening"]
+            day_planner = {str(d): {"morning": [], "afternoon": [], "evening": [], "night": []} for d in range(1, num_days + 1)}
+            for i, attr in enumerate(selected_attractions):
+                day_key = str((i % num_days) + 1)
+                zone = zones[i // num_days % len(zones)]
+                day_planner[day_key][zone].append({
+                    "id":       attr.get("id", ""),
+                    "icon":     attr.get("icon", "📍"),
+                    "name":     attr.get("name", "—"),
+                    "dur":      attr.get("dur", "2h"),
+                    "type":     "attraction",
+                    "category": attr.get("cat", attr.get("category", "")),
+                    "fee":      attr.get("fee", 0),
+                })
         
         # Calculate costs for the budget breakdown
         fuel_cost = 0
@@ -201,30 +229,28 @@ def save_wizard():
 
             def make_places(acts, fallback_activity, tip):
                 if not acts:
-                    return {
-                        "activity": fallback_activity,
-                        "place":    destination,
-                        "duration": "2h",
-                        "entry_fee": "Free",
-                        "tips": tip,
-                        "places": []
-                    }
+                    return None
                 # Primary display still uses first item for legacy fields
                 first = acts[0]
                 return {
                     "activity":  first.get("name", fallback_activity),
-                    "place":     first.get("category", destination),
+                    "place":     first.get("name", destination),
                     "duration":  first.get("dur", "2h"),
                     "entry_fee": f"₹{first.get('fee', 0)}" if first.get("fee") else "Free",
                     "tips": tip,
                     # Full list for rich display in view_trip.html
                     "places": [
                         {
+                            "id":       a.get("id", ""),
                             "name":     a.get("name", "—"),
-                            "category": a.get("category", ""),
+                            "category": a.get("category", a.get("cat", "")),
                             "duration": a.get("dur", "2h"),
                             "fee":      f"₹{a['fee']}" if a.get("fee") else "Free",
-                            "icon":     a.get("icon", "📍")
+                            "raw_fee":  a.get("fee", 0),
+                            "icon":     a.get("icon", "📍"),
+                            "lat":      a.get("lat"),
+                            "lon":      a.get("lon"),
+                            "dist":     a.get("dist", 0)
                         }
                         for a in acts
                     ]
@@ -303,7 +329,9 @@ def save_wizard():
                 "ambulance": "108",
                 "tourist_helpline": "1363"
             },
-            "packing_checklist": packing_list
+            "packing_checklist": packing_list,
+            "selected_attractions": selected_attractions,
+            "day_planner": day_planner
         }
         
         # Populate live weather details
@@ -318,6 +346,11 @@ def save_wizard():
                 "forecast": weather_forecast.get("forecast", []),
                 "alerts":   weather_advice
             }
+        else:
+            # Normalize forecast list to be a list of forecast days
+            raw_forecast = weather_data.get("forecast", {})
+            if isinstance(raw_forecast, dict):
+                weather_data["forecast"] = raw_forecast.get("forecast", [])
             
         # Fetch real hotels from Nominatim
         hotels_data = {
@@ -389,10 +422,158 @@ def save_wizard():
             hotels_data
         )
 
+        # Save to saved_trips table also
+        save_trip(session["user_id"], trip_id, notes="Planned via Smart Travel Wizard")
+
         return jsonify({"success": True, "trip_id": trip_id})
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+@planner_bp.route("/<int:trip_id>/update_planner", methods=["POST"])
+@login_required
+def update_planner(trip_id: int):
+    """Update trip's day planner layout and persist back to database."""
+    from backend.database.db import execute_query
+    trip = get_trip_by_id(trip_id)
+    if not trip or trip["user_id"] != session["user_id"]:
+        return jsonify({"success": False, "error": "Trip not found."}), 404
+
+    try:
+        data = request.get_json() or {}
+        day_planner = data.get("day_planner", {})
+        
+        itinerary = json.loads(trip["itinerary_json"] or "{}")
+        destination = trip["destination"]
+        num_days = trip["num_days"]
+        num_travelers = trip["num_travelers"]
+        
+        # Build day-by-day itinerary
+        itinerary_days = []
+        for d in range(1, num_days + 1):
+            day_key = str(d)
+            day_plan = day_planner.get(day_key, {})
+
+            morning_acts   = day_plan.get("morning", [])
+            afternoon_acts = day_plan.get("afternoon", [])
+            evening_acts   = day_plan.get("evening", []) + day_plan.get("night", [])
+
+            def make_places(acts, fallback_activity, tip):
+                if not acts:
+                    return None
+                first = acts[0]
+                return {
+                    "activity":  first.get("name", fallback_activity),
+                    "place":     first.get("name", destination),
+                    "duration":  first.get("dur", "2h"),
+                    "entry_fee": f"₹{first.get('fee', 0)}" if first.get("fee") else "Free",
+                    "tips": tip,
+                    "places": [
+                        {
+                            "id":       a.get("id", ""),
+                            "name":     a.get("name", "—"),
+                            "category": a.get("category", a.get("cat", "")),
+                            "duration": a.get("dur", "2h"),
+                            "fee":      f"₹{a['fee']}" if a.get("fee") else "Free",
+                            "raw_fee":  a.get("fee", 0),
+                            "icon":     a.get("icon", "📍"),
+                            "lat":      a.get("lat"),
+                            "lon":      a.get("lon"),
+                            "dist":     a.get("dist", 0)
+                        }
+                        for a in acts
+                    ]
+                }
+
+            itinerary_days.append({
+                "day":       d,
+                "theme":     f"Exploring {destination}",
+                "date":      f"Day {d}",
+                "morning":   make_places(morning_acts,   "Sightseeing and leisure",      "Carry a camera and light jacket."),
+                "afternoon": make_places(afternoon_acts, "Exploring local spots",        "Try local food nearby."),
+                "evening":   make_places(evening_acts,   "Relaxing in the evening",      "Perfect time for photography."),
+                "food_recommendations": [
+                    {"meal": "Breakfast", "restaurant": "Local Cafe",         "cuisine": "Local Coffee & Snacks", "price_range": "₹"},
+                    {"meal": "Lunch",     "restaurant": "Traditional Diner",   "cuisine": "Traditional meals",   "price_range": "₹₹"},
+                    {"meal": "Dinner",    "restaurant": "Central Restaurant",   "cuisine": "Multi-cuisine",       "price_range": "₹₹"}
+                ],
+                "daily_budget": 0,
+                "local_tips": "Interact with locals to discover off-beat locations.",
+                "hidden_gems": ["Secret viewpoint nearby", "Local handicraft market"]
+            })
+
+        # Recalculate cost estimate based on new sequence
+        selected_attractions = itinerary.get("selected_attractions", [])
+        entry_fees = sum(a.get("fee", 0) for a in selected_attractions)
+        food_cost = num_travelers * num_days * 600
+        hotel_cost = num_days * 2000
+        shopping_cost = num_travelers * 500
+        
+        transport = trip["transport"]
+        if transport == "bike":
+            total_dist = sum(a.get("dist", 0) for a in selected_attractions)
+            fuel_cost = round(total_dist / 30 * 110)
+        else:
+            total_dist = sum(a.get("dist", 0) for a in selected_attractions)
+            fuel_cost = round(total_dist / 12 * 100)
+            
+        total_spend = fuel_cost + entry_fees + food_cost + hotel_cost + shopping_cost
+        
+        # Update daily budget values
+        for day in itinerary_days:
+            day["daily_budget"] = round(total_spend / num_days) if num_days > 0 else total_spend
+
+        # Re-save to db
+        itinerary["days"] = itinerary_days
+        itinerary["day_planner"] = day_planner
+        
+        # update budget_json total spend
+        budget = json.loads(trip["budget_json"] or "{}")
+        budget["total_budget"] = total_spend
+        budget["daily_average"] = total_spend / num_days if num_days > 0 else total_spend
+        if "breakdown" in budget:
+            budget["breakdown"]["entry_fees"]["amount"] = entry_fees
+            budget["breakdown"]["fuel"]["amount"] = fuel_cost
+            budget_pct_denom = total_spend if total_spend > 0 else 1
+            for k in budget["breakdown"]:
+                budget["breakdown"][k]["percentage"] = (budget["breakdown"][k]["amount"] / budget_pct_denom) * 100
+
+        execute_query("""
+            UPDATE trips
+            SET itinerary_json = ?,
+                budget_json = ?
+            WHERE id = ?
+        """, (json.dumps(itinerary), json.dumps(budget), trip_id))
+
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@planner_bp.route("/share/<int:trip_id>")
+def share_trip(trip_id: int):
+    """Public shareable view of a trip itinerary."""
+    trip = get_trip_by_id(trip_id)
+    if not trip:
+        flash("Trip not found.", "warning")
+        return redirect(url_for("main.dashboard"))
+
+    itinerary  = json.loads(trip["itinerary_json"] or "{}")
+    weather    = json.loads(trip["weather_json"]   or "{}")
+    budget     = json.loads(trip["budget_json"]    or "{}")
+    hotels     = json.loads(trip["hotels_json"]    or "{}")
+    expenses   = get_expenses(trip_id)
+
+    return render_template("planner/view_trip.html",
+        trip=trip,
+        itinerary=itinerary,
+        weather=weather,
+        budget=budget,
+        hotels=hotels,
+        expenses=expenses,
+        is_shared=True
+    )
 
 
 @planner_bp.route("/<int:trip_id>")
