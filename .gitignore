@@ -41,3 +41,5 @@ test_raw_out.txt
 
 # Generated PDF reports
 backend/pdf_reports/*.pdf
+
+
