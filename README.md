@@ -14,6 +14,8 @@
 
 ## 📌 Project Overview
 
+**Live Website:** [cmloni.pythonanywhere.com](https://cmloni.pythonanywhere.com)
+
 The **AI Travel Planner Agent** is a full-stack web application that uses **IBM Granite** (via **IBM watsonx.ai**) to generate complete, personalized travel itineraries. Users enter their destination, dates, budget, and preferences — and the AI produces a comprehensive travel plan including day-wise schedules, hotel recommendations, budget breakdowns, weather forecasts, interactive maps, and a downloadable PDF report.
 
 ---
