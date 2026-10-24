@@ -12,8 +12,6 @@
 
 ## 📌 Project Overview
 
-**Live Website:** [cmloni.pythonanywhere.com](https://cmloni.pythonanywhere.com)
-
 The **Travel Planner Agent** is a full-stack web application that uses a custom **Autonomous Inter-City Transit Agent Engine** to generate complete, personalized travel itineraries. Users enter their destination, dates, budget, and preferences — and the AI Agent produces a comprehensive travel plan including day-wise schedules, hotel recommendations, budget breakdowns, weather forecasts, interactive maps, and a downloadable PDF report.
 
 ---

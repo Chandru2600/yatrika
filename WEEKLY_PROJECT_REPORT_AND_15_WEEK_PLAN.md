@@ -157,7 +157,7 @@
   - Executed benchmark latency evaluations across all four agents and watsonx.ai runtime.
   - Documented verification evidence against all 8 faculty evaluation datasets (`FACULTY_EVALUATION_DATASETS`).
   - Deployed application to cloud hosting with environment variable security and live web links.
-- **Deliverables:** System Benchmark Report, Live Deployment Link (`LIVE_LINK.md`), Comprehensive Architecture Document (`ARCHITECTURE.md`).
+- **Deliverables:** System Benchmark Report, Comprehensive Architecture Document (`ARCHITECTURE.md`).
 
 #### • Week 15: Final Documentation, Presentation & Project Defense
 - **Weekly Objective:** Finalize project thesis, presentation slides, code repository cleanup, and final viva presentation.
@@ -331,6 +331,6 @@ ________________________________________________________________________________
 - **Expected Deliverables:** Completed Benchmark Report (`FACULTY_EVALUATION_DATASETS/README.md`), latency comparison graphs, and verification test logs.
 
 ### • Task 2 for Next Week:
-- **Title:** Cloud Deployment, Live URL Setup & Final Academic Defense Slide Deck
-- **Technical Scope:** Deploy the production Flask application to cloud infrastructure with secure environment configuration (`.env`). Generate live link documentation (`LIVE_LINK.md`). Prepare the comprehensive academic defense presentation deck (`TravelPlanner_Project_IBMUniversityEngagement.pptx`) covering architecture, ML metrics, live demo flow, and business viability.
-- **Expected Deliverables:** Active public URL, updated `LIVE_LINK.md`, completed 25+ slide defense PPT deck, and rehearsed project demonstration.
+- **Title:** Cloud Deployment Setup & Final Academic Defense Slide Deck
+- **Technical Scope:** Prepare the production Flask application for cloud infrastructure with secure environment configuration (`.env`). Prepare the comprehensive academic defense presentation deck (`TravelPlanner_Project_IBMUniversityEngagement.pptx`) covering architecture, ML metrics, demo flow, and business viability.
+- **Expected Deliverables:** Cloud deployment configuration, completed 25+ slide defense PPT deck, and rehearsed project demonstration.
