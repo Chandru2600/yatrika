@@ -49,51 +49,120 @@ async function fetchRoute(fromLat, fromLon, toLat, toLon) {
 
 document.addEventListener("DOMContentLoaded", () => {
   // Populate selectedAttractions and dayPlanner from database JSON payload
-  if (ITINERARY_DATA.selected_attractions && ITINERARY_DATA.selected_attractions.length) {
-    State.selectedAttractions = ITINERARY_DATA.selected_attractions;
-    State.dayPlanner = {};
-    const rawPlanner = ITINERARY_DATA.day_planner || {};
-    for (let k in rawPlanner) {
-      State.dayPlanner[parseInt(k)] = rawPlanner[k];
+  State.dayPlanner = {};
+
+  if (ITINERARY_DATA.day_planner && Object.keys(ITINERARY_DATA.day_planner).length) {
+    for (let k in ITINERARY_DATA.day_planner) {
+      State.dayPlanner[parseInt(k)] = ITINERARY_DATA.day_planner[k];
     }
-  } else if (ITINERARY_DATA.days) {
-    // Fallback parser for older trips
-    const sel = [];
-    const dp = {};
-    ITINERARY_DATA.days.forEach(day => {
-      const d = day.day;
-      dp[d] = { morning: [], afternoon: [], evening: [], night: [] };
+  }
+
+  // Parse days from ITINERARY_DATA.days or ITINERARY_DATA.itinerary.days
+  const daysList = ITINERARY_DATA.days || (ITINERARY_DATA.itinerary && ITINERARY_DATA.itinerary.days) || [];
+  const parsedSel = [];
+
+  if (daysList.length) {
+    daysList.forEach((day, idx) => {
+      const d = parseInt(day.day || day.day_number || (idx + 1));
+      if (!State.dayPlanner[d]) {
+        State.dayPlanner[d] = { morning: [], afternoon: [], evening: [], night: [] };
+      }
+
       ['morning', 'afternoon', 'evening'].forEach(zone => {
+        if (State.dayPlanner[d][zone] && State.dayPlanner[d][zone].length) return;
         const slot = day[zone];
-        if (slot && slot.places) {
+        if (!slot) return;
+
+        if (Array.isArray(slot.places) && slot.places.length) {
           slot.places.forEach(pl => {
             const a = {
               id: pl.id || ('osm_' + Math.floor(Math.random()*1000000)),
               name: pl.name,
               icon: pl.icon || '📍',
-              cat: pl.category || '',
-              dur: 90, // fallback average 1.5h
+              cat: pl.category || 'Sightseeing',
+              dur: pl.duration || '1.5h',
               fee: pl.raw_fee || 0,
               lat: pl.lat,
               lon: pl.lon,
               dist: pl.dist || 0
             };
-            sel.push(a);
-            dp[d][zone].push({
-              id: a.id, icon: a.icon, name: a.name, dur: '1.5h', type: 'attraction', category: a.cat, fee: a.fee
+            parsedSel.push(a);
+            State.dayPlanner[d][zone].push({
+              id: a.id, icon: a.icon, name: a.name, dur: a.dur, type: 'attraction', category: a.cat, fee: a.fee
             });
+          });
+        } else if (typeof slot === 'object') {
+          const actName = slot.activity || slot.name || slot.place || 'Sightseeing';
+          const actTime = slot.time || '';
+          const actDur = slot.duration || '2h';
+          const icon = zone === 'morning' ? '🌅' : (zone === 'afternoon' ? '☀️' : '🌆');
+          const a = {
+            id: 'gen_' + d + '_' + zone,
+            icon: icon,
+            name: actName,
+            dur: actDur,
+            time: actTime,
+            type: zone === 'afternoon' && actName.toLowerCase().includes('lunch') ? 'food' : 'attraction',
+            category: 'Sightseeing',
+            fee: slot.fee_inr || 0,
+            proximity: slot.proximity || '',
+            description: slot.description || ''
+          };
+          parsedSel.push(a);
+          State.dayPlanner[d][zone].push(a);
+        } else if (typeof slot === 'string') {
+          const icon = zone === 'morning' ? '🌅' : (zone === 'afternoon' ? '☀️' : '🌆');
+          State.dayPlanner[d][zone].push({
+            id: 'gen_' + d + '_' + zone,
+            icon: icon,
+            name: slot,
+            dur: '2h',
+            type: 'attraction',
+            category: 'Sightseeing'
           });
         }
       });
     });
-    State.selectedAttractions = sel;
-    State.dayPlanner = dp;
   }
 
-  // Ensure dayPlanner elements exist for every day
+  // Set selected attractions if available
+  if (ITINERARY_DATA.selected_attractions && ITINERARY_DATA.selected_attractions.length) {
+    State.selectedAttractions = ITINERARY_DATA.selected_attractions;
+  } else if (parsedSel.length) {
+    State.selectedAttractions = parsedSel;
+  }
+
+  // Ensure dayPlanner elements exist for every day and have curated activities
   for (let d = 1; d <= State.days; d++) {
     if (!State.dayPlanner[d]) {
       State.dayPlanner[d] = { morning: [], afternoon: [], evening: [], night: [] };
+    }
+    const dp = State.dayPlanner[d];
+    if (!dp.morning.length && !dp.afternoon.length && !dp.evening.length) {
+      dp.morning.push({
+        id: `auto_${d}_morn`,
+        icon: '🌅',
+        name: `Day ${d} Sightseeing Loop & Viewpoints`,
+        dur: '2.5h',
+        type: 'attraction',
+        category: 'Sightseeing'
+      });
+      dp.afternoon.push({
+        id: `auto_${d}_aftn`,
+        icon: '☀️',
+        name: `Authentic Regional Lunch & Local Exploration`,
+        dur: '2h',
+        type: 'food',
+        category: 'Dining'
+      });
+      dp.evening.push({
+        id: `auto_${d}_eve`,
+        icon: '🌆',
+        name: `Sunset Point, Bazaar Walk & Dinner`,
+        dur: '2.5h',
+        type: 'leisure',
+        category: 'Leisure'
+      });
     }
   }
 
@@ -166,13 +235,13 @@ document.addEventListener("DOMContentLoaded", () => {
 window.renderDayPlanner = function() {
   const sel = State.selectedAttractions;
 
-  // Render Day Selector Tabs
+  // Render Day Selector Tabs with modern pill design
   const ds = document.getElementById('daySelector');
   if (ds) {
     ds.innerHTML = Array.from({length: State.days}, (_, i) => {
       const dNum = i + 1;
       const activeClass = dNum === State.currentPlannerDay ? 'active' : '';
-      return `<button class="day-btn ${activeClass}" onclick="switchPlannerDay(${dNum}, this)">Day ${dNum}</button>`;
+      return `<button type="button" class="day-btn ${activeClass}" onclick="switchPlannerDay(${dNum}, this)">Day ${dNum}</button>`;
     }).join('');
   }
 
@@ -180,9 +249,7 @@ window.renderDayPlanner = function() {
   Object.values(State.dayPlanner).forEach(dayObj => {
     ['morning', 'afternoon', 'evening', 'night'].forEach(zone => {
       (dayObj[zone] || []).forEach(act => {
-        if (act.type === 'attraction' || (act.id && !act.id.startsWith('custom_') && act.id !== 'breakfast' && act.id !== 'lunch' && act.id !== 'dinner' && act.id !== 'rest' && act.id !== 'shopping' && act.id !== 'depart' && act.id !== 'return')) {
-          assignedIds.add(String(act.id));
-        }
+        if (act.id) assignedIds.add(String(act.id));
       });
     });
   });
@@ -195,41 +262,104 @@ window.renderDayPlanner = function() {
     const items = currentDayPlan[zone] || [];
     const isShared = typeof IS_SHARED !== 'undefined' && IS_SHARED;
     dz.innerHTML = items.length ? items.map((act, idx) => `
-      <div class="activity-card" draggable="true" data-id="${act.id}" data-type="${act.type || 'attraction'}" data-zone="${zone}" data-index="${idx}">
-        <div class="act-icon">${act.icon || '📍'}</div>
-        <div class="act-name">${act.name}</div>
-        <div class="act-duration">${act.dur || ''}</div>
-        <span class="act-type-badge type-${act.type || 'attraction'}">${act.type || 'attraction'}</span>
-        ${isShared ? '' : `<button class="act-remove-btn" onclick="removePlannedActivity(${State.currentPlannerDay}, '${zone}', ${idx}); event.stopPropagation();" style="border:none; background:none; color:var(--text-muted); font-size:1.1rem; cursor:pointer;">×</button>`}
+      <div class="activity-card-planned" draggable="true" data-id="${act.id}" data-type="${act.type || 'attraction'}" data-zone="${zone}" data-index="${idx}">
+        <div class="d-flex align-items-center gap-2 flex-grow-1">
+          <span class="act-icon fs-5">${act.icon || '📍'}</span>
+          <div class="flex-grow-1">
+            <div class="act-name fw-bold text-navy small">${act.name}</div>
+            ${act.time ? `<div class="extra-small text-muted"><i class="bi bi-clock me-1"></i>${act.time}</div>` : ''}
+          </div>
+          <span class="badge bg-light text-muted border extra-small">${act.dur || '1.5h'}</span>
+        </div>
+        ${isShared ? '' : `
+        <div class="d-flex align-items-center gap-1 ms-2">
+          <button type="button" class="btn btn-sm btn-light border py-0 px-2 extra-small" onclick="movePlannedActivity(${State.currentPlannerDay}, '${zone}', ${idx}); event.stopPropagation();" title="Shift to next slot">➔</button>
+          <button type="button" class="btn btn-sm btn-outline-danger border-0 py-0 px-1" onclick="removePlannedActivity(${State.currentPlannerDay}, '${zone}', ${idx}); event.stopPropagation();" title="Remove activity">×</button>
+        </div>`}
       </div>
-    `).join('') : `<div class="text-center text-muted py-4 small">No activities scheduled</div>`;
-    dz.querySelectorAll('.activity-card').forEach(initCardDrag);
+    `).join('') : `<div class="text-center text-muted py-4 small"><i class="bi bi-calendar-plus me-1"></i> No activities yet. Click any item below to add!</div>`;
+    dz.querySelectorAll('.activity-card-planned').forEach(initCardDrag);
   });
 
-  // Render the Unscheduled Activities Pool
+  // Render the Unscheduled Activities Pool with 1-click slot buttons
   const pool = document.getElementById('poolItems');
   if (pool) {
     const unassignedAttractions = sel.filter(a => !assignedIds.has(String(a.id)));
     const poolActs = [
-      ...unassignedAttractions.map(a => ({ id: a.id, icon: a.icon, name: a.name, dur: fmtHrs(a.dur), type: 'attraction', category: a.cat, fee: a.fee })),
+      ...unassignedAttractions.map(a => ({ id: a.id, icon: a.icon || '📍', name: a.name, dur: typeof a.dur === 'number' ? fmtHrs(a.dur) : (a.dur || '1.5h'), type: 'attraction' })),
       { id: 'breakfast', icon: '🥞', name: 'Breakfast', dur: '30m', type: 'food' },
-      { id: 'lunch', icon: '🍛', name: 'Lunch', dur: '45m', type: 'food' },
-      { id: 'dinner', icon: '🍽️', name: 'Dinner', dur: '60m', type: 'food' },
+      { id: 'lunch', icon: '🍛', name: 'Regional Lunch', dur: '45m', type: 'food' },
+      { id: 'dinner', icon: '🍽️', name: 'Dinner & Cafe', dur: '60m', type: 'food' },
       { id: 'rest', icon: '😴', name: 'Rest at Hotel', dur: '60m', type: 'leisure' },
-      { id: 'shopping', icon: '🛍️', name: 'Local Shopping', dur: '45m', type: 'leisure' },
+      { id: 'shopping', icon: '🛍️', name: 'Local Shopping & Spices', dur: '45m', type: 'leisure' },
+      { id: 'viewpoint', icon: '🌄', name: 'Scenic Sunset Viewpoint', dur: '1.5h', type: 'attraction' },
       { id: 'depart', icon: '🚗', name: 'Travel to Destination', dur: '2h', type: 'travel' },
       { id: 'return', icon: '🔙', name: 'Return Journey', dur: '2h', type: 'travel' },
       ...(State.customPoolActivities || [])
     ];
     pool.innerHTML = poolActs.map(a => `
-      <div class="activity-card" draggable="true" data-id="${a.id}" data-type="${a.type}" style="display: inline-flex; width: auto; margin-right: 8px;">
-        <div class="act-icon">${a.icon}</div>
-        <div class="act-name" style="margin-right: 10px;">${a.name}</div>
-        <div class="act-duration" style="margin-right: 10px;">${a.dur}</div>
-        <span class="act-type-badge type-${a.type}">${a.type}</span>
+      <div class="pool-activity-card" draggable="true" data-id="${a.id}" data-type="${a.type}" onclick="quickAddActivity('${a.id}', 'morning')">
+        <span class="act-icon">${a.icon}</span>
+        <span class="act-name">${a.name}</span>
+        <span class="act-dur-badge">${a.dur}</span>
+        <div class="slot-add-btns" onclick="event.stopPropagation();">
+          <button type="button" class="btn-slot-pill" onclick="quickAddActivity('${a.id}', 'morning')" title="Add to Morning">+ Morn</button>
+          <button type="button" class="btn-slot-pill" onclick="quickAddActivity('${a.id}', 'afternoon')" title="Add to Afternoon">+ Aftn</button>
+          <button type="button" class="btn-slot-pill" onclick="quickAddActivity('${a.id}', 'evening')" title="Add to Evening">+ Eve</button>
+        </div>
       </div>`).join('');
-    pool.querySelectorAll('.activity-card').forEach(initCardDrag);
+    pool.querySelectorAll('.pool-activity-card').forEach(initCardDrag);
   }
+};
+
+window.quickAddActivity = function(idStr, targetZone) {
+  let actObject = null;
+  const attraction = State.selectedAttractions.find(a => String(a.id) === String(idStr));
+  if (attraction) {
+    actObject = {
+      id: attraction.id,
+      icon: attraction.icon || '📍',
+      name: attraction.name,
+      dur: typeof attraction.dur === 'number' ? fmtHrs(attraction.dur) : (attraction.dur || '1.5h'),
+      type: 'attraction',
+      category: attraction.cat || 'Sightseeing'
+    };
+  } else if (String(idStr).startsWith('custom_')) {
+    const customAct = State.customPoolActivities.find(c => String(c.id) === String(idStr));
+    if (customAct) actObject = { ...customAct };
+  } else {
+    const defaults = {
+      breakfast: { id: 'breakfast', icon: '🥞', name: 'Breakfast', dur: '30m', type: 'food' },
+      lunch: { id: 'lunch', icon: '🍛', name: 'Regional Lunch', dur: '45m', type: 'food' },
+      dinner: { id: 'dinner', icon: '🍽️', name: 'Dinner & Cafe', dur: '60m', type: 'food' },
+      rest: { id: 'rest', icon: '😴', name: 'Rest at Hotel', dur: '60m', type: 'leisure' },
+      shopping: { id: 'shopping', icon: '🛍️', name: 'Local Shopping & Spices', dur: '45m', type: 'leisure' },
+      viewpoint: { id: 'viewpoint', icon: '🌄', name: 'Scenic Sunset Viewpoint', dur: '1.5h', type: 'attraction' },
+      depart: { id: 'depart', icon: '🚗', name: 'Travel to Destination', dur: '2h', type: 'travel' },
+      return: { id: 'return', icon: '🔙', name: 'Return Journey', dur: '2h', type: 'travel' }
+    };
+    actObject = defaults[idStr];
+  }
+
+  if (!actObject) return;
+
+  const currentDay = State.currentPlannerDay || 1;
+  if (!State.dayPlanner[currentDay]) {
+    State.dayPlanner[currentDay] = { morning: [], afternoon: [], evening: [], night: [] };
+  }
+  const zone = targetZone || 'morning';
+  State.dayPlanner[currentDay][zone].push(actObject);
+  renderDayPlanner();
+};
+
+window.movePlannedActivity = function(day, currentZone, idx) {
+  if (!State.dayPlanner[day] || !State.dayPlanner[day][currentZone]) return;
+  const act = State.dayPlanner[day][currentZone].splice(idx, 1)[0];
+  if (!act) return;
+  const nextZone = currentZone === 'morning' ? 'afternoon' : (currentZone === 'afternoon' ? 'evening' : 'morning');
+  if (!State.dayPlanner[day][nextZone]) State.dayPlanner[day][nextZone] = [];
+  State.dayPlanner[day][nextZone].push(act);
+  renderDayPlanner();
 };
 
 window.switchPlannerDay = function(dNum, btn) {
@@ -378,16 +508,39 @@ window.renderTimeline = function() {
     const dayAttractions = [];
     ['morning', 'afternoon', 'evening', 'night'].forEach(zone => {
       (dayObj[zone] || []).forEach(act => {
-        if (act.id && act.id.startsWith('osm_')) {
-          const attraction = State.selectedAttractions.find(a => a.id === act.id);
-          if (attraction && !dayAttractions.includes(attraction)) {
+        if (act && act.name) {
+          let attraction = State.selectedAttractions.find(a => String(a.id) === String(act.id) || a.name === act.name);
+          if (!attraction) {
+            attraction = {
+              id: act.id || ('act_' + Math.random()),
+              name: act.name,
+              icon: act.icon || '📍',
+              cat: act.category || (act.type === 'food' ? 'Food & Dining' : 'Sightseeing'),
+              dur: typeof act.dur === 'number' ? act.dur : 90,
+              dist: act.dist || 4.5,
+              fee: act.fee || 0,
+              lat: act.lat,
+              lon: act.lon
+            };
+          }
+          if (!dayAttractions.some(x => x.name === attraction.name)) {
             dayAttractions.push(attraction);
           }
         }
       });
     });
+
+    if (!dayAttractions.length && State.selectedAttractions.length) {
+      const idxStart = ((d - 1) * 2) % State.selectedAttractions.length;
+      dayAttractions.push(State.selectedAttractions[idxStart]);
+      if (State.selectedAttractions.length > idxStart + 1) {
+        dayAttractions.push(State.selectedAttractions[idxStart + 1]);
+      }
+    }
+
     days_plan.push(dayAttractions);
   }
+
 
   const dayLabels = [
     'Arrival & Explore', 'Deep Exploration', 'Adventure Day',
@@ -518,10 +671,11 @@ window.renderRoute = async function() {
   const tIcon = State.transport === 'bike' ? '🏍️' : '🚗';
 
   const stops = [
-    { type:'hotel', icon:'🏨', name:'Your Hotel', lat:null, lon:null },
-    ...sel.map(a=>({ type:'attraction', icon:a.icon, name:a.name, lat:a.lat, lon:a.lon, dur:a.dur, fee:a.fee, cat:a.cat })),
-    { type:'hotel', icon:'🏨', name:'Return to Hotel', lat:null, lon:null }
+    { type:'hotel', icon:'🏨', name:'Your Base Camp Hotel', lat:null, lon:null },
+    ...sel.map(a=>({ type:'attraction', icon:a.icon, name:a.name, lat:a.lat || a.latitude, lon:a.lon || a.longitude, dur:a.dur, fee:a.fee, cat:a.cat })),
+    { type:'hotel', icon:'🏨', name:'Return to Base Camp', lat:null, lon:null }
   ];
+
 
   rt.innerHTML = `<div class="d-flex align-items-center gap-2 p-3"><span class="spinner-border spinner-border-sm"></span><span>Loading road distance info…</span></div>`;
 

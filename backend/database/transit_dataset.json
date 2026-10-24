@@ -1,0 +1,778 @@
+{
+  "dataset_version": "2.5-all-india-comprehensive",
+  "description": "Comprehensive All-India Inter-City Transit Perception Dataset for TravelPlannerAgent",
+  "cities": {
+    "bangalore": {
+      "name": "Bengaluru",
+      "rail": "SBC",
+      "rail_name": "KSR Bengaluru City Junction",
+      "air": "BLR",
+      "air_name": "Kempegowda Int'l Airport",
+      "bus": "KSRTC Majestic Terminal",
+      "cab_base_rate": 350,
+      "transfer_time_mins": 45
+    },
+    "bengaluru": {
+      "name": "Bengaluru",
+      "rail": "SBC",
+      "rail_name": "KSR Bengaluru City Junction",
+      "air": "BLR",
+      "air_name": "Kempegowda Int'l Airport",
+      "bus": "KSRTC Majestic Terminal",
+      "cab_base_rate": 350,
+      "transfer_time_mins": 45
+    },
+    "mysore": {
+      "name": "Mysuru",
+      "rail": "MYS",
+      "rail_name": "Mysuru Junction",
+      "air": "MYQ",
+      "air_name": "Mysore Airport",
+      "bus": "KSRTC Central Suburb Stand",
+      "cab_base_rate": 200,
+      "transfer_time_mins": 25
+    },
+    "mysuru": {
+      "name": "Mysuru",
+      "rail": "MYS",
+      "rail_name": "Mysuru Junction",
+      "air": "MYQ",
+      "air_name": "Mysore Airport",
+      "bus": "KSRTC Central Suburb Stand",
+      "cab_base_rate": 200,
+      "transfer_time_mins": 25
+    },
+    "mangalore": {
+      "name": "Mangaluru",
+      "rail": "MAQ",
+      "rail_name": "Mangaluru Central",
+      "air": "IXE",
+      "air_name": "Mangalore Int'l Airport",
+      "bus": "KSRTC KSRTC Bus Stand",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 30
+    },
+    "hubli": {
+      "name": "Hubballi",
+      "rail": "UBL",
+      "rail_name": "SSS Hubballi Junction",
+      "air": "HBX",
+      "air_name": "Hubli Airport",
+      "bus": "Hubballi Old Bus Stand",
+      "cab_base_rate": 180,
+      "transfer_time_mins": 20
+    },
+    "belgaum": {
+      "name": "Belagavi",
+      "rail": "BGM",
+      "rail_name": "Belagavi Railway Station",
+      "air": "IXG",
+      "air_name": "Belagavi Airport",
+      "bus": "CBT Belagavi",
+      "cab_base_rate": 180,
+      "transfer_time_mins": 20
+    },
+    "hampi": {
+      "name": "Hampi (Hospet)",
+      "rail": "HPT",
+      "rail_name": "Hosapete Junction",
+      "air": "VDY",
+      "air_name": "Jindal Vijayanagar Airport (VDY)",
+      "bus": "Hospet KSRTC Bus Stand",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 30
+    },
+    "goa": {
+      "name": "Goa (Madgaon)",
+      "rail": "MAO",
+      "rail_name": "Madgaon Junction",
+      "air": "GOI",
+      "air_name": "Dabolim Int'l Airport (GOI)",
+      "bus": "Kadam Bus Stand (Madgaon)",
+      "cab_base_rate": 600,
+      "transfer_time_mins": 40
+    },
+    "panaji": {
+      "name": "Panaji",
+      "rail": "KRMI",
+      "rail_name": "Karmali Railway Station",
+      "air": "GOX",
+      "air_name": "Manohar Int'l Airport (Mopa)",
+      "bus": "KTC Bus Stand Panaji",
+      "cab_base_rate": 500,
+      "transfer_time_mins": 35
+    },
+    "mumbai": {
+      "name": "Mumbai",
+      "rail": "CSMT",
+      "rail_name": "Chhatrapati Shivaji Maharaj Terminus",
+      "air": "BOM",
+      "air_name": "Chhatrapati Shivaji Maharaj Airport",
+      "bus": "MSRTC Central Terminal",
+      "cab_base_rate": 450,
+      "transfer_time_mins": 45
+    },
+    "pune": {
+      "name": "Pune",
+      "rail": "PUNE",
+      "rail_name": "Pune Junction",
+      "air": "PNQ",
+      "air_name": "Pune Int'l Airport",
+      "bus": "Shivajinagar Bus Stand",
+      "cab_base_rate": 300,
+      "transfer_time_mins": 35
+    },
+    "nagpur": {
+      "name": "Nagpur",
+      "rail": "NGP",
+      "rail_name": "Nagpur Junction",
+      "air": "NAG",
+      "air_name": "Dr. Babasaheb Ambedkar Int'l Airport",
+      "bus": "Ganeshpeth Bus Stand",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 30
+    },
+    "nashik": {
+      "name": "Nashik",
+      "rail": "NK",
+      "rail_name": "Nasik Road",
+      "air": "ISK",
+      "air_name": "Nashik Ozar Airport",
+      "bus": "Nashik CBS Bus Stand",
+      "cab_base_rate": 220,
+      "transfer_time_mins": 25
+    },
+    "aurangabad": {
+      "name": "Chhatrapati Sambhajinagar",
+      "rail": "AWB",
+      "rail_name": "Aurangabad Railway Station",
+      "air": "IXU",
+      "air_name": "Aurangabad Airport",
+      "bus": "Central Bus Stand Aurangabad",
+      "cab_base_rate": 220,
+      "transfer_time_mins": 25
+    },
+    "shirdi": {
+      "name": "Shirdi",
+      "rail": "SNSI",
+      "rail_name": "Sainagar Shirdi Terminus",
+      "air": "SAG",
+      "air_name": "Shirdi International Airport",
+      "bus": "Shirdi Bus Stand",
+      "cab_base_rate": 200,
+      "transfer_time_mins": 20
+    },
+    "delhi": {
+      "name": "New Delhi",
+      "rail": "NDLS",
+      "rail_name": "New Delhi Railway Station",
+      "air": "DEL",
+      "air_name": "Indira Gandhi Int'l Airport",
+      "bus": "ISBT Kashmiri Gate",
+      "cab_base_rate": 500,
+      "transfer_time_mins": 40
+    },
+    "new delhi": {
+      "name": "New Delhi",
+      "rail": "NDLS",
+      "rail_name": "New Delhi Railway Station",
+      "air": "DEL",
+      "air_name": "Indira Gandhi Int'l Airport",
+      "bus": "ISBT Kashmiri Gate",
+      "cab_base_rate": 500,
+      "transfer_time_mins": 40
+    },
+    "noida": {
+      "name": "Noida",
+      "rail": "ANVT",
+      "rail_name": "Anand Vihar Terminal",
+      "air": "DEL",
+      "air_name": "Indira Gandhi Int'l Airport",
+      "bus": "Noida Sector 35 Depot",
+      "cab_base_rate": 450,
+      "transfer_time_mins": 45
+    },
+    "gurgaon": {
+      "name": "Gurugram",
+      "rail": "GGN",
+      "rail_name": "Gurgaon Railway Station",
+      "air": "DEL",
+      "air_name": "Indira Gandhi Int'l Airport",
+      "bus": "Gurugram Bus Stand",
+      "cab_base_rate": 450,
+      "transfer_time_mins": 35
+    },
+    "jaipur": {
+      "name": "Jaipur",
+      "rail": "JP",
+      "rail_name": "Jaipur Junction",
+      "air": "JAI",
+      "air_name": "Jaipur Int'l Airport",
+      "bus": "RSRTC Sindhi Camp",
+      "cab_base_rate": 300,
+      "transfer_time_mins": 30
+    },
+    "udaipur": {
+      "name": "Udaipur",
+      "rail": "UDZ",
+      "rail_name": "Udaipur City",
+      "air": "UDR",
+      "air_name": "Maharana Pratap Airport",
+      "bus": "Udaipur Central Bus Stand",
+      "cab_base_rate": 350,
+      "transfer_time_mins": 35
+    },
+    "jodhpur": {
+      "name": "Jodhpur",
+      "rail": "JU",
+      "rail_name": "Jodhpur Junction",
+      "air": "JDH",
+      "air_name": "Jodhpur Airport",
+      "bus": "Raika Bagh Bus Stand",
+      "cab_base_rate": 280,
+      "transfer_time_mins": 25
+    },
+    "jaisalmer": {
+      "name": "Jaisalmer",
+      "rail": "JSM",
+      "rail_name": "Jaisalmer Railway Station",
+      "air": "JSA",
+      "air_name": "Jaisalmer Airport",
+      "bus": "Jaisalmer RSRTC Depot",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 20
+    },
+    "bikaner": {
+      "name": "Bikaner",
+      "rail": "BKN",
+      "rail_name": "Bikaner Junction",
+      "air": "BKB",
+      "air_name": "Nal Airport Bikaner",
+      "bus": "Bikaner Central Bus Stand",
+      "cab_base_rate": 220,
+      "transfer_time_mins": 25
+    },
+    "pushkar": {
+      "name": "Pushkar",
+      "rail": "AII",
+      "rail_name": "Ajmer Junction",
+      "air": "KQH",
+      "air_name": "Kishangarh Airport",
+      "bus": "Pushkar Bus Stand",
+      "cab_base_rate": 300,
+      "transfer_time_mins": 30
+    },
+    "agra": {
+      "name": "Agra",
+      "rail": "AGC",
+      "rail_name": "Agra Cantt",
+      "air": "AGR",
+      "air_name": "Agra Kheria Airport",
+      "bus": "ISBT Agra",
+      "cab_base_rate": 280,
+      "transfer_time_mins": 30
+    },
+    "varanasi": {
+      "name": "Varanasi",
+      "rail": "BSB",
+      "rail_name": "Varanasi Junction (Cantt)",
+      "air": "VNS",
+      "air_name": "Lal Bahadur Shastri Int'l Airport",
+      "bus": "Varanasi Cantt Bus Stand",
+      "cab_base_rate": 320,
+      "transfer_time_mins": 40
+    },
+    "lucknow": {
+      "name": "Lucknow",
+      "rail": "LKO",
+      "rail_name": "Lucknow Charbagh",
+      "air": "LKO",
+      "air_name": "Chaudhary Charan Singh Airport",
+      "bus": "Alambagh Bus Terminal",
+      "cab_base_rate": 300,
+      "transfer_time_mins": 35
+    },
+    "kanpur": {
+      "name": "Kanpur",
+      "rail": "CNB",
+      "rail_name": "Kanpur Central",
+      "air": "KNU",
+      "air_name": "Kanpur Chakeri Airport",
+      "bus": "Jhakarkati Bus Stand",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 30
+    },
+    "prayagraj": {
+      "name": "Prayagraj (Allahabad)",
+      "rail": "PRYJ",
+      "rail_name": "Prayagraj Junction",
+      "air": "IXD",
+      "air_name": "Prayagraj Airport",
+      "bus": "Civil Lines Bus Station",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 30
+    },
+    "ayodhya": {
+      "name": "Ayodhya",
+      "rail": "AY",
+      "rail_name": "Ayodhya Dham Junction",
+      "air": "AYJ",
+      "air_name": "Maharshi Valmiki Int'l Airport",
+      "bus": "Ayodhya Bus Stand",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 25
+    },
+    "mathura": {
+      "name": "Mathura",
+      "rail": "MTJ",
+      "rail_name": "Mathura Junction",
+      "air": "DEL",
+      "air_name": "Indira Gandhi Int'l Airport",
+      "bus": "Mathura Old Bus Stand",
+      "cab_base_rate": 220,
+      "transfer_time_mins": 25
+    },
+    "chennai": {
+      "name": "Chennai",
+      "rail": "MAS",
+      "rail_name": "Chennai Central",
+      "air": "MAA",
+      "air_name": "Chennai Int'l Airport",
+      "bus": "CMBT Koyambedu / Kilambakkam",
+      "cab_base_rate": 400,
+      "transfer_time_mins": 35
+    },
+    "coimbatore": {
+      "name": "Coimbatore",
+      "rail": "CBE",
+      "rail_name": "Coimbatore Junction",
+      "air": "CJB",
+      "air_name": "Coimbatore Int'l Airport",
+      "bus": "Gandhipuram Central Bus Stand",
+      "cab_base_rate": 280,
+      "transfer_time_mins": 30
+    },
+    "madurai": {
+      "name": "Madurai",
+      "rail": "MDU",
+      "rail_name": "Madurai Junction",
+      "air": "IXM",
+      "air_name": "Madurai Airport",
+      "bus": "Mattuthavani Integrated Bus Terminus",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 25
+    },
+    "trichy": {
+      "name": "Tiruchirappalli",
+      "rail": "TPJ",
+      "rail_name": "Tiruchirappalli Junction",
+      "air": "TRZ",
+      "air_name": "Tiruchirappalli Int'l Airport",
+      "bus": "Central Bus Stand Trichy",
+      "cab_base_rate": 220,
+      "transfer_time_mins": 25
+    },
+    "hyderabad": {
+      "name": "Hyderabad",
+      "rail": "SC",
+      "rail_name": "Secunderabad Junction",
+      "air": "HYD",
+      "air_name": "Rajiv Gandhi Int'l Airport",
+      "bus": "MGBS Hyderabad",
+      "cab_base_rate": 500,
+      "transfer_time_mins": 50
+    },
+    "visakhapatnam": {
+      "name": "Visakhapatnam",
+      "rail": "VSKP",
+      "rail_name": "Visakhapatnam Junction",
+      "air": "VTZ",
+      "air_name": "Visakhapatnam Airport",
+      "bus": "Dwaraka Bus Station (RTC Complex)",
+      "cab_base_rate": 280,
+      "transfer_time_mins": 30
+    },
+    "vijayawada": {
+      "name": "Vijayawada",
+      "rail": "BZA",
+      "rail_name": "Vijayawada Junction",
+      "air": "VGA",
+      "air_name": "Vijayawada Int'l Airport",
+      "bus": "Pandit Nehru Bus Station",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 30
+    },
+    "tirupati": {
+      "name": "Tirupati",
+      "rail": "TPTY",
+      "rail_name": "Tirupati Main",
+      "air": "TIR",
+      "air_name": "Tirupati Airport",
+      "bus": "Central Bus Stand Tirupati",
+      "cab_base_rate": 300,
+      "transfer_time_mins": 30
+    },
+    "kochi": {
+      "name": "Kochi",
+      "rail": "ERS",
+      "rail_name": "Ernakulam Junction (South)",
+      "air": "COK",
+      "air_name": "Cochin Int'l Airport",
+      "bus": "KSRTC Bus Station Ernakulam",
+      "cab_base_rate": 380,
+      "transfer_time_mins": 35
+    },
+    "trivandrum": {
+      "name": "Thiruvananthapuram",
+      "rail": "TVC",
+      "rail_name": "Thiruvananthapuram Central",
+      "air": "TRV",
+      "air_name": "Thiruvananthapuram Int'l Airport",
+      "bus": "Thampanoor KSRTC Central Stand",
+      "cab_base_rate": 300,
+      "transfer_time_mins": 30
+    },
+    "kozhikode": {
+      "name": "Kozhikode (Calicut)",
+      "rail": "CLT",
+      "rail_name": "Kozhikode Main",
+      "air": "CCJ",
+      "air_name": "Calicut Int'l Airport",
+      "bus": "KSRTC Terminal Kozhikode",
+      "cab_base_rate": 280,
+      "transfer_time_mins": 35
+    },
+    "ahmedabad": {
+      "name": "Ahmedabad",
+      "rail": "ADI",
+      "rail_name": "Ahmedabad Junction (Kalupur)",
+      "air": "AMD",
+      "air_name": "Sardar Vallabhbhai Patel Airport",
+      "bus": "Geeta Mandir Central Bus Station",
+      "cab_base_rate": 320,
+      "transfer_time_mins": 30
+    },
+    "surat": {
+      "name": "Surat",
+      "rail": "ST",
+      "rail_name": "Surat Railway Station",
+      "air": "STV",
+      "air_name": "Surat International Airport",
+      "bus": "Surat Central Bus Station",
+      "cab_base_rate": 280,
+      "transfer_time_mins": 25
+    },
+    "vadodara": {
+      "name": "Vadodara",
+      "rail": "BRC",
+      "rail_name": "Vadodara Junction",
+      "air": "BDQ",
+      "air_name": "Vadodara Airport",
+      "bus": "Central Bus Station Vadodara",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 25
+    },
+    "kolkata": {
+      "name": "Kolkata",
+      "rail": "HWH",
+      "rail_name": "Howrah Junction",
+      "air": "CCU",
+      "air_name": "Netaji Subhash Chandra Bose Airport",
+      "bus": "Esplanade Bus Terminus",
+      "cab_base_rate": 350,
+      "transfer_time_mins": 45
+    },
+    "siliguri": {
+      "name": "Siliguri",
+      "rail": "NJP",
+      "rail_name": "New Jalpaiguri Junction",
+      "air": "IXB",
+      "air_name": "Bagdogra Airport",
+      "bus": "Tenzing Norgay Bus Terminus",
+      "cab_base_rate": 300,
+      "transfer_time_mins": 30
+    },
+    "bhubaneswar": {
+      "name": "Bhubaneswar",
+      "rail": "BBS",
+      "rail_name": "Bhubaneswar Railway Station",
+      "air": "BBI",
+      "air_name": "Biju Patnaik Int'l Airport",
+      "bus": "Baramunda ISBT",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 25
+    },
+    "puri": {
+      "name": "Puri",
+      "rail": "PURI",
+      "rail_name": "Puri Railway Station",
+      "air": "BBI",
+      "air_name": "Biju Patnaik Int'l Airport (Bhubaneswar)",
+      "bus": "Puri Bus Stand",
+      "cab_base_rate": 400,
+      "transfer_time_mins": 30
+    },
+    "chandigarh": {
+      "name": "Chandigarh",
+      "rail": "CDG",
+      "rail_name": "Chandigarh Junction",
+      "air": "IXC",
+      "air_name": "Shaheed Bhagat Singh Int'l Airport",
+      "bus": "ISBT Sector 43 Chandigarh",
+      "cab_base_rate": 300,
+      "transfer_time_mins": 25
+    },
+    "amritsar": {
+      "name": "Amritsar",
+      "rail": "ASR",
+      "rail_name": "Amritsar Junction",
+      "air": "ATQ",
+      "air_name": "Sri Guru Ram Dass Jee Airport",
+      "bus": "Amritsar ISBT",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 25
+    },
+    "shimla": {
+      "name": "Shimla",
+      "rail": "SML",
+      "rail_name": "Shimla Railway Station",
+      "air": "SLV",
+      "air_name": "Jubarhati Airport (Shimla)",
+      "bus": "ISBT Tutikandi Shimla",
+      "cab_base_rate": 350,
+      "transfer_time_mins": 30
+    },
+    "manali": {
+      "name": "Manali",
+      "rail": "CDG",
+      "rail_name": "Chandigarh Junction",
+      "air": "KUU",
+      "air_name": "Kullu Bhuntar Airport",
+      "bus": "Manali HRTC Volvo Bus Stand",
+      "cab_base_rate": 450,
+      "transfer_time_mins": 40
+    },
+    "dharamshala": {
+      "name": "Dharamshala",
+      "rail": "PTK",
+      "rail_name": "Pathankot Cantt",
+      "air": "DHM",
+      "air_name": "Kangra Airport (Gaggal)",
+      "bus": "Dharamshala ISBT",
+      "cab_base_rate": 300,
+      "transfer_time_mins": 30
+    },
+    "dehradun": {
+      "name": "Dehradun",
+      "rail": "DDN",
+      "rail_name": "Dehradun Terminal",
+      "air": "DED",
+      "air_name": "Jolly Grant Airport",
+      "bus": "ISBT Dehradun",
+      "cab_base_rate": 300,
+      "transfer_time_mins": 30
+    },
+    "rishikesh": {
+      "name": "Rishikesh",
+      "rail": "YNRK",
+      "rail_name": "Yog Nagari Rishikesh",
+      "air": "DED",
+      "air_name": "Jolly Grant Airport",
+      "bus": "Rishikesh Bus Stand",
+      "cab_base_rate": 280,
+      "transfer_time_mins": 25
+    },
+    "haridwar": {
+      "name": "Haridwar",
+      "rail": "HW",
+      "rail_name": "Haridwar Junction",
+      "air": "DED",
+      "air_name": "Jolly Grant Airport",
+      "bus": "Haridwar Roadways Bus Stand",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 25
+    },
+    "srinagar": {
+      "name": "Srinagar",
+      "rail": "SINA",
+      "rail_name": "Srinagar Railway Station",
+      "air": "SXR",
+      "air_name": "Sheikh ul-Alam Int'l Airport",
+      "bus": "TRC Bus Station Srinagar",
+      "cab_base_rate": 450,
+      "transfer_time_mins": 35
+    },
+    "jammu": {
+      "name": "Jammu",
+      "rail": "JAT",
+      "rail_name": "Jammu Tawi",
+      "air": "IXJ",
+      "air_name": "Jammu Civil Enclave",
+      "bus": "General Bus Stand Jammu",
+      "cab_base_rate": 280,
+      "transfer_time_mins": 25
+    },
+    "leh": {
+      "name": "Leh (Ladakh)",
+      "rail": "JAT",
+      "rail_name": "Jammu Tawi",
+      "air": "IXL",
+      "air_name": "Kushok Bakula Rimpochee Airport",
+      "bus": "Leh General Bus Stand",
+      "cab_base_rate": 500,
+      "transfer_time_mins": 25
+    },
+    "bhopal": {
+      "name": "Bhopal",
+      "rail": "BPL",
+      "rail_name": "Bhopal Junction",
+      "air": "BHO",
+      "air_name": "Raja Bhoj Airport",
+      "bus": "ISBT Bhopal",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 30
+    },
+    "indore": {
+      "name": "Indore",
+      "rail": "INDB",
+      "rail_name": "Indore Junction",
+      "air": "IDR",
+      "air_name": "Devi Ahilya Bai Holkar Airport",
+      "bus": "Sarwate Bus Stand Indore",
+      "cab_base_rate": 280,
+      "transfer_time_mins": 30
+    },
+    "gwalior": {
+      "name": "Gwalior",
+      "rail": "GWL",
+      "rail_name": "Gwalior Junction",
+      "air": "GWL",
+      "air_name": "Rajmata Vijaya Raje Scindia Airport",
+      "bus": "Gwalior Central Bus Stand",
+      "cab_base_rate": 220,
+      "transfer_time_mins": 25
+    },
+    "raipur": {
+      "name": "Raipur",
+      "rail": "R",
+      "rail_name": "Raipur Junction",
+      "air": "RPR",
+      "air_name": "Swami Vivekananda Airport",
+      "bus": "Pandri Bus Stand Raipur",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 25
+    },
+    "patna": {
+      "name": "Patna",
+      "rail": "PNBE",
+      "rail_name": "Patna Junction",
+      "air": "PAT",
+      "air_name": "Jay Prakash Narayan Airport",
+      "bus": "Bairiya ISBT Patna",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 30
+    },
+    "gaya": {
+      "name": "Gaya / Bodh Gaya",
+      "rail": "GAYA",
+      "rail_name": "Gaya Junction",
+      "air": "GAY",
+      "air_name": "Gaya Airport",
+      "bus": "Gaya Bus Stand",
+      "cab_base_rate": 220,
+      "transfer_time_mins": 25
+    },
+    "ranchi": {
+      "name": "Ranchi",
+      "rail": "RNC",
+      "rail_name": "Ranchi Junction",
+      "air": "IXR",
+      "air_name": "Birsa Munda Airport",
+      "bus": "Khadgarha Bus Stand Ranchi",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 25
+    },
+    "guwahati": {
+      "name": "Guwahati",
+      "rail": "GHY",
+      "rail_name": "Guwahati Railway Station",
+      "air": "GAU",
+      "air_name": "Lokpriya Gopinath Bordoloi Airport",
+      "bus": "ISBT Betkuchi Guwahati",
+      "cab_base_rate": 350,
+      "transfer_time_mins": 40
+    },
+    "shillong": {
+      "name": "Shillong",
+      "rail": "GHY",
+      "rail_name": "Guwahati Railway Station",
+      "air": "SHL",
+      "air_name": "Shillong Airport (Umroi)",
+      "bus": "Shillong Polo Bus Stand",
+      "cab_base_rate": 400,
+      "transfer_time_mins": 30
+    },
+    "gangtok": {
+      "name": "Gangtok",
+      "rail": "NJP",
+      "rail_name": "New Jalpaiguri Junction",
+      "air": "PYG",
+      "air_name": "Pakyong Airport",
+      "bus": "SNT Bus Terminus Gangtok",
+      "cab_base_rate": 450,
+      "transfer_time_mins": 35
+    },
+    "agartala": {
+      "name": "Agartala",
+      "rail": "AGTL",
+      "rail_name": "Agartala Railway Station",
+      "air": "IXA",
+      "air_name": "Maharaja Bir Bikram Airport",
+      "bus": "TRTC Bus Stand Agartala",
+      "cab_base_rate": 220,
+      "transfer_time_mins": 20
+    },
+    "imphal": {
+      "name": "Imphal",
+      "rail": "DMV",
+      "rail_name": "Dimapur Railway Station",
+      "air": "IMF",
+      "air_name": "Bir Tikendrajit Int'l Airport",
+      "bus": "ISBT Imphal",
+      "cab_base_rate": 250,
+      "transfer_time_mins": 25
+    }
+  },
+  "carbon_emissions_g_per_km": {
+    "train": 14.2,
+    "bus": 22.5,
+    "car": 112.0,
+    "bike": 38.0,
+    "flight": 158.0
+  },
+  "comfort_scores": {
+    "flight": {
+      "Economy": 7.0,
+      "Premium Economy": 8.5,
+      "Business": 9.8
+    },
+    "train": {
+      "SL": 5.5,
+      "3A": 7.5,
+      "2A": 8.8,
+      "1A": 9.6
+    },
+    "bus": {
+      "Express Non-AC": 5.0,
+      "Deluxe Seater": 6.8,
+      "AC Volvo": 8.2,
+      "AC Sleeper": 9.0
+    },
+    "car": {
+      "Fuel & Tolls": 7.8
+    },
+    "bike": {
+      "Fuel & Tolls": 5.0
+    }
+  }
+}

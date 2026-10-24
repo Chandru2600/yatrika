@@ -102,7 +102,7 @@ def get_current_weather(city: str) -> dict:
             "appid": key,
             "units": "metric"
         }
-        resp = requests.get(url, params=params, timeout=10)
+        resp = requests.get(url, params=params, timeout=3)
         # If API key is invalid or unauthorized, use fallback
         if resp.status_code in [401, 403]:
             return get_mock_current_weather(city)
@@ -121,7 +121,7 @@ def get_current_weather(city: str) -> dict:
             "icon":        data["weather"][0]["icon"],
             "sunrise":     data["sys"]["sunrise"],
             "sunset":      data["sys"]["sunset"],
-            "visibility":  data.get("visibility", 0) // 1000,   # km
+            "visibility":  data.get("visibility", 10000) / 1000,
             "pressure":    data["main"]["pressure"],
             "error":       None
         }
@@ -147,7 +147,7 @@ def get_forecast(city: str, days: int = 7) -> dict:
             "units": "metric",
             "cnt":   40
         }
-        resp = requests.get(url, params=params, timeout=10)
+        resp = requests.get(url, params=params, timeout=3)
         if resp.status_code in [401, 403]:
             return get_mock_forecast(city, days)
 

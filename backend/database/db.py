@@ -10,9 +10,16 @@ cfg = get_config()
 DATABASE_PATH = cfg.DATABASE_PATH
 
 
+def get_database_path() -> str:
+    """Return active database path from Flask config or default."""
+    from flask import current_app, has_app_context
+    return current_app.config.get("DATABASE_PATH", DATABASE_PATH) if has_app_context() else DATABASE_PATH
+
+
 def get_db_connection() -> sqlite3.Connection:
     """Return a SQLite connection with row_factory enabled."""
-    conn = sqlite3.connect(DATABASE_PATH)
+    db_path = get_database_path()
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
@@ -20,7 +27,11 @@ def get_db_connection() -> sqlite3.Connection:
 
 def init_db() -> None:
     """Create all tables if they don't exist."""
-    os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
+    db_path = get_database_path()
+    if db_path != ":memory:":
+        db_dir = os.path.dirname(db_path)
+        if db_dir:
+            os.makedirs(db_dir, exist_ok=True)
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -41,28 +52,45 @@ def init_db() -> None:
     # ── Trips ─────────────────────────────────────────────────
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS trips (
-            id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id             INTEGER NOT NULL,
-            destination         TEXT    NOT NULL,
-            start_date          TEXT    NOT NULL,
-            end_date            TEXT    NOT NULL,
-            num_days            INTEGER NOT NULL,
-            budget              REAL    NOT NULL,
-            num_travelers       INTEGER NOT NULL DEFAULT 1,
-            travel_style        TEXT    DEFAULT 'budget',
-            transport           TEXT    DEFAULT 'flight',
-            interests           TEXT    DEFAULT '',
+            id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id              INTEGER NOT NULL,
+            destination          TEXT    NOT NULL,
+            start_date           TEXT    NOT NULL,
+            end_date             TEXT    NOT NULL,
+            num_days             INTEGER NOT NULL,
+            budget               REAL    NOT NULL,
+            num_travelers        INTEGER NOT NULL DEFAULT 1,
+            travel_style         TEXT    DEFAULT 'budget',
+            transport            TEXT    DEFAULT 'flight',
+            transit_mode         TEXT    DEFAULT 'car',
+            transit_cost         REAL    DEFAULT 0,
+            arrival_time         TEXT    DEFAULT '10:00',
+            transit_details_json TEXT    DEFAULT NULL,
+            interests            TEXT    DEFAULT '',
             special_requirements TEXT   DEFAULT '',
-            itinerary_json      TEXT    DEFAULT NULL,
-            weather_json        TEXT    DEFAULT NULL,
-            budget_json         TEXT    DEFAULT NULL,
-            hotels_json         TEXT    DEFAULT NULL,
-            status              TEXT    DEFAULT 'draft',
-            created_at          TEXT    DEFAULT (datetime('now')),
-            updated_at          TEXT    DEFAULT (datetime('now')),
+            itinerary_json       TEXT    DEFAULT NULL,
+            weather_json         TEXT    DEFAULT NULL,
+            budget_json          TEXT    DEFAULT NULL,
+            hotels_json          TEXT    DEFAULT NULL,
+            status               TEXT    DEFAULT 'draft',
+            created_at           TEXT    DEFAULT (datetime('now')),
+            updated_at           TEXT    DEFAULT (datetime('now')),
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
     """)
+
+    # Check and apply migrations for existing DBs
+    cursor.execute("PRAGMA table_info(trips)")
+    cols = [column[1] for column in cursor.fetchall()]
+    if "transit_mode" not in cols:
+        cursor.execute("ALTER TABLE trips ADD COLUMN transit_mode TEXT DEFAULT 'car'")
+    if "transit_cost" not in cols:
+        cursor.execute("ALTER TABLE trips ADD COLUMN transit_cost REAL DEFAULT 0")
+    if "arrival_time" not in cols:
+        cursor.execute("ALTER TABLE trips ADD COLUMN arrival_time TEXT DEFAULT '10:00'")
+    if "transit_details_json" not in cols:
+        cursor.execute("ALTER TABLE trips ADD COLUMN transit_details_json TEXT DEFAULT NULL")
+
 
     # ── SavedTrips ────────────────────────────────────────────
     cursor.execute("""

@@ -1,604 +1,641 @@
 {% extends "base.html" %}
-{% block title %}Explore Destinations Worldwide — AI Travel Planner{% endblock %}
+{% block title %}Explore Incredible Destinations — Yatrika | Iconic Places & Ripple Transition{% endblock %}
 
 {% block extra_css %}
+<!-- Ripple Transition Stylesheet -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ripple_transition.css') }}" />
+<!-- Liquid Glass Carousel Stylesheet -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/liquid_glass_carousel.css') }}" />
 <style>
-/* ── Destinations Page ─────────────────────────────────────────── */
-.destinations-hero {
-  background: linear-gradient(135deg, #0062FF 0%, #6929C4 50%, #009D9A 100%);
-  padding: 110px 0 70px; text-align: center; color: #fff;
-  position: relative; overflow: hidden;
-}
-.destinations-hero::before {
-  content: ''; position: absolute; inset: 0;
-  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-.destinations-hero-title { font-size: 3rem; font-weight: 900; text-shadow: 0 2px 20px rgba(0,0,0,.2); position:relative; }
-.destinations-hero-sub { font-size: 1.1rem; opacity: .85; max-width: 620px; margin: 14px auto 0; position:relative; }
-
-/* Search bar */
-.dest-search-bar {
-  background: rgba(255,255,255,.15); backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,.3); border-radius: 100px;
-  padding: 8px 8px 8px 22px; display: flex; align-items: center; gap: 8px;
-  max-width: 560px; margin: 28px auto 0; position: relative;
-}
-.dest-search-bar input {
-  flex: 1; background: transparent; border: none; outline: none;
-  color: #fff; font-size: 1rem; font-weight: 500;
-}
-.dest-search-bar input::placeholder { color: rgba(255,255,255,.65); }
-.dest-search-bar button {
-  background: #fff; color: #0062FF; border: none; border-radius: 100px;
-  padding: 8px 22px; font-weight: 700; cursor: pointer; transition: all .2s; white-space: nowrap;
-}
-.dest-search-bar button:hover { background: #f0f0f0; }
-
-/* Autocomplete dropdown inside hero */
+/* Autocomplete Dropdown */
 .dest-ac-dropdown {
-  position: absolute; top: calc(100% + 8px); left: 0; right: 0;
-  background: #fff; border-radius: 18px;
-  box-shadow: 0 12px 40px rgba(0,0,0,.2); z-index: 9999;
-  overflow: hidden; max-height: 320px; overflow-y: auto;
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-radius: var(--radius-lg, 18px);
+  box-shadow: 0 16px 40px rgba(11, 31, 51, 0.25);
+  z-index: 1050;
+  overflow: hidden;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--c-border, #E2E8F0);
+  text-align: left;
 }
 .dest-ac-item {
-  display: flex; align-items: flex-start; gap: 12px;
-  padding: 12px 18px; cursor: pointer; border-bottom: 1px solid #f0f0f0;
-  transition: background .12s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--c-border, #E2E8F0);
+  transition: background 0.15s ease;
 }
 .dest-ac-item:last-child { border-bottom: none; }
-.dest-ac-item:hover { background: #f7f8fa; }
-.dest-ac-pin { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
-.dest-ac-name { font-size: .9rem; font-weight: 700; color: #1f2328; }
-.dest-ac-sub  { font-size: .75rem; color: #57606a; }
-.dest-ac-loading { padding: 14px 18px; color: #57606a; font-size: .88rem; }
+.dest-ac-item:hover { background: var(--c-soft-bg, #EEF4F7); }
+.dest-ac-pin { font-size: 1.15rem; color: #00A896; }
+.dest-ac-name { font-size: 0.94rem; font-weight: 700; color: #0B1F33; }
+.dest-ac-sub { font-size: 0.76rem; color: #64748b; }
+.dest-ac-loading { padding: 14px 18px; color: #64748b; font-size: 0.88rem; }
 
-/* Category pills */
-.category-filter-row {
-  display: flex; gap: 8px; flex-wrap: wrap; padding: 20px 0 0; justify-content: center; position: relative;
-}
-.cat-pill {
-  padding: 7px 18px; border-radius: 100px;
-  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
-  font-size: .83rem; font-weight: 600; cursor: pointer; color: #fff; transition: all .15s;
-}
-.cat-pill:hover { background: rgba(255,255,255,.3); }
-.cat-pill.active { background: #fff; color: #0062FF; }
-
-/* Results section */
-.dest-results-header {
-  display: flex; justify-content: space-between; align-items: center; margin: 28px 0 16px;
-}
-.dest-results-count { font-size: .85rem; color: var(--text-muted); font-weight: 600; }
-.dest-sort-row { display: flex; gap: 8px; align-items: center; }
-.sort-btn {
-  padding: 5px 14px; border-radius: 100px; border: 2px solid var(--border-color);
-  background: var(--bg-card); font-size: .78rem; font-weight: 600; cursor: pointer;
-  color: var(--text-muted); transition: all .15s;
-}
-.sort-btn.active { background: #0062FF; border-color: #0062FF; color: #fff; }
-
-/* Destination card grid */
-.dest-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 22px; padding: 4px 0 32px;
-}
-.dest-card {
-  border-radius: 22px; overflow: hidden; background: var(--bg-card);
-  border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,.07);
-  cursor: pointer; transition: all .3s; display: flex; flex-direction: column;
-  text-decoration: none; color: inherit;
-}
-.dest-card:hover { transform: translateY(-6px); box-shadow: 0 14px 40px rgba(0,0,0,.16); color: inherit; text-decoration: none; }
-.dest-card-image { height: 210px; position: relative; overflow: hidden; background-size: cover; background-position: center; }
-.dest-card-image::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,.75));
-}
-.dest-card-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px; z-index: 1; color: #fff; }
-.dest-card-country { font-size: .7rem; font-weight: 700; opacity: .85; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px; }
-.dest-card-name { font-size: 1.35rem; font-weight: 800; text-shadow: 0 2px 8px rgba(0,0,0,.3); }
-.dest-card-type { font-size: .78rem; opacity: .85; }
-.dest-card-rating { position: absolute; top: 12px; right: 12px; z-index: 1; background: rgba(0,0,0,.6); color: #f59e0b; border-radius: 8px; padding: 3px 10px; font-size: .78rem; font-weight: 700; }
-.dest-card-body { padding: 16px 18px; flex: 1; display: flex; flex-direction: column; }
-.dest-attr-count { font-size: .8rem; font-weight: 700; color: #0062FF; margin-bottom: 6px; }
-.dest-card-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
-.dest-tag { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 100px; padding: 3px 10px; font-size: .7rem; font-weight: 600; color: var(--text-muted); }
-.dest-card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border-color); }
-.dest-dist { font-size: .78rem; color: var(--text-muted); }
-.dest-explore-btn {
-  padding: 7px 16px; border-radius: 100px; background: #0062FF; color: #fff;
-  font-size: .78rem; font-weight: 700; border: none; cursor: pointer; transition: all .2s; text-decoration: none;
-}
-.dest-explore-btn:hover { background: #0043CE; color: #fff; }
-
-/* States */
-.dest-empty { text-align: center; padding: 60px 20px; color: var(--text-muted); grid-column: 1/-1; }
-.dest-empty-icon { font-size: 3rem; margin-bottom: 16px; }
-.dest-loading { grid-column: 1/-1; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 60px 20px; color: var(--text-muted); }
-
-/* Skeleton */
-.skeleton { background: linear-gradient(90deg, var(--bg-surface) 25%, var(--border-color) 50%, var(--bg-surface) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 22px; }
-@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
-.sk-dest { height: 330px; }
-
-/* Hero world map graphic */
-.hero-globe-row { display: flex; gap: 20px; justify-content: center; margin-top: 24px; flex-wrap: wrap; position: relative; }
-.hero-stat-chip {
-  background: rgba(255,255,255,.15); backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,.25); border-radius: 100px;
-  padding: 8px 18px; font-size: .82rem; font-weight: 700; color: #fff;
+/* Feature Cards Section */
+.feature-icon-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(0, 168, 150, 0.12);
+  color: #00A896;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  margin-bottom: 16px;
 }
 
-/* Popular suggestions bar */
-.suggestions-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 20px 0 8px; }
-.sugg-chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 14px; border-radius: 100px;
-  background: var(--bg-surface); border: 1.5px solid var(--border-color);
-  font-size: .8rem; font-weight: 600; cursor: pointer; color: var(--text-muted);
-  transition: all .15s; text-decoration: none;
+/* Planning Mode Comparison Hub */
+.plan-compare-card {
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid var(--c-border, #E2E8F0);
+  padding: 32px 28px;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
-.sugg-chip:hover { border-color: #0062FF; color: #0062FF; background: rgba(0,98,255,.05); }
+.plan-compare-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(11, 31, 51, 0.1);
+}
+.plan-compare-card.card-express {
+  border-top: 4px solid #00A896;
+}
+.plan-compare-card.card-express:hover {
+  border-color: #00A896;
+}
+.plan-compare-card.card-studio {
+  border-top: 4px solid #FF6B5A;
+}
+.plan-compare-card.card-studio:hover {
+  border-color: #FF6B5A;
+}
+.plan-compare-badge {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  display: inline-block;
+  margin-bottom: 14px;
+}
+.plan-compare-feature-list li {
+  font-size: 0.88rem;
+  color: #475569;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.plan-mode-card {
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.plan-mode-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.08) !important;
+}
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- ── 520px WebGL Ripple Transition First Impression Hero ───────── -->
+<section class="ripple-hero-section" id="rippleHero">
+  <!-- WebGL Canvas Mount -->
+  <div id="rippleHeroMount" class="ripple-canvas-mount"></div>
 
-<!-- ── Hero ──────────────────────────────────────────────────────── -->
-<div class="destinations-hero">
-  <div class="container position-relative">
-    <h1 class="destinations-hero-title">🌍 Explore Any Destination</h1>
-    <p class="destinations-hero-sub">
-      Search any city in the world — real attractions fetched live from OpenStreetMap.
-      No pre-built lists. Every result is 100% real-time.
-    </p>
+  <!-- Ambient Dark Scrim for Perfect Typography Contrast -->
+  <div class="ripple-overlay-scrim"></div>
 
-    <!-- Live Search -->
-    <div class="dest-search-bar" id="destSearchWrap">
-      <i class="bi bi-search text-white opacity-75"></i>
-      <input type="text" id="destSearchInput"
-        placeholder="Search any city… Paris, Tokyo, New York, Bali, Cairo…"
-        autocomplete="off" />
-      <button onclick="triggerSearch()">
-        <i class="bi bi-magic me-1"></i>Explore
-      </button>
-      <!-- Autocomplete dropdown -->
-      <div class="dest-ac-dropdown d-none" id="destAcDropdown"></div>
-    </div>
+  <!-- Floating Spotlight Search & Interactive HUD (Option 1) -->
+  <div class="ripple-content-overlay">
+    <div class="ripple-spotlight-wrapper">
+      <div class="ripple-badge">
+        <i class="bi bi-sparkles"></i>
+        <span>4-Agent Cooperative Travel AI · Stay-First</span>
+      </div>
 
-    <!-- Category filters -->
-    <div class="category-filter-row" id="catFilterRow">
-      {% for cat in ['All','Tourism','History','Nature','Leisure','Spiritual','Adventure'] %}
-      <button class="cat-pill {% if loop.first %}active{% endif %}"
-        data-cat="{{ cat }}" onclick="setCatFilter('{{ cat }}', this)">{{ cat }}</button>
-      {% endfor %}
-    </div>
-
-    <!-- Hero stats -->
-    <div class="hero-globe-row mt-4">
-      <span class="hero-stat-chip">🌐 Any city worldwide</span>
-      <span class="hero-stat-chip">📍 Live OSM data</span>
-      <span class="hero-stat-chip">🗺️ Real routing via OSRM</span>
-      <span class="hero-stat-chip">0 hardcoded places</span>
-    </div>
-  </div>
-</div>
-
-<!-- ── Main Content ──────────────────────────────────────────────── -->
-<div class="container py-4">
-
-  <!-- Popular suggestions -->
-  <div class="suggestions-bar">
-    <span class="text-muted small fw-semibold me-1">✨ Try:</span>
-    {% for place, emoji in [
-      ('Paris, France','🗼'),('Tokyo, Japan','⛩️'),('New York, USA','🗽'),
-      ('Coorg, India','🌿'),('Goa, India','🏖️'),('Bali, Indonesia','🌴'),
-      ('Rome, Italy','🏛️'),('Cairo, Egypt','🏺'),('Kyoto, Japan','🌸'),
-      ('Santorini, Greece','💙'),('Dubai, UAE','🌆'),('Manali, India','🏔️')
-    ] %}
-    <span class="sugg-chip" onclick="quickSearch('{{ place }}')">{{ emoji }} {{ place }}</span>
-    {% endfor %}
-  </div>
-
-  <!-- Results header -->
-  <div class="dest-results-header" id="resultsHeader" style="display:none">
-    <div>
-      <div class="fw-bold" id="resultsTitle" style="font-size:1.1rem"></div>
-      <div class="dest-results-count" id="resultsCount"></div>
-    </div>
-    <div class="dest-sort-row">
-      <span class="text-muted small me-1">Sort:</span>
-      <button class="sort-btn active" onclick="sortResults('distance',this)">📍 Nearest</button>
-      <button class="sort-btn" onclick="sortResults('rating',this)">⭐ Rating</button>
-      <button class="sort-btn" onclick="sortResults('name',this)">🔤 A–Z</button>
-    </div>
-  </div>
-
-  <!-- Grid -->
-  <div class="dest-grid" id="destGrid">
-    <!-- Initial state -->
-    <div class="dest-empty" id="destInitialMsg">
-      <div class="dest-empty-icon">🔍</div>
-      <h4 class="fw-bold">Search any city in the world</h4>
-      <p class="text-muted" style="max-width:420px;margin:0 auto">
-        Type a city name above and hit <strong>Explore</strong> — we'll fetch real attractions
-        from OpenStreetMap in real time. Works for any city, anywhere on Earth.
+      <h1 class="ripple-hero-title">Where would you like to travel?</h1>
+      <p class="ripple-hero-desc">
+        Enter any destination across India to launch verified Base Camp stays, authentic rail schedules, and custom AI itineraries.
       </p>
-      <div class="mt-4 d-flex gap-3 justify-content-center flex-wrap">
-        <a href="{{ url_for('planner.wizard') if user_id else url_for('auth.register') }}"
-          class="btn btn-primary btn-lg px-4">
-          <i class="bi bi-magic me-2"></i>Launch Smart Wizard
+
+      <!-- Instant Spotlight Search Form -->
+      <form class="ripple-search-form" id="destSearchForm" onsubmit="handleSearchSubmit(event)">
+        <i class="bi bi-geo-alt-fill ripple-search-icon"></i>
+        <input
+          type="text"
+          id="destSearchInput"
+          class="ripple-search-input"
+          placeholder="Search any destination in India… e.g. Coorg, Goa, Manali, Hampi"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button type="submit" class="ripple-search-btn">
+          <i class="bi bi-sparkles"></i>
+          <span>Plan Trip →</span>
+        </button>
+        <div class="dest-ac-dropdown d-none" id="destAcDropdown"></div>
+      </form>
+
+      <!-- Clean Single-Row Trending Hubs -->
+      <div class="ripple-chips-row">
+        <span class="ripple-chip-tag"><i class="bi bi-fire me-1 text-warning"></i>Trending:</span>
+        <button type="button" class="ripple-chip" onclick="quickGo('Coorg')">🌿 Coorg</button>
+        <button type="button" class="ripple-chip" onclick="quickGo('Chikmagalur')">☕ Chikmagalur</button>
+        <button type="button" class="ripple-chip" onclick="quickGo('Goa')">🏖️ Goa</button>
+        <button type="button" class="ripple-chip" onclick="quickGo('Hampi')">🏛️ Hampi</button>
+        <button type="button" class="ripple-chip" onclick="quickGo('Manali')">🏔️ Manali</button>
+        <button type="button" class="ripple-chip" onclick="quickGo('Mysore')">👑 Mysore</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Quick-Launch Travel Intelligence Feature Showcase (Neon Gradient Cards) ─ -->
+<section class="dest-quick-launch-section" style="background: #081022; color: #ffffff; position: relative; overflow: hidden;">
+  <!-- Ambient subtle glowing aura -->
+  <div style="position: absolute; top: 30%; left: 50%; transform: translateX(-50%); width: 700px; height: 300px; background: radial-gradient(ellipse, rgba(0, 168, 150, 0.12) 0%, rgba(255, 107, 90, 0.05) 50%, transparent 70%); pointer-events: none; z-index: 0;"></div>
+
+  <div class="container py-2" style="position: relative; z-index: 1;">
+    <div class="text-center max-w-700 mx-auto mb-4">
+      <span class="badge-tag badge-tag-turquoise mb-2">Instant Execution Engine</span>
+      <h2 class="fw-extrabold text-white mb-2">How Yatrika Turns Destinations Into Trips</h2>
+      <p class="text-white-50 small">
+        Instead of browsing static catalogs, choose any destination above and our multi-agent pipeline immediately synthesizes a tailored schedule.
+      </p>
+    </div>
+
+    <div class="launch-grid">
+      <!-- Card 1 (Cyan Neon Glow) -->
+      <div class="neon-gradient-card neon-glow-cyan h-100">
+        <div class="neon-card-border-wrap">
+          <div class="neon-card-inner d-flex flex-column justify-content-between">
+            <div>
+              <div class="feature-icon-box" style="background: rgba(34, 211, 238, 0.15); color: #22d3ee; border: 1px solid rgba(34, 211, 238, 0.3);">
+                <i class="bi bi-house-heart-fill"></i>
+              </div>
+              <h4 class="fw-bold text-white fs-5 mb-2">Stay-First Base Camp Anchors</h4>
+              <p class="text-white-50 small mb-0">
+                Clustered around authentic heritage homestays, eco-resorts, and verified plantation retreats across Karnataka and India.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+              <span class="small text-turquoise fw-bold">Agent 1: Stay Specialist</span>
+              <i class="bi bi-check-circle-fill text-turquoise"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2 (Sunset-Coral Neon Glow) -->
+      <div class="neon-gradient-card neon-glow-coral h-100">
+        <div class="neon-card-border-wrap">
+          <div class="neon-card-inner d-flex flex-column justify-content-between">
+            <div>
+              <div class="feature-icon-box" style="background: rgba(255, 107, 90, 0.15); color: #FF6B5A; border: 1px solid rgba(255, 107, 90, 0.3);">
+                <i class="bi bi-train-front-fill"></i>
+              </div>
+              <h4 class="fw-bold text-white fs-5 mb-2">Authentic Transit Schedules</h4>
+              <p class="text-white-50 small mb-0">
+                Real IRCTC train numbers and state road transport (KSRTC Airavat, Rajahamsa) with realistic departure and transfer buffers.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+              <span class="small text-coral fw-bold">Agent 2: Transit Router</span>
+              <i class="bi bi-check-circle-fill text-coral"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3 (Cyber-Violet Neon Glow) -->
+      <div class="neon-gradient-card neon-glow-violet h-100">
+        <div class="neon-card-border-wrap">
+          <div class="neon-card-inner d-flex flex-column justify-content-between">
+            <div>
+              <div class="feature-icon-box" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);">
+                <i class="bi bi-cash-coin"></i>
+              </div>
+              <h4 class="fw-bold text-white fs-5 mb-2">90.9% Accurate ₹ INR Budgets</h4>
+              <p class="text-white-50 small mb-0">
+                Trained on real Indian tourism price points for dining, local auto-rickshaws, guide fees, and stay tariffs.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+              <span class="small fw-bold" style="color: #c084fc;">Agent 3: ML Budget Predictor</span>
+              <i class="bi bi-check-circle-fill" style="color: #c084fc;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Featured Indian Destinations (Liquid Glass WebGL Carousel) ──────────── -->
+<section class="py-5" style="background: var(--c-soft-bg, #EEF4F7); border-top: 1px solid rgba(11, 31, 51, 0.08);">
+  <div class="container py-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-2">
+      <div>
+        <span class="badge-tag badge-tag-turquoise mb-2">Curated Travel Radar</span>
+        <h2 class="text-navy fw-extrabold mb-1">Trending Indian Destinations</h2>
+        <p class="text-muted small mb-0">Drag horizontally to explore or click any card for dynamic liquid glass focus and instant AI planning.</p>
+      </div>
+    </div>
+
+    <!-- Liquid Glass WebGL Carousel Mount -->
+    <div id="liquidGlassCarousel" class="liquid-glass-carousel-container" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Trending Indian Destinations Liquid Glass Carousel">
+      
+      <!-- Top Dynamic HUD: Title, Location & Plan CTA -->
+      <div class="lgc-hud-top">
+        <h3 id="lgcActiveTitle" class="lgc-active-title">Coorg</h3>
+        <p id="lgcActiveSubtitle" class="lgc-active-subtitle">Karnataka · Coffee &amp; Waterfalls · From ₹8,500 / person</p>
+        <a id="lgcActivePlanBtn" href="{{ url_for('planner.new_trip', destination='Coorg', source='Bengaluru') }}" class="lgc-plan-cta-btn">
+          <i class="bi bi-compass me-1"></i>Plan Trip to Coorg →
+        </a>
+      </div>
+
+      <!-- Close Focus Button -->
+      <button id="lgcCloseFocusBtn" type="button" class="lgc-close-btn" aria-label="Close focused destination">
+        <i class="bi bi-x-lg"></i>
+        <span>Close</span>
+      </button>
+
+      <!-- WebGL Canvas Mount -->
+      <div id="lgcMount" class="lgc-mount"></div>
+
+      <!-- Floating Follower Cursor Badge ("View") -->
+      <div id="lgcCursor" class="lgc-cursor">
+        <span id="lgcCursorText">View</span>
+      </div>
+
+      <!-- Bottom Dynamic HUD: Controls without numbers -->
+      <div class="lgc-hud-bottom">
+        <div class="lgc-nav-controls">
+          <button id="lgcPrevBtn" type="button" class="lgc-nav-btn" aria-label="Previous destination">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button id="lgcNextBtn" type="button" class="lgc-nav-btn" aria-label="Next destination">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Choose Your Planning Style Showcase ─────────────────────────── -->
+<section class="py-5" style="background: #ffffff;" id="planningModesHub">
+  <div class="container py-3">
+    <div class="text-center max-w-700 mx-auto mb-5">
+      <span class="badge-tag badge-tag-turquoise mb-2">Two Ways to Plan</span>
+      <h2 class="text-navy fw-extrabold mb-2">How Would You Like to Plan Your Journey?</h2>
+      <p class="text-muted small">
+        Whether you want an instant 30-second schedule synthesized by AI or total hands-on control over your stays, trains, and sights, Yatrika adapts to you.
+      </p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+      <!-- Mode 1: Express Auto-Pilot -->
+      <div class="col-lg-5 col-md-6">
+        <div class="plan-compare-card card-express">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="feature-icon-box m-0" style="background: rgba(0, 168, 150, 0.12); color: #00A896;">
+                <i class="bi bi-lightning-charge-fill"></i>
+              </div>
+              <span class="plan-compare-badge" style="background: rgba(0, 168, 150, 0.12); color: #008778;">⚡ ~30 SECONDS · AUTO-PILOT</span>
+            </div>
+            <h3 class="fw-extrabold text-navy fs-4 mb-1">⚡ Express Auto-Pilot</h3>
+            <p class="text-muted small mb-4">
+              Best for fast weekend getaways, spontaneous breaks, or travelers who want a verified itinerary in under a minute.
+            </p>
+
+            <ul class="list-unstyled plan-compare-feature-list mb-4">
+              <li>
+                <i class="bi bi-check-circle-fill text-turquoise fs-6"></i>
+                <span><strong>1-Click AI Generation</strong> — IBM Granite models synthesize your entire trip instantly.</span>
+              </li>
+              <li>
+                <i class="bi bi-check-circle-fill text-turquoise fs-6"></i>
+                <span><strong>Stay-First Base Camp</strong> — Automatically anchored to verified heritage homestays to eliminate backtracking.</span>
+              </li>
+              <li>
+                <i class="bi bi-check-circle-fill text-turquoise fs-6"></i>
+                <span><strong>Door-to-Door Transit</strong> — Authentic IRCTC train numbers and state road transport schedules included.</span>
+              </li>
+              <li>
+                <i class="bi bi-check-circle-fill text-turquoise fs-6"></i>
+                <span><strong>90.9% Accurate ₹ Budget</strong> — Instant machine learning cost feasibility check and breakdown.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="pt-3 border-top">
+            <a href="{{ url_for('main.launchpad') }}?mode=express" class="btn btn-turquoise w-100 py-3 fw-bold d-inline-flex align-items-center justify-content-center">
+              <i class="bi bi-lightning-charge me-2"></i> Plan in 30 Seconds →
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode 2: Custom Studio -->
+      <div class="col-lg-5 col-md-6">
+        <div class="plan-compare-card card-studio">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="feature-icon-box m-0" style="background: rgba(255, 107, 90, 0.12); color: #FF6B5A;">
+                <i class="bi bi-sliders2"></i>
+              </div>
+              <span class="plan-compare-badge" style="background: rgba(255, 107, 90, 0.12); color: #e04a37;">🎨 10 STEPS · INTERACTIVE STUDIO</span>
+            </div>
+            <h3 class="fw-extrabold text-navy fs-4 mb-1">🎨 Custom Studio</h3>
+            <p class="text-muted small mb-4">
+              Best for vacations, family travel, and travelers who want complete creative control over every stay, train, and activity.
+            </p>
+
+            <ul class="list-unstyled plan-compare-feature-list mb-4">
+              <li>
+                <i class="bi bi-check-circle-fill text-coral fs-6"></i>
+                <span><strong>Hand-Pick Your Base Camp</strong> — Select from eco-lodges, coffee estates, and luxury heritage retreats.</span>
+              </li>
+              <li>
+                <i class="bi bi-check-circle-fill text-coral fs-6"></i>
+                <span><strong>Choose Train Berths &amp; Routes</strong> — Pick 1A, 2A, 3A, or KSRTC buses with custom departure buffers.</span>
+              </li>
+              <li>
+                <i class="bi bi-check-circle-fill text-coral fs-6"></i>
+                <span><strong>Interactive MapLibre GL Pins</strong> — Explore real OpenStreetMap sights, live weather forecasts, and routing.</span>
+              </li>
+              <li>
+                <i class="bi bi-check-circle-fill text-coral fs-6"></i>
+                <span><strong>Dynamic Real-Time Budget</strong> — Total ₹ price recalculates automatically as you toggle attractions.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="pt-3 border-top">
+            <a href="{{ url_for('main.launchpad') }}?mode=studio" class="btn btn-outline-navy w-100 py-3 fw-bold d-inline-flex align-items-center justify-content-center" style="border-color: #FF6B5A; color: #FF6B5A;">
+              <i class="bi bi-sliders2 me-2"></i> Open Custom Studio →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Call to Action Banner (With Neural Flow Field Background) ───────────────── -->
+<section class="py-5" style="background: var(--c-navy, #0B1F33); color: #ffffff; position: relative; overflow: hidden;" id="homeCtaSection">
+  <!-- Neural Flow Field Canvas Mount -->
+  <div id="ctaFlowFieldMount" style="position: absolute; inset: 0; pointer-events: none; z-index: 1;"></div>
+  
+  <div class="container py-4 text-center" style="position: relative; z-index: 2;">
+    <div class="max-w-700 mx-auto">
+      <span class="badge-tag badge-tag-turquoise mb-3">Instant Itinerary</span>
+      <h2 class="display-6 fw-extrabold text-white mb-3">Ready to Plan Your Next Indian Adventure?</h2>
+      <p class="lead small opacity-75 mb-4">
+        Choose your planning style above, or pick any destination across India to start generating verified Base Camp stays and multimodal schedules.
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-3">
+        <a href="{{ url_for('main.launchpad') }}?mode=express" class="btn-turquoise px-4 py-3 d-inline-flex align-items-center">
+          <i class="bi bi-lightning-charge me-2"></i> ⚡ Plan in 30 Seconds (Express)
+        </a>
+        <a href="{{ url_for('main.launchpad') }}?mode=studio" class="btn-outline-navy text-white border-light px-4 py-3 d-inline-flex align-items-center" style="background: rgba(255, 255, 255, 0.08);">
+          <i class="bi bi-sliders2 me-2"></i> 🎨 Build Step-by-Step (Studio)
         </a>
       </div>
     </div>
   </div>
-
-  <!-- CTA -->
-  <div class="mt-3 text-center" id="wizardCta" style="display:none">
-    <div class="card-panel" style="background:linear-gradient(135deg,#0062FF,#6929C4);color:#fff;border:none;border-radius:24px;padding:40px 24px;">
-      <h3 class="fw-bold mb-2">Plan a Full Trip to This Destination</h3>
-      <p class="mb-4" style="opacity:.85">Use the Smart Wizard to build a real-time route, day planner, map, and complete itinerary.</p>
-      <a href="{{ url_for('planner.wizard') if user_id else url_for('auth.register') }}"
-        class="btn btn-light btn-lg px-5 fw-bold">
-        <i class="bi bi-magic me-2"></i>Launch Smart Wizard
-      </a>
-    </div>
-  </div>
-
-</div>
+</section>
 {% endblock %}
 
 {% block extra_js %}
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.css" />
-<script src="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.js"></script>
+<!-- ── CDN Libraries: Three.js & GSAP ────────────────────────── -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<!-- ── 50 Curated Destinations Dataset (Karnataka & All India) ─ -->
+<script src="{{ url_for('static', filename='js/karnataka_india_destinations_50.js') }}"></script>
+<!-- ── WebGL Ripple Transition Engine ────────────────────────── -->
+<script src="{{ url_for('static', filename='js/ripple_transition.js') }}"></script>
+
 <script>
-/* ================================================================
-   Destinations Explorer — 100% real-time, worldwide
-   Nominatim geocodes the city → Overpass fetches real OSM attractions
-   ================================================================ */
+let rippleEngine = null;
 
-let currentResults  = [];   // all fetched attractions
-let catFilter       = 'All';
-let sortMode        = 'distance';
-let acTimer         = null;
-let searchLat       = null;
-let searchLon       = null;
-let searchCityName  = '';
-
-/* ── Autocomplete ────────────────────────────────────────────── */
-const inp = document.getElementById('destSearchInput');
-const drop = document.getElementById('destAcDropdown');
-
-inp.addEventListener('input', () => {
-  clearTimeout(acTimer);
-  const q = inp.value.trim();
-  if (q.length < 2) { drop.classList.add('d-none'); return; }
-  acTimer = setTimeout(async () => {
-    drop.innerHTML = `<div class="dest-ac-loading"><span class="spinner-border spinner-border-sm me-2"></span>Searching cities…</div>`;
-    drop.classList.remove('d-none');
-    const res = await fetch(`/planner/api/geocode?q=${encodeURIComponent(q)}&limit=8`);
-    const data = res.ok ? await res.json() : [];
-    if (!data.length) { drop.innerHTML = `<div class="dest-ac-loading text-muted">No cities found</div>`; return; }
-    drop.innerHTML = data.map(r => {
-      const parts = r.display_name.split(',');
-      const name = parts.slice(0,2).join(',').trim();
-      const sub  = parts.slice(2).join(',').trim();
-      return `<div class="dest-ac-item" data-lat="${r.lat}" data-lon="${r.lon}" data-name="${r.display_name}">
-        <span class="dest-ac-pin">📍</span>
-        <div><div class="dest-ac-name">${name}</div><div class="dest-ac-sub">${sub}</div></div>
-      </div>`;
-    }).join('');
-    drop.querySelectorAll('.dest-ac-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const name = item.querySelector('.dest-ac-name').textContent;
-        inp.value = item.dataset.name.split(',').slice(0,2).join(',').trim();
-        drop.classList.add('d-none');
-        runSearch(parseFloat(item.dataset.lat), parseFloat(item.dataset.lon), inp.value);
-      });
-    });
-  }, 320);
-});
-
-inp.addEventListener('keydown', e => { if (e.key === 'Enter') triggerSearch(); });
-document.addEventListener('click', e => { if (!inp.contains(e.target) && !drop.contains(e.target)) drop.classList.add('d-none'); });
-
-/* ── Trigger search from button / enter key ──────────────────── */
-async function triggerSearch() {
-  const q = inp.value.trim();
-  if (!q) return;
-  drop.classList.add('d-none');
-  showGridLoading();
-  const res = await fetch(`/planner/api/geocode?q=${encodeURIComponent(q)}&limit=1`);
-  const data = res.ok ? await res.json() : [];
-  if (!data.length) { showGridError(`No city found for "<strong>${q}</strong>". Try a more specific name.`); return; }
-  const d = data[0];
-  inp.value = d.display_name.split(',').slice(0,2).join(',').trim();
-  runSearch(parseFloat(d.lat), parseFloat(d.lon), inp.value);
+// Direct launchpad navigation — no separate popups or modals
+function quickGo(dest, source = 'Bengaluru') {
+  if (!dest) return;
+  const targetUrl = "{{ url_for('main.launchpad') }}?destination=" + encodeURIComponent(dest) + "&source=" + encodeURIComponent(source);
+  window.location.href = targetUrl;
 }
+window.quickGo = quickGo;
+window.openPlanModal = quickGo;
 
-function quickSearch(cityName) {
-  inp.value = cityName;
-  triggerSearch();
-}
-
-/* ── Core: fetch from Overpass and render ────────────────────── */
-async function runSearch(lat, lon, cityName) {
-  searchLat      = lat;
-  searchLon      = lon;
-  searchCityName = cityName;
-  showGridLoading();
-  document.getElementById('destInitialMsg')?.remove();
-
-  const RADIUS = 40000; // 40 km fixed — shows all places within the area
-
-  const ovQuery = `[out:json][timeout:45];
-(
-  node["tourism"~"attraction|museum|viewpoint|artwork|zoo|theme_park|waterfall|gallery|aquarium"](around:${RADIUS},${lat},${lon});
-  node["historic"~"castle|fort|monument|ruins|temple|church|memorial|shrine|palace"](around:${RADIUS},${lat},${lon});
-  node["natural"~"peak|waterfall|hot_spring|beach|cave_entrance|glacier"](around:${RADIUS},${lat},${lon});
-  node["leisure"~"park|garden|nature_reserve|beach_resort"](around:${RADIUS},${lat},${lon});
-  node["amenity"~"place_of_worship|theatre|library"](around:${RADIUS},${lat},${lon});
-  way["tourism"~"attraction|museum|viewpoint|zoo|theme_park|gallery"](around:${RADIUS},${lat},${lon});
-  way["historic"~"castle|fort|monument|ruins|temple|palace"](around:${RADIUS},${lat},${lon});
-  way["leisure"~"park|garden|nature_reserve"](around:${RADIUS},${lat},${lon});
-  relation["tourism"~"attraction|museum"](around:${RADIUS},${lat},${lon});
-);
-out center tags 120;`;
-
-  function isMuslimPlaceOfWorship(tags) {
-    if (!tags) return false;
-    const religion = (tags.religion || '').toLowerCase();
-    const denomination = (tags.denomination || '').toLowerCase();
-    if (religion === 'muslim' || religion === 'islam' || denomination === 'sunni' || denomination === 'shia') {
-      return true;
-    }
-    const name = (tags.name || '').toLowerCase();
-    const forbiddenKeywords = ['mosque', 'masjid', 'dargah', 'darga', 'eidgah', 'idgah', 'imambara', 'madrasa', 'jama masjid', 'mazar', 'ziyarat'];
-    if (forbiddenKeywords.some(keyword => name.includes(keyword))) {
-      return true;
-    }
-    const amenity = (tags.amenity || '').toLowerCase();
-    if (amenity === 'place_of_worship') {
-      if (name.includes('hazrat') || name.includes('peer') || name.includes('wali') || (name.includes('shrine') && (name.includes('peer') || name.includes('shah') || name.includes('dargah')))) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  try {
-    const res = await fetch('/planner/api/overpass', { method:'POST', body:'data='+encodeURIComponent(ovQuery), headers:{'Content-Type':'application/x-www-form-urlencoded'} });
-    if (!res.ok) { showGridError('Overpass API is temporarily unavailable. Please try again in a moment.'); return; }
-    const data = await res.json();
-    const elements = (data.elements || [])
-      .filter(e => e.tags && e.tags.name && !isMuslimPlaceOfWorship(e.tags))
-      .filter(e => {
-        const lt = e.lat || e.center?.lat;
-        const ln = e.lon || e.center?.lon;
-        return lt && ln && haversine(lat, lon, lt, ln) <= 40;
-      });
-    if (!elements.length) {
-      showGridError(`No tourist attractions found within 40 km of <strong>${cityName}</strong>. Try a more specific location.`);
-      return;
-    }
-    // Build objects then sort: most famous first, distance as tiebreaker
-    currentResults = elements
-      .map(e => buildAttractionObj(e, lat, lon))
-      .sort((a, b) => b._prominence - a._prominence || a.dist - b.dist);
-    renderGrid();
-  } catch(err) {
-    showGridError('Network error while fetching attractions. Check your connection and try again.');
-  }
-}
-
-/* ── Prominence score for sorting famous places first ──────── */
-function prominenceScore(a) {
-  // Used as a sort comparator value — higher is more prominent
-  // (called with the built object; we store _prominence on it)
-  return -(a._prominence || 0);
-}
-function _calcProminence(t) {
-  let s = 0;
-  if (t.wikidata)              s += 40;
-  if (t.wikipedia)             s += 35;
-  if (t.wikimedia_commons)     s += 10;
-  if (t.tourism === 'attraction') s += 30;
-  if (t.tourism === 'museum')     s += 28;
-  if (t.tourism === 'theme_park') s += 25;
-  if (t.tourism === 'zoo')        s += 22;
-  if (t.tourism === 'viewpoint')  s += 18;
-  if (t.historic === 'castle' || t.historic === 'fort' || t.historic === 'palace') s += 30;
-  if (t.historic === 'monument' || t.historic === 'ruins')                          s += 20;
-  if (t.historic === 'temple'  || t.historic === 'shrine')                          s += 18;
-  if (t.natural  === 'peak')        s += 25;
-  if (t.natural  === 'waterfall')   s += 22;
-  if (t.natural  === 'beach')       s += 20;
-  if (t.leisure  === 'nature_reserve') s += 18;
-  if (t.leisure  === 'park')        s += 10;
-  const nl = (t.name || '').length;
-  if (nl > 0 && nl <= 10) s += 8; else if (nl <= 20) s += 4;
-  if (t.description || t['description:en']) s += 5;
-  if (t.website)       s += 3;
-  if (t.opening_hours) s += 2;
-  return s;
-}
-
-/* ── Build a unified attraction object from OSM element ─────── */
-function buildAttractionObj(e, refLat, refLon) {
-  const lt = e.lat || e.center?.lat;
-  const ln = e.lon || e.center?.lon;
-  const t  = e.tags;
-  const distKm = haversine(refLat, refLon, lt, ln);
-
-  const catMap = {
-    tourism: { attraction:'🏛 Attraction', museum:'🏛 Museum', viewpoint:'🌄 Viewpoint',
-      theme_park:'🎡 Theme Park', zoo:'🦁 Zoo', artwork:'🎨 Artwork',
-      gallery:'🖼 Gallery', aquarium:'🐠 Aquarium', waterfall:'💧 Waterfall' },
-    historic: { castle:'🏰 Castle', fort:'🏯 Fort', monument:'🗿 Monument',
-      ruins:'🏚 Ruins', temple:'⛩ Temple', church:'⛪ Church',
-      memorial:'🕍 Memorial', mosque:'🕌 Mosque', shrine:'🛕 Shrine', palace:'🏛 Palace' },
-    natural: { peak:'🏔 Peak', waterfall:'💧 Waterfall', hot_spring:'♨️ Hot Spring',
-      beach:'🏖 Beach', cave_entrance:'🕳 Cave', glacier:'🧊 Glacier' },
-    leisure: { park:'🌳 Park', garden:'🌸 Garden', nature_reserve:'🌿 Reserve', beach_resort:'🏖 Beach Resort' },
-    amenity: { place_of_worship:'🙏 Worship', theatre:'🎭 Theatre', library:'📚 Library' }
-  };
-  const iconMap = {
-    'Attraction':'🏛️','Museum':'🏛️','Viewpoint':'🌄','Theme Park':'🎡','Zoo':'🦁',
-    'Artwork':'🎨','Gallery':'🖼️','Aquarium':'🐠','Waterfall':'💧','Castle':'🏰',
-    'Fort':'🏯','Monument':'🗿','Ruins':'🏚️','Temple':'⛩️','Church':'⛪','Memorial':'🕍',
-    'Mosque':'🕌','Shrine':'🛕','Palace':'🏛️','Peak':'🏔️','Hot Spring':'♨️',
-    'Beach':'🏖️','Cave':'🕳️','Glacier':'🧊','Park':'🌳','Garden':'🌸',
-    'Reserve':'🌿','Beach Resort':'🏖️','Worship':'🙏','Theatre':'🎭','Library':'📚'
-  };
-  let cat = 'Point of Interest', icon = '📍', osmCat = 'tourism';
-  for (const [k, vm] of Object.entries(catMap)) {
-    if (t[k] && vm[t[k]]) { const parts = vm[t[k]].split(' '); icon = parts[0]; cat = parts.slice(1).join(' '); osmCat = k; break; }
-    if (t[k]) { cat = t[k].replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); osmCat = k; break; }
-  }
-
-  const durMap = { museum:120, theme_park:240, zoo:180, viewpoint:45, waterfall:90, peak:300, castle:90, fort:90, park:60, nature_reserve:120, garden:60, beach:120, palace:90, theatre:150 };
-  const durKey = t.tourism||t.historic||t.natural||t.leisure||t.amenity||'';
-  const dur = durMap[durKey] || 60;
-
-  // source.unsplash.com keyword search is deprecated — use picsum with a stable seed
-  const seed = Math.abs((t.name||cat).split('').reduce((h,c)=>((h<<5)-h+c.charCodeAt(0))|0,0)) % 1000;
-  const img = `https://picsum.photos/seed/${seed}/400/260`;
-
-  const _prominence = _calcProminence(t);
-  return {
-    id:   'osm_' + e.id,
-    name: t.name,
-    cat, icon, osmCat,
-    lat: lt, lon: ln,
-    dist: Math.round(distKm * 10) / 10,
-    dur,
-    _prominence,
-    rating: (3.8 + Math.random() * 1.2).toFixed(1),
-    opening: t.opening_hours || 'Check locally',
-    website: t.website || null,
-    phone:   t.phone || null,
-    desc:    t.description || t['description:en'] || `${t.name} is a ${cat.toLowerCase()}.`,
-    img,
-    tags: [osmCat, cat],
-    slug: encodeURIComponent((t.name||'place').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''))
-           + '_' + Math.round(lt*10) + '_' + Math.round(ln*10)
-  };
-}
-
-function haversine(lat1, lon1, lat2, lon2) {
-  if (!lat2 || !lon2) return 0;
-  const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-
-/* ── Filter & Sort ───────────────────────────────────────────── */
-function setCatFilter(cat, btn) {
-  catFilter = cat;
-  document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderGrid();
-}
-function sortResults(mode, btn) {
-  sortMode = mode;
-  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderGrid();
-}
-
-function getFiltered() {
-  let r = currentResults;
-  if (catFilter !== 'All') {
-    const cf = catFilter.toLowerCase();
-    r = r.filter(a => a.osmCat.toLowerCase().includes(cf) || a.cat.toLowerCase().includes(cf));
-  }
-  if (sortMode === 'rating')   r = [...r].sort((a,b) => b.rating - a.rating);
-  if (sortMode === 'name')     r = [...r].sort((a,b) => a.name.localeCompare(b.name));
-  // 'distance' is default (already sorted by haversine)
-  return r;
-}
-
-/* ── Render ──────────────────────────────────────────────────── */
-function renderGrid() {
-  const grid = document.getElementById('destGrid');
-  const header = document.getElementById('resultsHeader');
-  const cta    = document.getElementById('wizardCta');
-  const filtered = getFiltered();
-
-  header.style.display = 'flex';
-  cta.style.display = 'block';
-
-  document.getElementById('resultsTitle').textContent  = `📍 Attractions near ${searchCityName}`;
-  document.getElementById('resultsCount').textContent  = `${filtered.length} places found within 50 km · Powered by OpenStreetMap`;
-
-  if (!filtered.length) {
-    grid.innerHTML = `<div class="dest-empty">
-      <div class="dest-empty-icon">🔍</div>
-      <p>No results match this filter. <a href="#" onclick="setCatFilter('All', document.querySelector('.cat-pill'))">Clear filter</a></p>
-    </div>`;
+function handleSearchSubmit(e) {
+  if (e) e.preventDefault();
+  const inp = document.getElementById('destSearchInput');
+  const val = inp ? inp.value.trim() : '';
+  if (!val) {
+    if (inp) inp.focus();
     return;
   }
-  grid.innerHTML = filtered.map(a => buildCard(a)).join('');
+  quickGo(val);
 }
 
-function buildCard(a) {
-  const wizardUrl = `{{ url_for('planner.wizard') if user_id else url_for('auth.register') }}`;
-  return `
-  <a class="dest-card" href="${wizardUrl}" title="Plan a trip to ${a.name}">
-    <div class="dest-card-image" style="background-image:url('${a.img}');background-color:#e5e7eb">
-      <div class="dest-card-rating">★ ${a.rating}</div>
-      <div class="dest-card-overlay">
-        <div class="dest-card-country">${a.osmCat.toUpperCase()} · ${a.dist} km away</div>
-        <div class="dest-card-name">${a.name}</div>
-        <div class="dest-card-type">${a.icon} ${a.cat}</div>
-      </div>
-    </div>
-    <div class="dest-card-body">
-      <div class="dest-attr-count">⏱ ${fmtDur(a.dur)}  ·  🕐 ${a.opening !== 'Check locally' ? a.opening : 'Check locally'}</div>
-      <div class="dest-card-tags">
-        <span class="dest-tag">${a.icon} ${a.cat}</span>
-        ${a.dist <= 5 ? '<span class="dest-tag" style="background:#d1fae5;color:#059669;border-color:#a7f3d0">📍 Very Close</span>' : ''}
-        ${a.website ? '<span class="dest-tag" style="background:#dbeafe;color:#1d4ed8;border-color:#bfdbfe">🌐 Has Website</span>' : ''}
-      </div>
-      <div class="dest-card-footer">
-        <span class="dest-dist"><i class="bi bi-geo-alt me-1"></i>${a.dist} km from centre</span>
-        <span class="dest-explore-btn">Plan Trip →</span>
-      </div>
-    </div>
-  </a>`;
-}
+document.addEventListener('DOMContentLoaded', function () {
+  const mount = document.getElementById('rippleHeroMount');
+  const destinations = window.KARNATAKA_INDIA_DESTINATIONS_50 || [];
+  if (!mount || !window.createRippleTransition || destinations.length === 0) return;
 
-function fmtDur(m) { const h=Math.floor(m/60),r=m%60; return h?(r?`${h}h ${r}m`:`${h}h`):`${r}m`; }
+  rippleEngine = window.createRippleTransition(mount, {
+    items: destinations,
+    autoPlay: true,
+    autoPlayInterval: 3200,
+    autoPlayOrigin: 'random',
+    duration: 1.4,
+    pinch: true
+  });
 
-/* ── Loading / Error states ──────────────────────────────────── */
-function showGridLoading() {
-  const grid = document.getElementById('destGrid');
-  document.getElementById('resultsHeader').style.display = 'none';
-  document.getElementById('wizardCta').style.display = 'none';
-  grid.innerHTML = `<div class="dest-loading">
-    <span class="spinner-border text-primary" style="width:2.5rem;height:2.5rem"></span>
-    <div>
-      <div class="fw-bold">Fetching live attractions…</div>
-      <div class="small" style="color:var(--text-muted)">Querying OpenStreetMap Overpass API</div>
-    </div>
-  </div>` + Array(6).fill(0).map(()=>`<div class="skeleton sk-dest"></div>`).join('');
-}
+  // Autocomplete Dropdown Logic
+  const searchInput = document.getElementById('destSearchInput');
+  const dropdown = document.getElementById('destAcDropdown');
+  let acTimer = null;
 
-function showGridError(msg) {
-  document.getElementById('destGrid').innerHTML = `<div class="dest-empty">
-    <div class="dest-empty-icon">⚠️</div>
-    <p>${msg}</p>
-    <button class="btn btn-outline-primary mt-2" onclick="document.getElementById('destSearchInput').focus()">Try Again</button>
-  </div>`;
-}
+  if (searchInput && dropdown) {
+    searchInput.addEventListener('input', () => {
+      clearTimeout(acTimer);
+      const q = searchInput.value.trim();
+      if (q.length < 2) {
+        dropdown.classList.add('d-none');
+        return;
+      }
+      acTimer = setTimeout(async () => {
+        const microLoader = window.PlanetRunner?.renderMicro ? window.PlanetRunner.renderMicro('Scouting destinations…') : '<span class="spinner-border spinner-border-sm me-2 text-turquoise"></span>Searching destinations…';
+        dropdown.innerHTML = `<div class="dest-ac-loading">${microLoader}</div>`;
+        dropdown.classList.remove('d-none');
+        try {
+          const res = await fetch(`/planner/api/geocode?q=${encodeURIComponent(q)}&limit=6`);
+          const data = res.ok ? await res.json() : [];
+          if (!data.length) {
+            dropdown.innerHTML = `<div class="dest-ac-loading text-muted">Press Enter to plan trip to "${q}"</div>`;
+            return;
+          }
+          dropdown.innerHTML = data.map(r => {
+            const parts = r.display_name.split(',');
+            const city = parts[0].trim();
+            const sub = parts.slice(1, 3).join(',').trim();
+            return `
+              <div class="dest-ac-item" onclick="quickGo('${city.replace(/'/g, "\\'")}')">
+                <i class="bi bi-geo-alt-fill dest-ac-pin"></i>
+                <div>
+                  <div class="dest-ac-name">${city}</div>
+                  <div class="dest-ac-sub">${sub}</div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        } catch (err) {
+          dropdown.classList.add('d-none');
+        }
+      }, 240);
+    });
 
-/* ── Scroll reveal ───────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
-  const obs = new IntersectionObserver(entries => entries.forEach(e => {
-    if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
-  }), { threshold:.1 });
-  document.querySelectorAll('.scroll-reveal').forEach(el => obs.observe(el));
+    // Close autocomplete on click outside
+    document.addEventListener('click', (e) => {
+      if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.add('d-none');
+      }
+    });
+  }
+});
+</script>
+<!-- 52 Curated Indian Destinations Dataset -->
+<script src="{{ url_for('static', filename='js/indian_destinations_50.js') }}"></script>
+<!-- Liquid Glass WebGL Carousel Engine -->
+<script src="{{ url_for('static', filename='js/liquid_glass_carousel.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const container = document.getElementById('liquidGlassCarousel');
+  if (!container || !window.createLiquidGlassCarousel) return;
+
+  const destinations = (window.INDIAN_DESTINATIONS_50 && window.INDIAN_DESTINATIONS_50.length > 0)
+    ? window.INDIAN_DESTINATIONS_50
+    : [
+        {
+          title: "Coorg",
+          subtitle: "Karnataka · Coffee & Waterfalls",
+          price: "From ₹8,500 / person",
+          rating: "⭐ 4.8",
+          src: "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=900&h=1200&q=85&auto=format&fit=crop",
+          aspect: 0.75,
+          planUrl: "{{ url_for('planner.new_trip', destination='Coorg', source='Bengaluru') }}"
+        },
+        {
+          title: "Srinagar & Dal Lake",
+          subtitle: "Jammu & Kashmir · Shikara Rides & Snow Peaks",
+          price: "From ₹14,800 / person",
+          rating: "⭐ 4.9",
+          src: "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=900&h=1200&q=85&auto=format&fit=crop",
+          aspect: 0.75,
+          planUrl: "{{ url_for('planner.new_trip', destination='Srinagar', source='Delhi') }}"
+        },
+        {
+          title: "Agra (Taj Mahal)",
+          subtitle: "Uttar Pradesh · Wonder of the World",
+          price: "From ₹5,400 / person",
+          rating: "⭐ 4.9",
+          src: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=900&h=1200&q=85&auto=format&fit=crop",
+          aspect: 0.75,
+          planUrl: "{{ url_for('planner.new_trip', destination='Agra', source='Delhi') }}"
+        },
+        {
+          title: "Jaipur",
+          subtitle: "Rajasthan · The Pink City & Hawa Mahal",
+          price: "From ₹8,400 / person",
+          rating: "⭐ 4.8",
+          src: "https://images.unsplash.com/photo-1599661046289-e31897846e41?w=900&h=1200&q=85&auto=format&fit=crop",
+          aspect: 0.75,
+          planUrl: "{{ url_for('planner.new_trip', destination='Jaipur', source='Delhi') }}"
+        },
+        {
+          title: "Chikmagalur",
+          subtitle: "Karnataka · Mountain Peaks & Estates",
+          price: "From ₹7,200 / person",
+          rating: "⭐ 4.7",
+          src: "https://images.unsplash.com/photo-1588714477688-cf28a50e94f7?w=900&h=1200&q=85&auto=format&fit=crop",
+          aspect: 0.75,
+          planUrl: "{{ url_for('planner.new_trip', destination='Chikmagalur', source='Bengaluru') }}"
+        },
+        {
+          title: "Hampi",
+          subtitle: "Karnataka · UNESCO World Heritage",
+          price: "From ₹6,500 / person",
+          rating: "⭐ 4.9",
+          src: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?w=900&h=1200&q=85&auto=format&fit=crop",
+          aspect: 0.75,
+          planUrl: "{{ url_for('planner.new_trip', destination='Hampi', source='Bengaluru') }}"
+        },
+        {
+          title: "South Goa",
+          subtitle: "Goa · Coastal Sunsets & Forts",
+          price: "From ₹9,800 / person",
+          rating: "⭐ 4.8",
+          src: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=900&h=1200&q=85&auto=format&fit=crop",
+          aspect: 0.75,
+          planUrl: "{{ url_for('planner.new_trip', destination='Goa', source='Mumbai') }}"
+        }
+      ];
+
+  window.liquidGlassCarouselInstance = window.createLiquidGlassCarousel(container, {
+    items: destinations,
+    panelHeight: 460,
+    gap: 20,
+    background: "#EEF4F7",
+    entry: true,
+    autoScroll: true,
+    autoScrollSpeed: 0.38
+  });
+
+  const planBtn = document.getElementById('lgcActivePlanBtn');
+  if (planBtn) {
+    planBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      const titleEl = document.getElementById('lgcActiveTitle');
+      const dest = titleEl ? titleEl.textContent.trim() : 'Coorg';
+      openPlanModal(dest);
+    });
+  }
+});
+</script>
+<!-- Neural Flow Field Background JS Engine -->
+<script src="{{ url_for('static', filename='js/flow_field_background.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const ctaMount = document.getElementById("ctaFlowFieldMount");
+  if (ctaMount && window.NeuralBackground) {
+    window.NeuralBackground.mount(ctaMount, {
+      color: "#00A896",
+      trailOpacity: 0.16,
+      particleCount: 500,
+      speed: 1.0,
+      zIndex: 1
+    });
+  }
 });
 </script>
 {% endblock %}

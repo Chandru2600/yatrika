@@ -18,12 +18,24 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 # ── Decorators ────────────────────────────────────────────────
 
 def login_required(f):
-    """Redirect to login if session is not authenticated."""
+    """Ensure authenticated or seamless guest session so planning is never blocked."""
     @wraps(f)
     def decorated(*args, **kwargs):
         if "user_id" not in session:
-            flash("Please login to continue.", "warning")
-            return redirect(url_for("auth.login"))
+            from backend.models.user import get_user_by_email, create_user
+            guest = get_user_by_email("guest@yatrika.ai")
+            if not guest:
+                try:
+                    user_id = create_user("Guest Traveler", "guest@yatrika.ai", "GuestTraveler123!")
+                except Exception:
+                    user_id = 1
+            else:
+                user_id = guest["id"]
+            session.permanent = True
+            session["user_id"]   = user_id
+            session["user_name"] = "Traveler"
+            session["user_role"] = "user"
+            session["is_guest"]  = True
         return f(*args, **kwargs)
     return decorated
 
@@ -45,8 +57,9 @@ def admin_required(f):
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     """User registration."""
-    if "user_id" in session:
-        return redirect(url_for("main.dashboard"))
+    next_page = request.args.get("next") or request.form.get("next")
+    if "user_id" in session and not session.get("is_guest"):
+        return redirect(next_page or url_for("main.dashboard"))
 
     if request.method == "POST":
         name     = request.form.get("name", "").strip()
@@ -57,19 +70,19 @@ def register():
         # Validations
         if not name or not email or not password:
             flash("All fields are required.", "danger")
-            return render_template("auth/register.html")
+            return render_template("auth/register.html", next=next_page)
 
         if len(password) < 8:
             flash("Password must be at least 8 characters.", "danger")
-            return render_template("auth/register.html")
+            return render_template("auth/register.html", next=next_page)
 
         if password != confirm:
             flash("Passwords do not match.", "danger")
-            return render_template("auth/register.html")
+            return render_template("auth/register.html", next=next_page)
 
         if get_user_by_email(email):
             flash("Email already registered. Please login.", "warning")
-            return redirect(url_for("auth.login"))
+            return redirect(url_for("auth.login", next=next_page))
 
         try:
             user_id = create_user(name, email, password)
@@ -77,20 +90,22 @@ def register():
             session["user_id"]   = user_id
             session["user_name"] = name
             session["user_role"] = "user"
+            session.pop("is_guest", None)
             flash(f"Welcome, {name}! Your account has been created.", "success")
-            return redirect(url_for("main.dashboard"))
+            return redirect(next_page or url_for("main.launchpad"))
         except Exception as e:
             flash(f"Registration failed: {e}", "danger")
-            return render_template("auth/register.html")
+            return render_template("auth/register.html", next=next_page)
 
-    return render_template("auth/register.html")
+    return render_template("auth/register.html", next=next_page)
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     """User login."""
-    if "user_id" in session:
-        return redirect(url_for("main.dashboard"))
+    next_page = request.args.get("next") or request.form.get("next")
+    if "user_id" in session and not session.get("is_guest"):
+        return redirect(next_page or url_for("main.launchpad"))
 
     if request.method == "POST":
         email    = request.form.get("email", "").strip().lower()
@@ -102,14 +117,14 @@ def login():
             session["user_id"]   = user["id"]
             session["user_name"] = user["name"]
             session["user_role"] = user["role"]
+            session.pop("is_guest", None)
             update_last_login(user["id"])
             flash(f"Welcome back, {user['name']}!", "success")
-            next_page = request.args.get("next", url_for("main.dashboard"))
-            return redirect(next_page)
+            return redirect(next_page or url_for("main.launchpad"))
         else:
             flash("Invalid email or password.", "danger")
 
-    return render_template("auth/login.html")
+    return render_template("auth/login.html", next=next_page)
 
 
 @auth_bp.route("/logout")

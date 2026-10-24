@@ -1,0 +1,49 @@
+{
+  "description": "State RTC & Private Operator Per-Kilometer Rate Slabs for All-India Bus Transit",
+  "currency": "INR",
+  "bus_categories": {
+    "ordinary_express": {
+      "min_rate_per_km": 1.35,
+      "max_rate_per_km": 1.6,
+      "typical_speed_kmh": 45,
+      "amenities": [
+        "Pushback Seats",
+        "Non-AC"
+      ]
+    },
+    "ac_sleeper_multiaxle": {
+      "min_rate_per_km": 2.4,
+      "max_rate_per_km": 3.0,
+      "typical_speed_kmh": 65,
+      "amenities": [
+        "AC",
+        "Sleeper Berth",
+        "Charging Points",
+        "Blankets",
+        "Live Tracking"
+      ]
+    }
+  },
+  "state_corporation_tariffs": {
+    "KSRTC_Karnataka": {
+      "express_per_km": 1.45,
+      "airavat_club_class_per_km": 2.65
+    },
+    "MSRTC_Maharashtra": {
+      "express_per_km": 1.5,
+      "shivneri_ac_per_km": 2.8
+    },
+    "RSRTC_Rajasthan": {
+      "express_per_km": 1.4,
+      "goldline_volvo_per_km": 2.5
+    },
+    "HRTC_Himachal": {
+      "ordinary_per_km": 1.6,
+      "himgauri_volvo_per_km": 2.9
+    },
+    "KSRTC_Kerala": {
+      "swift_deluxe_per_km": 1.55,
+      "gajraj_volvo_per_km": 2.7
+    }
+  }
+}

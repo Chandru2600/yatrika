@@ -1,9 +1,7 @@
-# AI Travel Planner Agent — <div align="center">
+# Travel Planner Agent
 
-**AI-powered travel planning using IBM Granite through IBM watsonx.ai**
+**Autonomous AI-Powered Travel & Transit Planning System**
 
-[![IBM Granite](https://img.shields.io/badge/IBM-Granite-0062FF?logo=ibm&logoColor=white)](https://www.ibm.com/granite)
-[![watsonx.ai](https://img.shields.io/badge/IBM-watsonx.ai-6929C4?logo=ibm&logoColor=white)](https://www.ibm.com/watsonx)
 [![Flask](https://img.shields.io/badge/Flask-3.0.3-000000?logo=flask)](https://flask.palletsprojects.com)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?logo=bootstrap)](https://getbootstrap.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -16,7 +14,7 @@
 
 **Live Website:** [cmloni.pythonanywhere.com](https://cmloni.pythonanywhere.com)
 
-The **AI Travel Planner Agent** is a full-stack web application that uses **IBM Granite** (via **IBM watsonx.ai**) to generate complete, personalized travel itineraries. Users enter their destination, dates, budget, and preferences — and the AI produces a comprehensive travel plan including day-wise schedules, hotel recommendations, budget breakdowns, weather forecasts, interactive maps, and a downloadable PDF report.
+The **Travel Planner Agent** is a full-stack web application that uses a custom **Autonomous Inter-City Transit Agent Engine** to generate complete, personalized travel itineraries. Users enter their destination, dates, budget, and preferences — and the AI Agent produces a comprehensive travel plan including day-wise schedules, hotel recommendations, budget breakdowns, weather forecasts, interactive maps, and a downloadable PDF report.
 
 ---
 
@@ -24,12 +22,12 @@ The **AI Travel Planner Agent** is a full-stack web application that uses **IBM 
 
 | Module | Description |
 |---|---|
-| 🤖 **AI Itinerary** | IBM Granite generates day-wise plans with morning/afternoon/evening slots |
+| 🤖 **AI Itinerary** | Travel Planner Agent generates day-wise plans with morning/afternoon/evening slots |
 | 🌤 **Weather Module** | Real-time & 7-day forecast via OpenWeatherMap |
 | 🗺 **Interactive Map** | MapLibre + OpenStreetMap showing attractions, hotels, hospitals |
 | 💰 **Budget Planner** | Auto-breakdown across accommodation, food, transport, tickets |
-| 🏨 **Hotel Finder** | Budget, mid-range & luxury hotel AI recommendations |
-| 🚌 **Transport Guide** | Flight, train, bus, metro recommendations with costs |
+| 🏨 **Hotel Finder** | Budget, mid-range & luxury hotel picks |
+| 🚌 **Inter-City Transit** | Railway AI, Flight API, KSRTC Bus, and Car/Bike multi-criteria optimization |
 | 🎒 **Packing Assistant** | Destination-specific checklist |
 | 🍜 **Local Food Guide** | Must-try dishes, restaurants, street food |
 | 📄 **PDF Export** | Full itinerary export as professional PDF |
@@ -54,10 +52,10 @@ The **AI Travel Planner Agent** is a full-stack web application that uses **IBM 
 - SQLite (via Python stdlib `sqlite3`)
 - ReportLab — PDF generation
 
-**AI / IBM Cloud**
-- IBM Granite 13B Instruct (`ibm/granite-13b-instruct-v2`)
-- IBM watsonx.ai REST API
-- IBM Cloud IAM Token authentication
+**AI Agent Core**
+- Travel Planner Autonomous Agent Engine
+- Multi-Criteria Decision Optimization Core
+- Real-Time Location Hub Resolver
 
 **External APIs**
 - OpenWeatherMap API — weather data
@@ -115,7 +113,7 @@ TravelPlannerAgent/
 │       │   └── main.css            # Complete custom CSS (~560 lines)
 │       └── js/
 │           ├── main.js             # Dark mode, flash, shared utilities
-│           ├── planner.js          # Multi-step form logic
+│           ├── wizard.js           # AI Step Studio 5-stage orchestration
 │           └── trip_view.js        # Charts, MapLibre map, expense chart
 │
 └── docs/

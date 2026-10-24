@@ -1,72 +1,81 @@
 {% extends "base.html" %}
-{% block title %}Register — AI Travel Planner{% endblock %}
+{% block title %}Register — Yatrika — the traveler{% endblock %}
 
 {% block content %}
-<div class="auth-page">
-  <div class="auth-container">
-    <div class="auth-card">
-      <div class="auth-header text-center">
-        <div class="auth-logo">✈</div>
-        <h2 class="auth-title">Create Account</h2>
-        <p class="auth-sub text-muted">Join AI Travel Planner — powered by IBM Granite</p>
-      </div>
-      <form method="POST" action="{{ url_for('auth.register') }}" class="auth-form" id="regForm">
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Full Name</label>
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-person"></i></span>
-            <input type="text" name="name" class="form-control" placeholder="Your full name" required minlength="2" />
+<div class="py-4 py-md-5" style="background: linear-gradient(180deg, var(--c-soft-bg) 0%, var(--c-warm-white) 100%); min-height: calc(100vh - var(--navbar-height) - 150px); display: flex; align-items: center;">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+        <div class="card-modern" style="padding: 32px 24px; box-shadow: var(--shadow-md);">
+          <div class="text-center mb-4">
+            <img src="{{ url_for('static', filename='images/yatrika_icon.png') }}" alt="Yatrika Logo" class="brand-logo-img mx-auto mb-2" style="width: 58px; height: 58px;" />
+            <div class="text-turquoise extra-small fw-bold text-uppercase mb-1" style="letter-spacing:0.06em;">Yatrika — the traveler</div>
+            <h3 class="fw-bold text-navy mb-1">Create Account</h3>
+            <p class="text-muted small">Join Yatrika — your intelligent Indian travel companion.</p>
           </div>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Email Address</label>
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-            <input type="email" name="email" class="form-control" placeholder="you@example.com" required />
-          </div>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Password</label>
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-lock"></i></span>
-            <input type="password" name="password" id="regPwd" class="form-control"
-                   placeholder="Min 8 characters" required minlength="8"
-                   oninput="checkPasswordStrength(this.value)" />
-            <button type="button" class="btn btn-outline-secondary" onclick="togglePwd('regPwd', this)">
-              <i class="bi bi-eye"></i>
+
+          <form method="POST" action="{{ url_for('auth.register', next=next) if next else url_for('auth.register') }}" id="regForm">
+            {% if next %}
+            <input type="hidden" name="next" value="{{ next }}" />
+            {% endif %}
+            <div class="mb-3">
+              <label class="form-label-modern">Full Name</label>
+              <input type="text" name="name" class="input-modern" placeholder="e.g. Rahul Sharma" required minlength="2" />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label-modern">Email Address</label>
+              <input type="email" name="email" class="input-modern" placeholder="rahul@example.com" required />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label-modern">Password</label>
+              <div class="position-relative">
+                <input type="password" name="password" id="regPwd" class="input-modern"
+                       placeholder="Min 8 characters" required minlength="8"
+                       oninput="checkPasswordStrength(this.value)" style="padding-right: 44px;" />
+                <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted pe-3" onclick="togglePwd('regPwd', this)" style="text-decoration: none;">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+              <div class="mt-1">
+                <div class="progress" style="height: 4px;">
+                  <div id="strengthFill" class="progress-bar bg-turquoise" style="width: 0%;"></div>
+                </div>
+                <small id="strengthLabel" class="text-muted extra-small">Password strength</small>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label-modern">Confirm Password</label>
+              <input type="password" name="confirm_password" id="regPwdConfirm" class="input-modern"
+                     placeholder="Repeat password" required minlength="8" />
+            </div>
+
+            <div class="mb-4">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="agreeTerms" required />
+                <label class="form-check-label small text-muted" for="agreeTerms">
+                  I agree to the travel terms and privacy guidelines.
+                </label>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-turquoise w-100 py-2 mb-3">
+              <i class="bi bi-person-check me-2"></i> Register Account
             </button>
+          </form>
+
+          <div class="text-center my-3 position-relative">
+            <hr class="text-muted opacity-25">
+            <span class="position-absolute top-50 start-50 translate-middle px-3 bg-white text-muted extra-small fw-bold">OR</span>
           </div>
-          <div class="password-strength mt-1">
-            <div class="strength-bar"><div id="strengthFill" class="strength-fill"></div></div>
-            <small id="strengthLabel" class="text-muted">Enter password</small>
-          </div>
+
+          <a href="{{ url_for('auth.login', next=next) if next else url_for('auth.login') }}" class="btn btn-outline-navy w-100 py-2">
+            Already Have an Account? Sign In
+          </a>
         </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Confirm Password</label>
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-            <input type="password" name="confirm_password" id="regPwdConfirm" class="form-control"
-                   placeholder="Repeat password" required minlength="8" />
-          </div>
-        </div>
-        <div class="mb-3">
-          <div class="form-check">
-            <input type="checkbox" class="form-check-input" id="agreeTerms" required />
-            <label class="form-check-label small" for="agreeTerms">
-              I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
-            </label>
-          </div>
-        </div>
-        <button type="submit" class="btn btn-ibm w-100 py-2">
-          <i class="bi bi-person-plus me-2"></i>Create Account
-        </button>
-      </form>
-      <div class="auth-divider"><span>Already have an account?</span></div>
-      <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary w-100">Login</a>
-    </div>
-    <div class="auth-branding text-center mt-4">
-      <span class="badge badge-ibm">IBM Granite</span>
-      
+      </div>
     </div>
   </div>
 </div>
@@ -74,19 +83,40 @@
 
 {% block extra_js %}
 <script>
-function checkPasswordStrength(pwd) {
+function togglePwd(id, btn) {
+  const el = document.getElementById(id);
+  const icon = btn.querySelector('i');
+  if (el.type === 'password') {
+    el.type = 'text';
+    icon.className = 'bi bi-eye-slash';
+  } else {
+    el.type = 'password';
+    icon.className = 'bi bi-eye';
+  }
+}
+
+function checkPasswordStrength(val) {
+  const fill = document.getElementById('strengthFill');
+  const lbl = document.getElementById('strengthLabel');
   let score = 0;
-  if (pwd.length >= 8) score++;
-  if (/[A-Z]/.test(pwd)) score++;
-  if (/[0-9]/.test(pwd)) score++;
-  if (/[^A-Za-z0-9]/.test(pwd)) score++;
-  const fill  = document.getElementById('strengthFill');
-  const label = document.getElementById('strengthLabel');
-  const colors = ['#fa4d56', '#ff832b', '#f1c21b', '#42be65'];
-  const labels = ['Weak', 'Fair', 'Good', 'Strong'];
-  fill.style.width = ((score / 4) * 100) + '%';
-  fill.style.background = colors[score - 1] || '#e0e0e0';
-  label.textContent = labels[score - 1] || 'Enter password';
+  if (val.length >= 8) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+
+  const pct = (score / 4) * 100;
+  fill.style.width = pct + '%';
+
+  if (score <= 1) {
+    fill.className = 'progress-bar bg-danger';
+    lbl.textContent = 'Weak password';
+  } else if (score <= 3) {
+    fill.className = 'progress-bar bg-warning';
+    lbl.textContent = 'Moderate password';
+  } else {
+    fill.className = 'progress-bar bg-turquoise';
+    lbl.textContent = 'Strong password';
+  }
 }
 </script>
 {% endblock %}

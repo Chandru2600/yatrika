@@ -66,10 +66,12 @@ class ProductionConfig(Config):
     SESSION_COOKIE_SECURE = True
 
 
+import tempfile
+
 class TestingConfig(Config):
     """Testing configuration."""
     TESTING = True
-    DATABASE_PATH = ":memory:"
+    DATABASE_PATH = os.path.join(tempfile.gettempdir(), "travel_planner_test.db")
 
 
 # ── Active config ─────────────────────────────────────────────

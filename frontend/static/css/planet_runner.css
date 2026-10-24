@@ -1,0 +1,441 @@
+/* ═════════════════════════════════════════════════════════════════════
+   3D Planet Runner & Attraction Scout — Stylesheet
+   ═════════════════════════════════════════════════════════════════════ */
+
+.planet-runner-container {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  background: radial-gradient(ellipse at 50% 40%, #0e1e38 0%, #081022 60%, #030712 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  touch-action: none;
+}
+
+.planet-runner-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  cursor: grab;
+}
+
+.planet-runner-canvas:active {
+  cursor: grabbing;
+}
+
+/* Atmospheric Glow */
+.planet-runner-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 168, 150, 0.28) 0%, rgba(0, 168, 150, 0.05) 55%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Header Overlay */
+.planet-runner-hud-top {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.planet-runner-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 168, 150, 0.35);
+  border-radius: 9999px;
+  color: #5eead4;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.planet-runner-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00A896;
+  box-shadow: 0 0 10px #00A896;
+  animation: runnerPulse 1.4s infinite ease-in-out;
+}
+
+@keyframes runnerPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.5; }
+}
+
+.planet-runner-counter {
+  padding: 6px 14px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* Active Discovered Attraction Notification Toast */
+.planet-runner-toast {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  background: rgba(11, 31, 51, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 168, 150, 0.45);
+  border-radius: 14px;
+  padding: 10px 18px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 16px rgba(0, 168, 150, 0.25);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  min-width: 280px;
+  max-width: 90%;
+}
+
+.planet-runner-toast-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00A896, #028090);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.planet-runner-toast-content {
+  flex-grow: 1;
+  text-align: left;
+}
+
+.planet-runner-toast-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #5eead4;
+}
+
+.planet-runner-toast-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.planet-runner-hint {
+  position: absolute;
+  bottom: 8px;
+  right: 14px;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   Universal Global Loading Modal (Person Running on Earth)
+   ═════════════════════════════════════════════════════════════════════ */
+.planet-runner-global-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: rgba(8, 16, 34, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.planet-runner-global-modal.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.planet-runner-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+  background: #0B1F33;
+  border: 1px solid rgba(0, 168, 150, 0.35);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), 0 0 40px rgba(0, 168, 150, 0.2);
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.94);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.planet-runner-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #94a3b8;
+  font-size: 1.25rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 25;
+  transition: all 0.2s ease;
+}
+
+.planet-runner-modal-close:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ffffff;
+}
+
+.planet-runner-global-modal.is-active .planet-runner-modal-card {
+  transform: scale(1);
+}
+
+.planet-runner-modal-stage {
+  width: 100%;
+  height: 320px;
+  position: relative;
+  background: radial-gradient(ellipse at 50% 40%, #0e1e38 0%, #081022 60%, #030712 100%);
+}
+
+.planet-runner-modal-footer {
+  padding: 18px 24px;
+  background: rgba(15, 23, 42, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.planet-runner-modal-msg {
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.planet-runner-modal-sub {
+  color: #94a3b8;
+  font-size: 0.76rem;
+  margin-top: 2px;
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   Compact Inline Planet Loader
+   ═════════════════════════════════════════════════════════════════════ */
+.planet-loader-inline {
+  position: relative;
+  width: 100%;
+  min-height: 140px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 50%, #0e1e38 0%, #081022 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.planet-loader-inline-text {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #5eead4;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   Micro Planet Runner (For buttons, autocomplete, in-line items)
+   ═════════════════════════════════════════════════════════════════════ */
+.planet-runner-micro {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  vertical-align: middle;
+}
+
+.planet-runner-micro-orb {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.planet-runner-micro-earth {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #2a9d8f 0%, #1d3557 60%, #0d1b2a 100%);
+  box-shadow: 0 0 8px rgba(42, 157, 143, 0.6), inset -2px -2px 4px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(94, 234, 212, 0.4);
+  animation: microEarthRotate 3s linear infinite;
+  overflow: hidden;
+}
+
+.planet-runner-micro-earth::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(#2ec4b6 35%, transparent 36%), radial-gradient(#5eead4 30%, transparent 31%);
+  background-position: 0 0, 10px 10px;
+  background-size: 16px 16px;
+  opacity: 0.45;
+  animation: microTextureDrift 3s linear infinite;
+}
+
+@keyframes microEarthRotate {
+  0% { transform: translateX(-50%) rotate(0deg); }
+  100% { transform: translateX(-50%) rotate(360deg); }
+}
+
+@keyframes microTextureDrift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(16px); }
+}
+
+.planet-runner-micro-figure {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  line-height: 1;
+  animation: microRunnerStride 0.45s ease-in-out infinite alternate;
+  z-index: 2;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+}
+
+@keyframes microRunnerStride {
+  0% { transform: translateX(-50%) translateY(0) rotate(-6deg); }
+  100% { transform: translateX(-50%) translateY(-3px) rotate(6deg); }
+}
+
+.planet-runner-micro-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Fallback override for any legacy spinner-border to dress it with the earth glow */
+.spinner-border.planet-themed {
+  border-color: #00A896;
+  border-right-color: transparent;
+  box-shadow: 0 0 10px rgba(0, 168, 150, 0.4);
+}
+
+/* ── Mobile Responsiveness for 3D Earth & Runner ─────────────────── */
+@media (max-width: 768px) {
+  .planet-runner-container {
+    height: 320px;
+    border-radius: 16px;
+  }
+  .planet-runner-glow {
+    width: 240px;
+    height: 240px;
+  }
+  .planet-runner-toast {
+    min-width: 0;
+    max-width: 92%;
+    padding: 8px 12px;
+    bottom: 12px;
+  }
+  .planet-runner-toast-name {
+    font-size: 0.8rem;
+  }
+  .planet-runner-modal-card {
+    max-width: 96%;
+    border-radius: 20px;
+  }
+  .planet-runner-modal-stage {
+    height: 260px;
+  }
+  .planet-runner-modal-footer {
+    padding: 14px 18px;
+  }
+  .planet-runner-modal-msg {
+    font-size: 0.85rem;
+  }
+  .planet-runner-modal-sub {
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .planet-runner-container {
+    height: 270px;
+  }
+  .planet-runner-modal-stage {
+    height: 230px;
+  }
+  .planet-runner-hud-top {
+    top: 10px;
+    left: 12px;
+    right: 12px;
+  }
+  .planet-runner-badge, .planet-runner-counter {
+    padding: 4px 10px;
+    font-size: 0.72rem;
+  }
+}
+
+
+

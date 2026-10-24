@@ -1,238 +1,1136 @@
 {% extends "base.html" %}
-{% block title %}Plan New Trip — AI Travel Planner{% endblock %}
+{% block title %}AI Travel Planner — Plan Your Perfect Indian Trip{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/planet_runner.css') }}" />
+<style>
+  .planner-layout-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .card-panel-clean {
+    background: var(--c-white);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s ease;
+  }
+  .card-panel-clean:hover {
+    box-shadow: var(--shadow-md);
+  }
+  .panel-header-clean {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--c-navy);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .style-card-select {
+    border: 2px solid var(--c-border);
+    border-radius: var(--radius-md);
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--c-white);
+    transition: all 0.18s ease;
+    height: 100%;
+  }
+  .style-card-select:hover,
+  .style-card-select.selected,
+  .style-card-select:has(input:checked) {
+    border-color: var(--c-turquoise);
+    background: var(--c-turquoise-subtle);
+    transform: translateY(-2px);
+  }
+  .transit-card-select {
+    border: 2px solid var(--c-border);
+    border-radius: var(--radius-md);
+    padding: 12px 10px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--c-white);
+    transition: all 0.18s ease;
+    height: 100%;
+  }
+  .transit-card-select:hover,
+  .transit-card-select.selected,
+  .transit-card-select:has(input:checked) {
+    border-color: var(--c-turquoise);
+    background: var(--c-turquoise-subtle);
+    transform: translateY(-2px);
+  }
+  .counter-circle-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--c-border);
+    background: var(--c-white);
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: var(--c-navy);
+  }
+  .counter-circle-btn:hover {
+    background: var(--c-turquoise);
+    color: #ffffff;
+    border-color: var(--c-turquoise);
+  }
+  .sticky-sidebar-command {
+    position: sticky;
+    top: calc(var(--navbar-height) + 20px);
+  }
+  .command-card-dark {
+    background: var(--c-navy);
+    color: #ffffff;
+    border-radius: var(--radius-xl);
+    padding: 26px;
+    box-shadow: var(--shadow-lg);
+  }
+  .budget-dial-container {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-md);
+    padding: 16px;
+  }
+  .interest-chip-pill {
+    border: 1.5px solid var(--c-border);
+    border-radius: var(--radius-pill);
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--c-white);
+    user-select: none;
+  }
+  .interest-chip-pill:hover,
+  .interest-chip-pill:has(input:checked) {
+    border-color: var(--c-turquoise);
+    background: var(--c-turquoise);
+    color: #ffffff;
+  }
+
+  /* ── Interactive Generating Modal ── */
+  .gen-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 31, 51, 0.78);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .gen-card {
+    background: var(--c-white);
+    border-radius: var(--radius-xl);
+    max-width: 580px;
+    width: 100%;
+    padding: 32px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  .gen-pulse-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--c-turquoise);
+    animation: pulseGlow 1.5s infinite;
+  }
+  @keyframes pulseGlow {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 168, 150, 0.7); }
+    70% { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(0, 168, 150, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 168, 150, 0); }
+  }
+  .gen-stages {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--c-soft-bg);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    border: 1px solid var(--c-border);
+  }
+  .gen-stage {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+    opacity: 0.45;
+  }
+  .gen-stage.active {
+    opacity: 1;
+    background: var(--c-white);
+    box-shadow: var(--shadow-sm);
+    border-left: 3px solid var(--c-turquoise);
+  }
+  .gen-stage.done {
+    opacity: 0.85;
+  }
+  .stage-icon-box {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--c-turquoise-subtle);
+    color: var(--c-turquoise);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+  .gen-stage.done .stage-icon-box {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+  .stage-name-text {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--c-navy);
+  }
+  .interactive-trivia-card {
+    background: var(--c-warm-white);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+  }
+  @media (max-width: 768px) {
+    .gen-card {
+      padding: 20px 16px;
+      border-radius: 20px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .card-panel-clean {
+      padding: 18px 14px;
+      border-radius: 16px;
+    }
+    .panel-header-clean {
+      font-size: 0.95rem;
+    }
+    #stepPlannerPlanetRunner {
+      height: 200px !important;
+    }
+  }
+  @media (max-width: 480px) {
+    .gen-card {
+      padding: 16px 12px;
+    }
+    #stepPlannerPlanetRunner {
+      height: 170px !important;
+    }
+    .stage-name-text {
+      font-size: 0.78rem;
+    }
+    .btn-selectable {
+      padding: 10px 12px;
+    }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="page-wrapper">
-  <div class="container py-5">
+<div class="py-4">
+  <div class="planner-layout-wrapper container">
 
-    <!-- Header -->
-    <div class="text-center mb-5">
-      <span class="section-tag">Powered by IBM Granite</span>
-      <h1 class="page-title mt-2">Plan Your Perfect Trip</h1>
-      <p class="text-muted">Fill in your preferences and let IBM Granite AI build your personalized itinerary.</p>
-    </div>
-
-    <!-- Stepper Progress -->
-    <div class="planner-stepper mb-5">
-      <div class="step active" data-step="1"><div class="step-dot"><i class="bi bi-geo-alt"></i></div><span>Destination</span></div>
-      <div class="step-line"></div>
-      <div class="step" data-step="2"><div class="step-dot"><i class="bi bi-people"></i></div><span>Travelers</span></div>
-      <div class="step-line"></div>
-      <div class="step" data-step="3"><div class="step-dot"><i class="bi bi-heart"></i></div><span>Preferences</span></div>
-      <div class="step-line"></div>
-      <div class="step" data-step="4"><div class="step-dot"><i class="bi bi-cpu"></i></div><span>Generate</span></div>
+    <!-- Page Header -->
+    <div class="text-center mb-4">
+      <span class="badge-tag badge-tag-turquoise mb-2">
+        <i class="bi bi-robot me-1"></i>4-Agent Cooperative Travel AI
+      </span>
+      <h1 class="display-6 fw-extrabold text-navy mb-2">Plan Your Dream Indian Journey</h1>
+      <p class="text-muted small mx-auto" style="max-width: 600px;">
+        Instant, data-driven travel itineraries anchored around verified Base Camp stays, real IRCTC rail schedules, and ₹ INR budgeting.
+      </p>
     </div>
 
     <form method="POST" action="{{ url_for('planner.new_trip') }}" id="plannerForm">
+      <div class="row g-4">
 
-      <!-- ── Step 1: Destination & Dates ──────────────────────── -->
-      <div class="planner-step active" id="step-1">
-        <div class="card-panel">
-          <h4 class="panel-title mb-4"><i class="bi bi-geo-alt me-2 text-primary"></i>Destination & Dates</h4>
-          <div class="row g-3">
-            <div class="col-md-12">
-              <label class="form-label fw-semibold">Destination *</label>
-              <div class="input-group input-group-lg">
-                <span class="input-group-text"><i class="bi bi-geo-alt-fill text-primary"></i></span>
-                <input type="text" name="destination" class="form-control"
-                  placeholder="e.g. Paris, France or Tokyo, Japan"
-                  id="destinationInput" required autocomplete="off"
-                  value="{{ values.get('destination', '') }}" />
-                <button type="button" class="btn btn-outline-secondary" id="checkWeatherBtn" title="Preview weather">
-                  <i class="bi bi-cloud-sun"></i>
-                </button>
-              </div>
-              <!-- Live weather preview box -->
-              <div id="weatherPreview" class="weather-preview mt-2 d-none"></div>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-semibold">Start Date *</label>
-              <input type="date" name="start_date" id="startDate" class="form-control" required
-                     min="{{ today }}" value="{{ values.get('start_date', '') }}" />
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-semibold">End Date *</label>
-              <input type="date" name="end_date" id="endDate" class="form-control" required
-                     min="{{ today }}" value="{{ values.get('end_date', '') }}" />
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-semibold">Number of Days</label>
-              <input type="number" name="num_days" id="numDays" class="form-control"
-                     value="{{ values.get('num_days', 3) }}" min="1" max="30" readonly />
-            </div>
-          </div>
-        </div>
-        <div class="d-flex justify-content-end mt-3">
-          <button type="button" class="btn btn-ibm" onclick="nextStep(2)">
-            Next: Travelers <i class="bi bi-arrow-right ms-2"></i>
-          </button>
-        </div>
-      </div>
+        <!-- ── Left Column: Planning Parameters ─────────────────── -->
+        <div class="col-lg-8">
 
-      <!-- ── Step 2: Travelers & Budget ───────────────────────── -->
-      <div class="planner-step d-none" id="step-2">
-        <div class="card-panel">
-          <h4 class="panel-title mb-4"><i class="bi bi-people me-2 text-primary"></i>Travelers & Budget</h4>
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Number of Travelers *</label>
-              <div class="counter-input d-flex align-items-center gap-3">
-                <button type="button" class="btn btn-outline-secondary" onclick="changeCount('num_travelers', -1)">−</button>
-                <input type="number" name="num_travelers" id="numTravelers" class="form-control text-center fw-bold"
-                       value="{{ values.get('num_travelers', 1) }}" min="1" max="50" style="width:80px" />
-                <button type="button" class="btn btn-outline-secondary" onclick="changeCount('num_travelers', 1)">+</button>
-              </div>
+          <!-- 1. Origin & Destination -->
+          <div class="card-panel-clean">
+            <div class="panel-header-clean">
+              <i class="bi bi-geo-alt-fill text-turquoise"></i> 1. Route &amp; Base Camp Destination
             </div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Total Budget (USD) *</label>
-              <div class="input-group">
-                <span class="input-group-text">$</span>
-                <input type="number" name="budget" id="budgetInput" class="form-control"
-                       value="{{ values.get('budget', 1500) }}" min="100" max="500000" step="100" />
-                <span class="input-group-text">USD</span>
-              </div>
-              <div class="budget-range mt-2">
-                <input type="range" class="form-range" min="100" max="50000" step="100"
-                       value="{{ values.get('budget', 1500) }}" id="budgetRange" oninput="syncBudget(this.value)" />
-                <div class="d-flex justify-content-between text-muted small">
-                  <span>$100</span><span>$50,000</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Travel Style *</label>
-              <div class="style-grid">
-                {% for style, icon, desc in [
-                  ("budget", "💰", "Economical & smart"),
-                  ("luxury", "💎", "Premium & comfort"),
-                  ("adventure", "🏔", "Thrilling & outdoors"),
-                  ("family", "👨‍👩‍👧‍👦", "Fun for everyone"),
-                  ("solo", "🧍", "Independent & free"),
-                  ("friends", "👫", "Group & social")
-                ] %}
-                <label class="style-card {% if style == values.get('travel_style', 'budget') %}selected{% endif %}">
-                  <input type="radio" name="travel_style" value="{{ style }}" {% if style == values.get('travel_style', 'budget') %}checked{% endif %} hidden />
-                  <span class="style-emoji">{{ icon }}</span>
-                  <span class="style-name">{{ style|title }}</span>
-                  <span class="style-desc">{{ desc }}</span>
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label-modern d-flex justify-content-between align-items-center">
+                  <span><i class="bi bi-geo-alt me-1 text-muted"></i> Starting City (Origin)</span>
+                  <span class="extra-small text-muted fw-normal">Type or pick from recommendations</span>
                 </label>
-                {% endfor %}
+                <div class="place-autocomplete-container" data-type="origin" id="originContainer">
+                  <div class="place-input-box origin-box">
+                    <div class="place-input-icon">
+                      <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <div class="place-input-content">
+                      <input type="text" name="source" id="sourceInput" class="place-text-input"
+                        placeholder="Type starting city, e.g. Bengaluru, Mumbai, Delhi..."
+                        value="{{ values.get('source', 'Bengaluru') }}" autocomplete="off" spellcheck="false" required />
+                    </div>
+                    <button type="button" class="place-clear-btn d-none" title="Clear city" aria-label="Clear">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                    <div class="place-indicator-chip d-none">
+                      <span class="place-chip-badge"></span>
+                    </div>
+                  </div>
+                  <div class="place-rec-dropdown d-none"></div>
+                </div>
+
+                <!-- Origin Quick Chips -->
+                <div class="d-flex flex-wrap gap-1 mt-2">
+                  <span class="extra-small text-muted align-self-center me-1">Quick:</span>
+                  {% for c in ['Bengaluru', 'Hubballi', 'Mumbai', 'Delhi', 'Chennai', 'Hyderabad'] %}
+                  <span class="chip-selectable" onclick="setOrigin('{{ c }}')">{{ c }}</span>
+                  {% endfor %}
+                </div>
               </div>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Preferred Transport *</label>
-              <div class="transport-grid">
-                {% for mode, icon in [("flight","bi-airplane"), ("train","bi-train-front"), ("bus","bi-bus-front"), ("car","bi-car-front")] %}
-                <label class="transport-card {% if mode == values.get('transport', 'flight') %}selected{% endif %}">
-                  <input type="radio" name="transport" value="{{ mode }}" {% if mode == values.get('transport', 'flight') %}checked{% endif %} hidden />
-                  <i class="bi {{ icon }} transport-icon"></i>
-                  <span>{{ mode|title }}</span>
+
+              <div class="col-md-6">
+                <label class="form-label-modern d-flex justify-content-between align-items-center">
+                  <span><i class="bi bi-pin-map text-turquoise me-1"></i> Destination City / Region</span>
+                  <span class="extra-small text-turquoise fw-bold">Live Suggestions &amp; Categories</span>
                 </label>
-                {% endfor %}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="d-flex justify-content-between mt-3">
-          <button type="button" class="btn btn-outline-secondary" onclick="prevStep(1)">
-            <i class="bi bi-arrow-left me-2"></i>Back
-          </button>
-          <button type="button" class="btn btn-ibm" onclick="nextStep(3)">
-            Next: Preferences <i class="bi bi-arrow-right ms-2"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- ── Step 3: Interests & Requirements ─────────────────── -->
-      <div class="planner-step d-none" id="step-3">
-        <div class="card-panel">
-          <h4 class="panel-title mb-4"><i class="bi bi-heart me-2 text-primary"></i>Interests & Requirements</h4>
-          <div class="row g-4">
-            <div class="col-12">
-              <label class="form-label fw-semibold">Your Interests (select all that apply)</label>
-              <div class="interest-grid">
-                {% for interest, icon in [
-                  ("Nature","🌿"), ("Adventure","🏄"), ("Food","🍜"), ("Culture","🎭"),
-                  ("Photography","📷"), ("Shopping","🛍"), ("Historical","🏛"),
-                  ("Nightlife","🌃"), ("Beaches","🏖"), ("Wildlife","🦁"),
-                  ("Architecture","🏗"), ("Religion","⛩")
-                ] %}
-                <div class="interest-chip" data-value="{{ interest }}">
-                  <input type="checkbox" name="interests" value="{{ interest }}" style="display:none" />
-                  {{ icon }} {{ interest }}
+                <div class="place-autocomplete-container" data-type="destination" id="destContainer">
+                  <div class="place-input-box">
+                    <div class="place-input-icon">
+                      <i class="bi bi-pin-map-fill"></i>
+                    </div>
+                    <div class="place-input-content">
+                      <input type="text" name="destination" id="destinationInput" class="place-text-input"
+                        placeholder="Type destination, e.g. Coorg, Chikmagalur, Goa..."
+                        value="{{ values.get('destination', 'Coorg') }}" autocomplete="off" spellcheck="false" required />
+                    </div>
+                    <button type="button" class="place-clear-btn d-none" title="Clear destination" aria-label="Clear">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                    <div class="place-indicator-chip d-none">
+                      <span class="place-chip-badge"></span>
+                    </div>
+                  </div>
+                  <div class="place-rec-dropdown d-none"></div>
                 </div>
-                {% endfor %}
-              </div>
-            </div>
-            <div class="col-12">
-              <label class="form-label fw-semibold">Special Requirements</label>
-              <div class="requirements-grid">
-                {% for req, icon in [
-                  ("Vegetarian","🥗"), ("Vegan","🌱"), ("Wheelchair Accessible","♿"),
-                  ("Kids Friendly","👶"), ("Senior Friendly","🧓"), ("Pet Friendly","🐾"),
-                  ("Halal Food","☪️"), ("Non-smoking","🚭")
-                ] %}
-                <div class="req-chip" data-value="{{ req }}">
-                  <input type="checkbox" name="special_requirements" value="{{ req }}" style="display:none" />
-                  {{ icon }} {{ req }}
-                </div>
-                {% endfor %}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="d-flex justify-content-between mt-3">
-          <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">
-            <i class="bi bi-arrow-left me-2"></i>Back
-          </button>
-          <button type="button" class="btn btn-ibm" onclick="nextStep(4)">
-            Review & Generate <i class="bi bi-arrow-right ms-2"></i>
-          </button>
-        </div>
-      </div>
 
-      <!-- ── Step 4: Review & Submit ───────────────────────────── -->
-      <div class="planner-step d-none" id="step-4">
-        <div class="card-panel">
-          <h4 class="panel-title mb-4"><i class="bi bi-cpu me-2 text-primary"></i>Review & Generate with IBM Granite</h4>
-          <div id="tripSummary" class="trip-summary-preview"></div>
-          <div class="ai-notice mt-4">
-            <div class="ai-notice-icon">🤖</div>
+                <!-- Destination Quick Chips -->
+                <div class="d-flex flex-wrap gap-1 mt-2">
+                  <span class="extra-small text-muted align-self-center me-1">Trending:</span>
+                  <span class="chip-selectable" onclick="setDest('Coorg')">🌿 Coorg</span>
+                  <span class="chip-selectable" onclick="setDest('Chikmagalur')">☕ Chikmagalur</span>
+                  <span class="chip-selectable" onclick="setDest('Samse')">🍃 Samse</span>
+                  <span class="chip-selectable" onclick="setDest('Hampi')">🛕 Hampi</span>
+                  <span class="chip-selectable" onclick="setDest('Goa')">🏖️ Goa</span>
+                  <span class="chip-selectable" onclick="setDest('Manali')">🏔️ Manali</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Weather preview badge -->
+            <div id="weatherPreview" class="mt-3 p-2 px-3 rounded-3 small bg-light d-none border"></div>
+          </div>
+
+          <!-- 2. Dates, Travelers & Budget -->
+          <div class="card-panel-clean">
+            <div class="panel-header-clean">
+              <i class="bi bi-calendar-range text-coral"></i> 2. Travel Dates &amp; Budget in ₹ INR
+            </div>
+
+            <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <label class="form-label-modern">Start Date</label>
+                <input type="date" name="start_date" id="startDate" class="input-modern" value="{{ values.get('start_date', '') }}" required />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label-modern">End Date</label>
+                <input type="date" name="end_date" id="endDate" class="input-modern" value="{{ values.get('end_date', '') }}" required />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label-modern">Duration</label>
+                <input type="hidden" name="num_days" id="numDays" value="{{ values.get('num_days', 3) }}" />
+                <div class="p-2 px-3 rounded-3 bg-light border text-navy fw-bold text-center" id="durationBadge" style="height: 48px; line-height: 32px;">
+                  3 Days / 2 Nights
+                </div>
+              </div>
+            </div>
+
+            <!-- Travelers Counter -->
+            <div class="row g-3 align-items-center mb-4">
+              <div class="col-md-6">
+                <label class="form-label-modern mb-1">Number of Travelers</label>
+                <div class="d-flex align-items-center gap-3">
+                  <button type="button" class="counter-circle-btn" onclick="adjustTravelers(-1)">−</button>
+                  <span class="fw-bold fs-5 text-navy" id="travelerLabel" style="min-width: 100px; text-align: center;">2 Travelers</span>
+                  <button type="button" class="counter-circle-btn" onclick="adjustTravelers(1)">+</button>
+                  <input type="hidden" name="num_travelers" id="numTravelers" value="{{ values.get('num_travelers', 2) }}" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="d-flex gap-2 justify-content-md-end flex-wrap">
+                  <span class="chip-selectable" onclick="setTravelers(1)">Solo (1)</span>
+                  <span class="chip-selectable active" onclick="setTravelers(2)">Couple (2)</span>
+                  <span class="chip-selectable" onclick="setTravelers(4)">Group (4)</span>
+                  <span class="chip-selectable" onclick="setTravelers(6)">Family (6)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Budget Slider -->
             <div>
-              <strong>IBM Granite AI will generate:</strong>
-              <ul class="mb-0 mt-1 small">
-                <li>Day-wise itinerary with morning, afternoon & evening plans</li>
-                <li>Restaurant recommendations with cuisine & price range</li>
-                <li>Hotel suggestions across budget, mid-range & luxury</li>
-                <li>Complete budget breakdown with saving tips</li>
-                <li>Packing checklist tailored to your destination</li>
-                <li>Local customs, useful phrases, and safety tips</li>
-              </ul>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label-modern mb-0">Total Trip Budget (₹ INR)</label>
+                <span class="badge-tag badge-tag-turquoise" id="perPersonBudgetBadge">₹12,500 / person</span>
+              </div>
+              <div class="input-group mb-2">
+                <span class="input-group-text bg-white fw-bold text-navy">₹</span>
+                <input type="number" name="budget" id="budgetInput" class="input-modern fw-bold text-navy"
+                  min="5000" max="250000" step="500" value="{{ values.get('budget', 25000) }}" oninput="syncBudgetFromInput(this.value)" required />
+              </div>
+              <input type="range" class="form-range" id="budgetRange" min="5000" max="150000" step="1000"
+                value="{{ values.get('budget', 25000) }}" oninput="syncBudgetFromRange(this.value)" />
+              <div class="d-flex justify-content-between text-muted extra-small">
+                <span>₹5,000 (Backpacker)</span>
+                <span>₹50,000 (Comfort)</span>
+                <span>₹1,50,000+ (Luxury)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Travel Style & Preferred Transit -->
+          <div class="card-panel-clean">
+            <div class="panel-header-clean">
+              <i class="bi bi-compass text-turquoise"></i> 3. Travel Style &amp; Inter-City Transit
+            </div>
+
+            <!-- Style Grid -->
+            <label class="form-label-modern mb-2">Choose Travel Style</label>
+            <div class="row g-2 mb-4">
+              {% for style, icon, title in [
+                ("adventure", "🏔️", "Adventure"),
+                ("nature", "🌿", "Nature & Calm"),
+                ("family", "👨‍👩‍👧", "Family Trip"),
+                ("heritage", "🏛️", "Heritage"),
+                ("budget", "💰", "Backpacker"),
+                ("luxury", "💎", "Luxury")
+              ] %}
+              <div class="col-4 col-md-2">
+                <label class="style-card-select d-block {% if style == values.get('travel_style', 'adventure') %}selected{% endif %}">
+                  <input type="radio" name="travel_style" value="{{ style }}" {% if style == values.get('travel_style', 'adventure') %}checked{% endif %} hidden />
+                  <div style="font-size: 1.5rem;">{{ icon }}</div>
+                  <div class="fw-bold mt-1 text-navy" style="font-size: 0.78rem;">{{ title }}</div>
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+
+            <!-- Transit Grid -->
+            <label class="form-label-modern mb-2">Preferred Inter-City Transit</label>
+            <div class="row g-2">
+              {% for mode, icon, label in [
+                ("train", "bi-train-front text-turquoise", "Train (IRCTC Rail)"),
+                ("bus", "bi-bus-front text-primary", "Bus (KSRTC / Private)"),
+                ("car", "bi-car-front text-success", "Car / Outstation Cab"),
+                ("flight", "bi-airplane text-coral", "Flight + Airport Taxi")
+              ] %}
+              <div class="col-6 col-md-3">
+                <label class="transit-card-select d-block {% if mode == values.get('transport', 'train') %}selected{% endif %}">
+                  <input type="radio" name="transport" value="{{ mode }}" {% if mode == values.get('transport', 'train') %}checked{% endif %} hidden />
+                  <i class="bi {{ icon }} d-block fs-4 mb-1"></i>
+                  <span class="text-navy fw-semibold small">{{ label }}</span>
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- 4. Sightseeing Interests -->
+          <div class="card-panel-clean">
+            <div class="panel-header-clean">
+              <i class="bi bi-heart text-coral"></i> 4. Sightseeing Interests (Optional)
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              {% for interest, icon in [
+                ("Waterfalls & Lakes", "🌊"),
+                ("Coffee & Tea Estates", "☕"),
+                ("Forts & Heritage Palaces", "🏰"),
+                ("Temples & Ancient Architecture", "🛕"),
+                ("Wildlife & Safari", "🐘"),
+                ("Authentic Regional Food", "🍛"),
+                ("Scenic Mountain Viewpoints", "📸"),
+                ("Shopping at Local Bazaars", "🛍️")
+              ] %}
+              <label class="interest-chip-pill">
+                <input type="checkbox" name="interests" value="{{ interest }}" hidden />
+                <span>{{ icon }} {{ interest }}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Mobile Quick Action CTA -->
+          <div class="d-lg-none mt-3 mb-4">
+            <button type="submit" class="btn-turquoise btn-lg w-100 py-3 fw-bold shadow-md d-inline-flex align-items-center justify-content-center" style="min-height: 50px; font-size: 1.02rem; border-radius: 14px;">
+              <i class="bi bi-sparkles me-2"></i>Generate AI Itinerary
+            </button>
+          </div>
+
+        </div>
+
+        <!-- ── Right Column: Sticky Live Command Preview ─────────── -->
+        <div class="col-lg-4">
+          <div class="sticky-sidebar-command">
+            <div class="command-card-dark">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge-tag badge-tag-turquoise">AI Trip Command</span>
+                <span class="extra-small opacity-75">4-Agent ML Ready</span>
+              </div>
+
+              <h3 class="fw-extrabold text-white mb-1" id="previewDest">Coorg, Karnataka</h3>
+              <div class="small opacity-75 mb-3" id="previewRoute">From Bengaluru ➔ Coorg</div>
+
+              <!-- Budget Dial Box -->
+              <div class="budget-dial-container mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="small fw-bold"><i class="bi bi-wallet2 me-1 text-warning"></i>Total Planned Budget</span>
+                  <span class="fw-bold fs-5 text-turquoise" id="previewTotalBudget">₹25,000</span>
+                </div>
+                <div class="progress" style="height: 6px; background: rgba(255,255,255,0.2); border-radius: 10px;">
+                  <div class="progress-bar bg-success" style="width: 100%;"></div>
+                </div>
+
+                <div class="mt-3 d-flex flex-column gap-1" style="font-size: 0.78rem;">
+                  <div class="d-flex justify-content-between opacity-90">
+                    <span>🏨 Base Camp Stay (35%):</span>
+                    <strong id="previewStayCost">₹8,750</strong>
+                  </div>
+                  <div class="d-flex justify-content-between opacity-90">
+                    <span>🚆 Door-to-Door Transit (25%):</span>
+                    <strong id="previewTransitCost">₹6,250</strong>
+                  </div>
+                  <div class="d-flex justify-content-between opacity-90">
+                    <span>🍽️ Regional Dining (20%):</span>
+                    <strong id="previewFoodCost">₹5,000</strong>
+                  </div>
+                  <div class="d-flex justify-content-between opacity-90">
+                    <span>🎟️ Sightseeing Tickets (12%):</span>
+                    <strong id="previewTicketCost">₹3,000</strong>
+                  </div>
+                  <div class="d-flex justify-content-between opacity-90">
+                    <span>🛡️ Emergency Buffer (8%):</span>
+                    <strong id="previewBufferCost">₹2,000</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tags -->
+              <div class="d-flex flex-wrap gap-2 mb-4" style="font-size: 0.75rem;">
+                <span class="badge bg-white text-dark py-1 px-2" id="previewDatesTag">3 Days · 2 Travelers</span>
+                <span class="badge bg-white text-dark py-1 px-2" id="previewStyleTag">Adventure</span>
+                <span class="badge bg-white text-dark py-1 px-2" id="previewTransportTag">Train</span>
+              </div>
+
+              <!-- Submit Button -->
+              <button type="submit" class="btn-turquoise btn-lg w-100 py-3 fw-bold mb-3" id="generateBtn">
+                <i class="bi bi-sparkles me-2"></i>Generate AI Itinerary
+              </button>
+
+              <!-- Link to 10-Step Wizard -->
+              <div class="p-3 rounded-3 text-center" style="background: rgba(255,255,255,0.06); border: 1px dashed rgba(255,255,255,0.2);">
+                <div class="extra-small fw-semibold mb-1 opacity-90">Want to hand-pick specific stays &amp; trains?</div>
+                <a href="{{ url_for('planner.wizard') }}" class="btn btn-sm btn-outline-light mt-1">
+                  <i class="bi bi-list-check me-1"></i>Open Step-by-Step Planner
+                </a>
+              </div>
+
             </div>
           </div>
         </div>
-        <div class="d-flex justify-content-between mt-3">
-          <button type="button" class="btn btn-outline-secondary" onclick="prevStep(3)">
-            <i class="bi bi-arrow-left me-2"></i>Back
-          </button>
-          <button type="submit" class="btn btn-ibm btn-lg px-5" id="generateBtn">
-            <span class="btn-default-text"><i class="bi bi-cpu me-2"></i>Generate AI Itinerary</span>
-            <span class="btn-loading-text d-none">
-              <span class="spinner-border spinner-border-sm me-2"></span>
-              IBM Granite is planning...
-            </span>
-          </button>
+
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- ── Interactive AI Generating Modal / Waiting Card ──────────────── -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="generatingOverlay" class="gen-overlay d-none">
+  <div class="gen-card animate__animated animate__zoomIn">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="d-flex align-items-center gap-2">
+        <div class="gen-pulse-dot"></div>
+        <span class="fw-bold small text-uppercase tracking-wider text-turquoise" id="genStatusBadge">
+          4-Agent Cooperative Engine Active
+        </span>
+      </div>
+      <span class="badge-tag badge-tag-turquoise fw-bold" id="genPercentBadge">15%</span>
+    </div>
+
+    <!-- Title & Route summary -->
+    <h3 class="fw-extrabold text-navy mb-1" id="genModalTitle">Crafting Your Personalized Plan...</h3>
+    <p class="text-muted small mb-3" id="genModalSubtitle">
+      Generating authentic Indian itinerary from <strong id="genModalRoute">Bengaluru ➔ Coorg</strong>
+    </p>
+
+    <!-- 3D Orbit Planet Runner: Person running around the world selecting places -->
+    <div id="stepPlannerPlanetRunner" class="mb-3" style="width: 100%; height: 260px; border-radius: 16px; overflow: hidden;"></div>
+
+    <!-- Progress Bar -->
+    <div class="progress mb-4" style="height: 8px; background: #e2e8f0; border-radius: 20px; overflow: hidden;">
+      <div id="genProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+           role="progressbar" style="width: 15%; transition: width 0.4s ease; background-color: var(--c-turquoise) !important;"></div>
+    </div>
+
+    <!-- Agent Workflow Stages -->
+    <div class="gen-stages mb-4" id="genStagesList">
+      <div class="gen-stage active" id="stage-1">
+        <div class="stage-icon-box"><i class="bi bi-geo-alt"></i></div>
+        <div class="flex-grow-1">
+          <div class="stage-name-text">1. Geography &amp; Weather Resolver</div>
+          <div class="text-muted extra-small">Checking live temperature &amp; monsoons forecast</div>
         </div>
+        <div class="stage-status"><span class="spinner-border spinner-border-sm text-turquoise"></span></div>
       </div>
 
-    </form>
+      <div class="gen-stage" id="stage-2">
+        <div class="stage-icon-box"><i class="bi bi-houses"></i></div>
+        <div class="flex-grow-1">
+          <div class="stage-name-text">2. Stays &amp; Base Camp Finder</div>
+          <div class="text-muted extra-small">Searching 1,50,000+ verified Indian homestays &amp; hotels</div>
+        </div>
+        <div class="stage-status"><i class="bi bi-circle text-muted"></i></div>
+      </div>
+
+      <div class="gen-stage" id="stage-3">
+        <div class="stage-icon-box"><i class="bi bi-signpost-split"></i></div>
+        <div class="flex-grow-1">
+          <div class="stage-name-text">3. Multimodal Transit Engine</div>
+          <div class="text-muted extra-small">Querying IRCTC rail, KSRTC buses &amp; outstation routes</div>
+        </div>
+        <div class="stage-status"><i class="bi bi-circle text-muted"></i></div>
+      </div>
+
+      <div class="gen-stage" id="stage-4">
+        <div class="stage-icon-box"><i class="bi bi-cup-hot"></i></div>
+        <div class="flex-grow-1">
+          <div class="stage-name-text">4. Regional Culinary Curation</div>
+          <div class="text-muted extra-small">Hand-picking authentic local dishes &amp; legendary eateries</div>
+        </div>
+        <div class="stage-status"><i class="bi bi-circle text-muted"></i></div>
+      </div>
+
+      <div class="gen-stage" id="stage-5">
+        <div class="stage-icon-box"><i class="bi bi-bezier2"></i></div>
+        <div class="flex-grow-1">
+          <div class="stage-name-text">5. Itinerary Loop Synthesizer</div>
+          <div class="text-muted extra-small">Stitching balanced day-wise sightseeing around your stay</div>
+        </div>
+        <div class="stage-status"><i class="bi bi-circle text-muted"></i></div>
+      </div>
+
+      <div class="gen-stage" id="stage-6">
+        <div class="stage-icon-box"><i class="bi bi-wallet2"></i></div>
+        <div class="flex-grow-1">
+          <div class="stage-name-text">6. ₹ INR Budget Optimizer</div>
+          <div class="text-muted extra-small">Balancing daily spend, permits &amp; emergency buffer</div>
+        </div>
+        <div class="stage-status"><i class="bi bi-circle text-muted"></i></div>
+      </div>
+    </div>
+
+    <!-- Interactive Indian Travel Trivia Card -->
+    <div class="interactive-trivia-card mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="small fw-bold text-uppercase text-muted" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+          🎲 While You Wait · Indian Travel Trivia
+        </span>
+        <button type="button" class="btn btn-sm btn-light py-0 px-2 fw-semibold" id="nextFactBtn" style="font-size: 0.75rem;">
+          Next Fact <i class="bi bi-arrow-clockwise ms-1"></i>
+        </button>
+      </div>
+      <p class="mb-0 small text-navy" id="triviaFactText" style="min-height: 44px; transition: opacity 0.2s ease;">
+        🌿 <strong>Did you know?</strong> Coorg (Kodagu) produces over 60% of India's coffee and is known as the "Scotland of India" for its mist-shrouded green hills.
+      </p>
+    </div>
+
+    <!-- Interactive Quick Vibe Picker -->
+    <div class="mb-3 p-2 rounded-3" style="background: var(--c-soft-bg); border: 1px dashed var(--c-border);">
+      <div class="extra-small fw-bold text-muted text-uppercase mb-1">Pick your trip vibe while waiting:</div>
+      <div class="d-flex flex-wrap gap-2" id="vibeChips">
+        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 vibe-btn" onclick="tapVibe(this, '☕')">☕ Coffee Walk (<span class="vibe-count">1</span>)</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 vibe-btn" onclick="tapVibe(this, '🌅')">🌅 Sunset Peak (<span class="vibe-count">1</span>)</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 vibe-btn" onclick="tapVibe(this, '🍛')">🍛 Street Food (<span class="vibe-count">1</span>)</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 vibe-btn" onclick="tapVibe(this, '⛺')">⛺ Campfire (<span class="vibe-count">1</span>)</button>
+      </div>
+    </div>
+
+    <!-- Success state actions -->
+    <div id="genSuccessBox" class="d-none text-center">
+      <div class="alert alert-success d-flex align-items-center justify-content-center gap-2 py-2 mb-3">
+        <i class="bi bi-check-circle-fill fs-5 text-success"></i>
+        <strong class="small">Itinerary Generated! Redirecting you now...</strong>
+      </div>
+      <a href="#" id="viewTripBtn" class="btn-turquoise btn-lg w-100 fw-bold py-2">
+        <i class="bi bi-eye-fill me-2"></i>Open Itinerary Now
+      </a>
+    </div>
+
+    <!-- Error state actions -->
+    <div id="genErrorBox" class="d-none">
+      <div class="alert alert-danger py-2 mb-2 small" id="genErrorMsg">
+        Generation encountered an issue.
+      </div>
+      <button type="button" class="btn btn-secondary w-100" onclick="closeGeneratingOverlay()">
+        Close &amp; Adjust Trip Details
+      </button>
+    </div>
+
   </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/planner.js') }}"></script>
 <script>
-  const TODAY = "{{ today }}";
+  // ── Sync UI & Quick Fill Logic ────────────────────────────────────
+  function setOrigin(city) {
+    const input = document.getElementById('sourceInput');
+    if (input) {
+      input.value = city;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      updatePreview();
+    }
+  }
+
+  function setDest(place) {
+    const input = document.getElementById('destinationInput');
+    if (input) {
+      input.value = place;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      updatePreview();
+      fetchWeatherPreview(place);
+    }
+  }
+
+  function setTravelers(num) {
+    const input = document.getElementById('numTravelers');
+    if (input) {
+      input.value = num;
+      updateTravelerLabels();
+      updatePreview();
+    }
+  }
+
+  function adjustTravelers(delta) {
+    const input = document.getElementById('numTravelers');
+    if (input) {
+      const current = parseInt(input.value || 1);
+      const next = Math.min(30, Math.max(1, current + delta));
+      input.value = next;
+      updateTravelerLabels();
+      updatePreview();
+    }
+  }
+
+  function updateTravelerLabels() {
+    const count = parseInt(document.getElementById('numTravelers')?.value || 1);
+    const label = document.getElementById('travelerLabel');
+    if (label) label.textContent = `${count} Traveler${count > 1 ? 's' : ''}`;
+    syncBudgetFromInput(document.getElementById('budgetInput')?.value || 25000);
+  }
+
+  function syncBudgetFromRange(val) {
+    const input = document.getElementById('budgetInput');
+    if (input) input.value = val;
+    updateBudgetBreakdown(val);
+  }
+
+  function syncBudgetFromInput(val) {
+    const range = document.getElementById('budgetRange');
+    if (range) range.value = val;
+    updateBudgetBreakdown(val);
+  }
+
+  function updateBudgetBreakdown(total) {
+    const t = parseFloat(total) || 25000;
+    const travelers = parseInt(document.getElementById('numTravelers')?.value || 2);
+    const perPerson = Math.round(t / travelers);
+
+    const badge = document.getElementById('perPersonBudgetBadge');
+    if (badge) badge.textContent = `₹${perPerson.toLocaleString('en-IN')} / person`;
+
+    const previewBudget = document.getElementById('previewTotalBudget');
+    if (previewBudget) previewBudget.textContent = `₹${t.toLocaleString('en-IN')}`;
+
+    const stayEl = document.getElementById('previewStayCost');
+    const transEl = document.getElementById('previewTransitCost');
+    const foodEl = document.getElementById('previewFoodCost');
+    const ticketEl = document.getElementById('previewTicketCost');
+    const bufEl = document.getElementById('previewBufferCost');
+
+    if (stayEl) stayEl.textContent = `₹${Math.round(t * 0.35).toLocaleString('en-IN')}`;
+    if (transEl) transEl.textContent = `₹${Math.round(t * 0.25).toLocaleString('en-IN')}`;
+    if (foodEl) foodEl.textContent = `₹${Math.round(t * 0.20).toLocaleString('en-IN')}`;
+    if (ticketEl) ticketEl.textContent = `₹${Math.round(t * 0.12).toLocaleString('en-IN')}`;
+    if (bufEl) bufEl.textContent = `₹${Math.round(t * 0.08).toLocaleString('en-IN')}`;
+  }
+
+  function updatePreview() {
+    const dest = document.getElementById('destinationInput')?.value || 'Coorg';
+    const source = document.getElementById('sourceInput')?.value || 'Bengaluru';
+    const travelers = document.getElementById('numTravelers')?.value || 2;
+    const days = document.getElementById('numDays')?.value || 3;
+
+    const pDest = document.getElementById('previewDest');
+    const pRoute = document.getElementById('previewRoute');
+    const pDates = document.getElementById('previewDatesTag');
+
+    if (pDest) pDest.textContent = dest;
+    if (pRoute) pRoute.textContent = `From ${source} ➔ ${dest}`;
+    if (pDates) pDates.textContent = `${days} Days · ${travelers} Traveler${travelers > 1 ? 's' : ''}`;
+
+    const style = document.querySelector('input[name="travel_style"]:checked')?.value || 'adventure';
+    const pStyle = document.getElementById('previewStyleTag');
+    if (pStyle) pStyle.textContent = style.charAt(0).toUpperCase() + style.slice(1);
+
+    const transport = document.querySelector('input[name="transport"]:checked')?.value || 'train';
+    const pTrans = document.getElementById('previewTransportTag');
+    if (pTrans) pTrans.textContent = transport.charAt(0).toUpperCase() + transport.slice(1);
+  }
+
+  async function fetchWeatherPreview(city) {
+    const weatherBox = document.getElementById('weatherPreview');
+    if (!weatherBox || !city) return;
+
+    weatherBox.classList.remove('d-none');
+    weatherBox.innerHTML = `<span class="spinner-border spinner-border-sm me-2 text-turquoise"></span>Checking weather for ${city}...`;
+
+    try {
+      const res = await fetch(`/planner/api/weather/${encodeURIComponent(city)}`);
+      const data = await res.json();
+      const c = data.current;
+      if (c && !c.error) {
+        weatherBox.innerHTML = `🌤️ <strong>${c.city || city}</strong>: ${c.temperature}°C · ${c.description} · 💧${c.humidity}% humidity · 💨${c.wind_speed} m/s`;
+      } else {
+        weatherBox.innerHTML = `⚠️ Live weather preview unavailable for "${city}".`;
+      }
+    } catch {
+      weatherBox.innerHTML = `⚠️ Weather service offline.`;
+    }
+  }
+
+  // ── Event Listeners ───────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    // Dates calculation
+    const startInp = document.getElementById('startDate');
+    const endInp = document.getElementById('endDate');
+    const daysInp = document.getElementById('numDays');
+    const badge = document.getElementById('durationBadge');
+
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const defaultEnd = new Date(today.getTime() + 2 * 86400000);
+    const defaultEndStr = defaultEnd.toISOString().split('T')[0];
+
+    if (startInp && !startInp.value) startInp.value = todayStr;
+    if (endInp && !endInp.value) endInp.value = defaultEndStr;
+
+    function calcDays() {
+      const s = new Date(startInp.value);
+      const e = new Date(endInp.value);
+      if (!isNaN(s) && !isNaN(e) && e >= s) {
+        const days = Math.ceil((e - s) / 86400000) + 1;
+        if (daysInp) daysInp.value = days;
+        if (badge) badge.textContent = `${days} Days / ${Math.max(1, days - 1)} Nights`;
+      }
+      updatePreview();
+    }
+
+    if (startInp && endInp) {
+      startInp.min = todayStr;
+      endInp.min = todayStr;
+      startInp.addEventListener('change', calcDays);
+      endInp.addEventListener('change', calcDays);
+      calcDays();
+    }
+
+    // Input changes
+    document.getElementById('sourceInput')?.addEventListener('input', updatePreview);
+    document.getElementById('destinationInput')?.addEventListener('input', updatePreview);
+
+    document.querySelectorAll('input[name="travel_style"]').forEach(r => {
+      r.addEventListener('change', () => {
+        document.querySelectorAll('.style-card-select').forEach(c => c.classList.remove('selected'));
+        r.closest('.style-card-select')?.classList.add('selected');
+        updatePreview();
+      });
+    });
+
+    document.querySelectorAll('input[name="transport"]').forEach(r => {
+      r.addEventListener('change', () => {
+        document.querySelectorAll('.transit-card-select').forEach(c => c.classList.remove('selected'));
+        r.closest('.transit-card-select')?.classList.add('selected');
+        updatePreview();
+      });
+    });
+
+    // Form submit & Interactive Generating Modal
+    const form = document.getElementById('plannerForm');
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const destInput = document.getElementById('destinationInput');
+        const destVal = destInput ? destInput.value.trim() : '';
+        if (!destVal) {
+          alert('Please enter a destination (e.g. Coorg, Manali, Chikmagalur, Goa)');
+          destInput?.focus();
+          return;
+        }
+
+        const sourceVal = document.getElementById('sourceInput')?.value.trim() || 'Bengaluru';
+        startInteractiveGeneration(sourceVal, destVal, form);
+      });
+    }
+
+    updateBudgetBreakdown(document.getElementById('budgetInput')?.value || 25000);
+    updatePreview();
+  });
+
+  // ── Interactive Travel Trivia Library ────────────────────────────
+  const TRIVIA_FACTS = [
+    "🌿 <strong>Did you know?</strong> Coorg (Kodagu) produces over 60% of India's coffee and is known as the 'Scotland of India' for its mist-shrouded green hills.",
+    "☕ <strong>Did you know?</strong> Chikmagalur is the birthplace of Indian coffee! Saint Baba Budan smuggled seven raw coffee beans from Yemen in 1670 and planted them in Baba Budan Giri hills.",
+    "🚂 <strong>Did you know?</strong> Indian Railways operates 13,000+ passenger trains carrying over 24 million travelers every day across 68,000 km of tracks!",
+    "🌊 <strong>Did you know?</strong> Dudhsagar Falls on the Goa-Karnataka rail line is a 4-tiered waterfall cascading 310 meters — its name literally translates to 'Sea of Milk'.",
+    "🛕 <strong>Did you know?</strong> Hampi in Karnataka boasts over 1,600 surviving monuments across 4,100 hectares and was the world's 2nd largest medieval city in 1500 AD.",
+    "🏔️ <strong>Did you know?</strong> Kudremukh means 'horse-face' in Kannada because its distinctive mountain peak directly resembles the silhouette of a galloping horse.",
+    "🍛 <strong>Did you know?</strong> Authentic Malnad cuisine in Western Ghats uses fresh local bamboo shoots (Kalale), Colocasia leaves (Patrode), and steaming Akki Rotti.",
+    "🐘 <strong>Did you know?</strong> The Western Ghats mountain range is older than the Himalayas and is classified as one of the world's top 8 biodiversity hotspots.",
+    "🏰 <strong>Did you know?</strong> Mysore Palace is illuminated by over 97,000 electric bulbs on Sundays and festive occasions, attracting over 6 million visitors yearly.",
+    "🌴 <strong>Did you know?</strong> Gokarna's Om Beach is naturally shaped exactly like the sacred Hindu symbol 'ॐ' when viewed from the scenic cliff tops."
+  ];
+
+  let currentTriviaIndex = 0;
+  let triviaTimer = null;
+
+  function showNextTrivia() {
+    const el = document.getElementById('triviaFactText');
+    if (!el) return;
+    currentTriviaIndex = (currentTriviaIndex + 1) % TRIVIA_FACTS.length;
+    el.style.opacity = '0';
+    setTimeout(() => {
+      el.innerHTML = TRIVIA_FACTS[currentTriviaIndex];
+      el.style.opacity = '1';
+    }, 200);
+  }
+
+  document.getElementById('nextFactBtn')?.addEventListener('click', showNextTrivia);
+
+  function tapVibe(btn, emoji) {
+    const countSpan = btn.querySelector('.vibe-count');
+    if (countSpan) {
+      countSpan.textContent = parseInt(countSpan.textContent || 0) + 1;
+    }
+    btn.classList.add('btn-primary', 'text-white');
+    btn.classList.remove('btn-outline-secondary');
+  }
+
+  // ── Stage Progression & AJAX Generation Controller ────────────────
+  let stageTimer = null;
+
+  function setStageStatus(stageNum, status) {
+    const stageEl = document.getElementById(`stage-${stageNum}`);
+    if (!stageEl) return;
+    const statusBox = stageEl.querySelector('.stage-status');
+
+    if (status === 'active') {
+      stageEl.classList.add('active');
+      stageEl.classList.remove('done');
+      if (statusBox) statusBox.innerHTML = '<span class="spinner-border spinner-border-sm text-turquoise"></span>';
+    } else if (status === 'done') {
+      stageEl.classList.remove('active');
+      stageEl.classList.add('done');
+      if (statusBox) statusBox.innerHTML = '<i class="bi bi-check-circle-fill text-success fs-6"></i>';
+    }
+  }
+
+  let stepScoutRunner = null;
+
+  function closeGeneratingOverlay() {
+    const overlay = document.getElementById('generatingOverlay');
+    if (overlay) overlay.classList.add('d-none');
+    clearInterval(stageTimer);
+    clearInterval(triviaTimer);
+    if (stepScoutRunner) {
+      try { stepScoutRunner.destroy(); } catch (_) {}
+      stepScoutRunner = null;
+    }
+    const btn = document.getElementById('generateBtn');
+    if (btn) {
+      btn.querySelector('.btn-default-text')?.classList.remove('d-none');
+      btn.querySelector('.btn-loading-text')?.classList.add('d-none');
+      btn.classList.remove('disabled');
+    }
+  }
+
+  async function startInteractiveGeneration(source, dest, form) {
+    const overlay = document.getElementById('generatingOverlay');
+    const routeEl = document.getElementById('genModalRoute');
+    const titleEl = document.getElementById('genModalTitle');
+    const progressBar = document.getElementById('genProgressBar');
+    const percentBadge = document.getElementById('genPercentBadge');
+    const successBox = document.getElementById('genSuccessBox');
+    const errorBox = document.getElementById('genErrorBox');
+
+    if (routeEl) routeEl.textContent = `${source} ➔ ${dest}`;
+    if (titleEl) titleEl.textContent = `Crafting Your ${dest} Journey...`;
+    if (successBox) successBox.classList.add('d-none');
+    if (errorBox) errorBox.classList.add('d-none');
+
+    // Reset stages
+    for (let i = 1; i <= 6; i++) {
+      const stageEl = document.getElementById(`stage-${i}`);
+      if (stageEl) {
+        stageEl.classList.remove('active', 'done');
+        const st = stageEl.querySelector('.stage-status');
+        if (st) st.innerHTML = '<i class="bi bi-circle text-muted"></i>';
+      }
+    }
+
+    setStageStatus(1, 'active');
+    if (progressBar) progressBar.style.width = '15%';
+    if (percentBadge) percentBadge.textContent = '15%';
+
+    // Show overlay
+    if (overlay) overlay.classList.remove('d-none');
+
+    // Mount 3D Orbit Planet Runner: Person running around the world selecting places
+    const runnerContainer = document.getElementById('stepPlannerPlanetRunner');
+    if (runnerContainer && window.PlanetRunner) {
+      if (stepScoutRunner) {
+        try { stepScoutRunner.destroy(); } catch (_) {}
+      }
+      stepScoutRunner = window.PlanetRunner.mount(runnerContainer, {
+        destination: dest || 'Karnataka',
+        attractions: [
+          { name: `${dest} Main Landmark & Peak`, category: "Scenic Viewpoint", icon: "🌅" },
+          { name: `${dest} Ancient Citadel & Fort`, category: "Historic Landmark", icon: "🏰" },
+          { name: `${dest} Cascading Falls & Trails`, category: "Waterfalls & Nature", icon: "🌊" },
+          { name: `${dest} Wildlife Forest Reserve`, category: "National Park", icon: "🐅" },
+          { name: `${dest} Coffee & Agro Estate`, category: "Agro-Tourism", icon: "☕" },
+          { name: `${dest} Sacred Temple Complex`, category: "Spiritual", icon: "🛕" }
+        ]
+      });
+      setTimeout(() => {
+        if (stepScoutRunner && stepScoutRunner.onWindowResize) stepScoutRunner.onWindowResize();
+      }, 80);
+    }
+
+    // Start rotating trivia every 4.5 seconds
+    clearInterval(triviaTimer);
+    triviaTimer = setInterval(showNextTrivia, 4500);
+
+    // Simulate realistic progressive stage milestones while backend processes
+    let currentStep = 1;
+    clearInterval(stageTimer);
+    stageTimer = setInterval(() => {
+      if (currentStep < 5) {
+        setStageStatus(currentStep, 'done');
+        currentStep++;
+        setStageStatus(currentStep, 'active');
+        const pct = Math.min(88, currentStep * 17);
+        if (progressBar) progressBar.style.width = `${pct}%`;
+        if (percentBadge) percentBadge.textContent = `${pct}%`;
+      }
+    }, 1200);
+
+    // Perform actual AJAX trip generation
+    try {
+      const formData = new FormData(form);
+      const res = await fetch(form.action || '/planner/new', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+
+      const data = await res.json();
+      clearInterval(stageTimer);
+
+      if (res.ok && data.success && data.redirect_url) {
+        // Mark all stages done
+        for (let i = 1; i <= 6; i++) {
+          setStageStatus(i, 'done');
+        }
+        if (progressBar) progressBar.style.width = '100%';
+        if (percentBadge) {
+          percentBadge.textContent = '100%';
+          percentBadge.className = 'badge-tag badge-tag-turquoise fw-bold';
+        }
+
+        const badge = document.getElementById('genStatusBadge');
+        if (badge) {
+          badge.textContent = '🎉 Itinerary Ready!';
+          badge.className = 'fw-bold small text-uppercase tracking-wider text-success';
+        }
+
+        if (titleEl) titleEl.textContent = `Your ${dest} Plan is Ready!`;
+
+        if (successBox) {
+          successBox.classList.remove('d-none');
+          const viewBtn = document.getElementById('viewTripBtn');
+          if (viewBtn) viewBtn.href = data.redirect_url;
+        }
+
+        // Smooth automatic transition after 1.4 seconds
+        setTimeout(() => {
+          window.location.href = data.redirect_url;
+        }, 1400);
+
+      } else {
+        clearInterval(triviaTimer);
+        const err = data.error || 'Failed to generate itinerary. Please verify inputs and try again.';
+        if (errorBox) {
+          errorBox.classList.remove('d-none');
+          const errMsg = document.getElementById('genErrorMsg');
+          if (errMsg) errMsg.textContent = err;
+        }
+      }
+    } catch (err) {
+      clearInterval(stageTimer);
+      clearInterval(triviaTimer);
+      if (errorBox) {
+        errorBox.classList.remove('d-none');
+        const errMsg = document.getElementById('genErrorMsg');
+        if (errMsg) errMsg.textContent = 'Network or server error while planning trip. Please try again.';
+      }
+    }
+  }
 </script>
 {% endblock %}

@@ -37,72 +37,72 @@
 .qsb-label { font-size: .7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
 
 /* Tab nav */
-.dest-tabs { border-bottom: 2px solid var(--border-color); margin-bottom: 28px; overflow-x: auto; display: flex; gap: 0; scrollbar-width: none; }
+.dest-tabs { border-bottom: 2px solid var(--c-border); margin-bottom: 28px; overflow-x: auto; display: flex; gap: 0; scrollbar-width: none; }
 .dest-tabs::-webkit-scrollbar { display: none; }
-.dest-tab { padding: 12px 20px; border: none; background: transparent; font-weight: 600; font-size: .88rem; cursor: pointer; color: var(--text-muted); border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all .15s; }
-.dest-tab:hover { color: #0062FF; }
-.dest-tab.active { color: #0062FF; border-bottom-color: #0062FF; }
+.dest-tab { padding: 12px 20px; border: none; background: transparent; font-weight: 600; font-size: .88rem; cursor: pointer; color: var(--c-muted); border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all .15s; }
+.dest-tab:hover { color: var(--c-turquoise); }
+.dest-tab.active { color: var(--c-turquoise); border-bottom-color: var(--c-turquoise); }
 
 /* Weather Card */
 .weather-month-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; }
 @media (max-width: 576px) { .weather-month-grid { grid-template-columns: repeat(3,1fr); } }
-.month-card { background: var(--bg-surface); border-radius: 12px; padding: 10px 8px; text-align: center; border: 2px solid transparent; transition: all .2s; }
-.month-card.best { border-color: #10b981; background: #d1fae5; }
-.month-card.worst { border-color: #ef4444; background: #fee2e2; }
-.mc-month { font-size: .72rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
-.mc-temp { font-size: 1rem; font-weight: 800; }
+.month-card { background: var(--c-soft-bg); border-radius: 12px; padding: 10px 8px; text-align: center; border: 2px solid transparent; transition: all .2s; }
+.month-card.best { border-color: var(--c-turquoise); background: rgba(0, 168, 150, 0.12); }
+.month-card.worst { border-color: var(--c-coral); background: rgba(255, 107, 90, 0.12); }
+.mc-month { font-size: .72rem; font-weight: 700; text-transform: uppercase; color: var(--c-muted); }
+.mc-temp { font-size: 1rem; font-weight: 800; color: var(--c-navy); }
 .mc-icon { font-size: 1.2rem; }
 .mc-tag { font-size: .62rem; font-weight: 700; margin-top: 3px; }
 
 /* Attraction mini-cards */
 .attr-mini-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
 .attr-mini-card {
-  background: var(--bg-card); border-radius: 16px; overflow: hidden;
-  border: 1px solid var(--border-color); transition: all .25s; cursor: pointer;
+  background: #ffffff; border-radius: 16px; overflow: hidden;
+  border: 1px solid var(--c-border); transition: all .25s; cursor: pointer;
 }
-.attr-mini-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+.attr-mini-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--c-turquoise); }
 .amc-image { height: 130px; background-size: cover; background-position: center; position: relative; }
-.amc-category { position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,.6); color: #fff; padding: 3px 8px; border-radius: 6px; font-size: .68rem; font-weight: 700; }
+.amc-category { position: absolute; bottom: 8px; left: 8px; background: rgba(11,31,51,.75); color: #fff; padding: 3px 8px; border-radius: 6px; font-size: .68rem; font-weight: 700; }
 .amc-body { padding: 10px 12px; }
-.amc-name { font-weight: 700; font-size: .88rem; margin-bottom: 3px; }
-.amc-meta { font-size: .73rem; color: var(--text-muted); display: flex; gap: 8px; }
+.amc-name { font-weight: 700; font-size: .88rem; margin-bottom: 3px; color: var(--c-navy); }
+.amc-meta { font-size: .73rem; color: var(--c-muted); display: flex; gap: 8px; }
 
 /* Hotels */
 .hotel-tier-card {
-  background: var(--bg-card); border-radius: 18px; padding: 16px;
-  border: 1px solid var(--border-color); transition: box-shadow .2s;
+  background: #ffffff; border-radius: 18px; padding: 16px;
+  border: 1px solid var(--c-border); transition: box-shadow .2s;
 }
-.hotel-tier-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+.hotel-tier-card:hover { box-shadow: var(--shadow-md); }
 .htc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-.htc-name { font-weight: 700; font-size: .95rem; }
-.htc-price { font-weight: 800; color: #0062FF; font-size: 1.05rem; }
+.htc-name { font-weight: 700; font-size: .95rem; color: var(--c-navy); }
+.htc-price { font-weight: 800; color: var(--c-turquoise); font-size: 1.05rem; }
 .htc-stars { color: #f59e0b; font-size: .85rem; }
 .htc-tier { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: .65rem; font-weight: 700; margin-left: 6px; }
 .htc-amenities { display: flex; flex-wrap: wrap; gap: 6px; }
-.amenity { background: var(--bg-surface); border-radius: 100px; padding: 3px 10px; font-size: .7rem; font-weight: 600; color: var(--text-muted); }
+.amenity { background: var(--c-soft-bg); border-radius: 100px; padding: 3px 10px; font-size: .7rem; font-weight: 600; color: var(--c-dark); }
 
 /* Food cards */
-.food-card { background: var(--bg-card); border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); }
+.food-card { background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid var(--c-border); }
 .food-card-img { height: 140px; background-size: cover; background-position: center; }
 .food-card-body { padding: 12px; }
-.food-name { font-weight: 700; font-size: .9rem; }
-.food-type { font-size: .75rem; color: #0062FF; font-weight: 600; }
-.food-desc { font-size: .8rem; color: var(--text-muted); margin-top: 4px; }
+.food-name { font-weight: 700; font-size: .9rem; color: var(--c-navy); }
+.food-type { font-size: .75rem; color: var(--c-turquoise); font-weight: 600; }
+.food-desc { font-size: .8rem; color: var(--c-muted); margin-top: 4px; }
 
 /* Itinerary timeline */
 .itin-day-block { margin-bottom: 24px; }
 .idb-header {
-  background: linear-gradient(135deg, #0062FF, #6929C4); color: #fff;
+  background: linear-gradient(135deg, var(--c-navy), #132B45); color: #fff;
   border-radius: 12px 12px 0 0; padding: 12px 16px; font-weight: 700;
 }
-.idb-events { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 0 0 12px 12px; overflow: hidden; }
-.idb-event { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
+.idb-events { background: #ffffff; border: 1px solid var(--c-border); border-radius: 0 0 12px 12px; overflow: hidden; }
+.idb-event { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--c-border); }
 .idb-event:last-child { border-bottom: none; }
-.idb-time { min-width: 52px; font-weight: 700; font-size: .78rem; color: #0062FF; }
-.idb-icon { width: 30px; height: 30px; border-radius: 50%; background: var(--bg-surface); display: flex; align-items: center; justify-content: center; font-size: .85rem; flex-shrink: 0; }
+.idb-time { min-width: 52px; font-weight: 700; font-size: .78rem; color: var(--c-turquoise); }
+.idb-icon { width: 30px; height: 30px; border-radius: 50%; background: var(--c-soft-bg); display: flex; align-items: center; justify-content: center; font-size: .85rem; flex-shrink: 0; }
 .idb-body { flex: 1; }
-.idb-title { font-weight: 700; font-size: .88rem; }
-.idb-sub { font-size: .75rem; color: var(--text-muted); }
+.idb-title { font-weight: 700; font-size: .88rem; color: var(--c-navy); }
+.idb-sub { font-size: .75rem; color: var(--c-muted); }
 
 /* Gallery grid */
 .gallery-grid { display: grid; grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(2, 160px); gap: 10px; }
@@ -111,12 +111,12 @@
 .gallery-item.main { grid-column: 1 / span 2; grid-row: 1 / span 2; border-radius: 16px; }
 
 /* Transport options */
-.transport-option { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-surface); border-radius: 12px; margin-bottom: 8px; }
+.transport-option { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--c-soft-bg); border-radius: 12px; margin-bottom: 8px; }
 .to-icon { font-size: 1.5rem; }
 .to-info { flex: 1; }
-.to-name { font-weight: 700; font-size: .88rem; }
-.to-details { font-size: .78rem; color: var(--text-muted); }
-.to-cost { font-weight: 700; color: #0062FF; }
+.to-name { font-weight: 700; font-size: .88rem; color: var(--c-navy); }
+.to-details { font-size: .78rem; color: var(--c-muted); }
+.to-cost { font-weight: 700; color: var(--c-turquoise); }
 
 /* Loading skeleton */
 .skeleton { background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
@@ -472,6 +472,16 @@ function _detailProminence(tags) {
   return s;
 }
 
+function isGenericPlaceholderName(name) {
+  if (!name || typeof name !== 'string') return true;
+  const s = name.trim();
+  if (s.length < 3) return true;
+  if (/ASI Monument|Monument\s*#|#\d+|Protected Heritage|ASI Protected|Protected Site/i.test(s)) return true;
+  if (/^[\d\s\-_#]+$/.test(s) || /^\d+[A-Za-z\-_]+$/.test(s) || /^[A-Za-z0-9\-_]{1,4}$/.test(s)) return true;
+  if (/\b(?:H#|St\s*\d+|G\d+-\d+|Market ID|Plot No|Sector\s*\d+)\b/i.test(s)) return true;
+  return false;
+}
+
 async function fetchAttractions(lat, lon) {
   const RADIUS = 40000; // 40 km fixed
   let elements = [];
@@ -481,7 +491,7 @@ async function fetchAttractions(lat, lon) {
       .join('');
     const ql = `(${tagFilters});out center tags 120;`;
     const data = await overpassQuery(ql);
-    elements = (data.elements || []).filter(e => e.tags && e.tags.name);
+    elements = (data.elements || []).filter(e => e.tags && e.tags.name && !isGenericPlaceholderName(e.tags.name));
   } catch { return []; }
 
   return elements
@@ -699,7 +709,7 @@ function renderItinerary(cityName, attractions) {
   $('itinerarySection').innerHTML = `
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h4 class="fw-bold">Suggested ${itinerary.length}-Day Itinerary</h4>
-      <a href="/planner/wizard" class="btn btn-ibm btn-sm"><i class="bi bi-magic me-1"></i>Customize in Wizard</a>
+      <a href="/planner/wizard?destination=${encodeURIComponent(cityName)}" class="btn btn-ibm btn-sm"><i class="bi bi-sliders me-1"></i>Customize in Step Planner</a>
     </div>
     <p class="text-muted mb-3" style="font-size:.85rem"><i class="bi bi-info-circle me-1"></i>Auto-generated from real attractions fetched live from OpenStreetMap</p>
     ${itinerary.map(day => `

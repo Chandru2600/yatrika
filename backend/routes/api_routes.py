@@ -218,7 +218,7 @@ def create_new_trip():
         # Create initial record (status = draft)
         trip_id = create_trip(request.user_id, trip_data)
 
-        # Call IBM Granite LLM API
+        # Call Travel Planner Agent Engine
         try:
             ai_result = generate_complete_travel_plan(trip_data)
         except Exception as e:

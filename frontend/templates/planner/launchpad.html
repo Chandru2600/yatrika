@@ -1,0 +1,875 @@
+{% extends "base.html" %}
+{% block title %}Travel Launchpad — Plan Your Journey | Yatrika{% endblock %}
+
+{% block extra_css %}
+<!-- Place Autocomplete CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/place_autocomplete.css') }}" />
+<style>
+  :root {
+    --launch-bg-dark: #070d18;
+    --launch-card-bg: rgba(13, 23, 38, 0.78);
+    --launch-card-border: rgba(255, 255, 255, 0.12);
+  }
+
+  .launchpad-viewport {
+    position: relative;
+    min-height: calc(100vh - 72px);
+    background: radial-gradient(circle at 50% 15%, #0d1e38 0%, #070e1b 60%, #03070d 100%);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 16px 40px;
+  }
+
+  /* ── 3D Canvas Background ──────────────────────────────────── */
+  #launchpad3DCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Ambient light orbs */
+  .orb-cyan {
+    position: absolute;
+    top: 10%;
+    left: 20%;
+    width: 420px;
+    height: 420px;
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.18) 0%, transparent 70%);
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .orb-coral {
+    position: absolute;
+    bottom: 12%;
+    right: 20%;
+    width: 420px;
+    height: 420px;
+    background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Header ────────────────────────────────────────────────── */
+  .launchpad-header {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    margin-bottom: 20px;
+    max-width: 600px;
+  }
+  .launchpad-title {
+    font-size: clamp(1.8rem, 3.2vw, 2.35rem);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    color: #ffffff;
+    margin-bottom: 6px;
+    line-height: 1.18;
+  }
+  .text-cyan-gradient {
+    background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 50%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .launchpad-sub {
+    font-size: 0.9rem;
+    color: #94a3b8;
+    margin: 0;
+  }
+
+  /* ── Compact 3D Tilt Card ──────────────────────────────────── */
+  .card-3d-wrapper {
+    perspective: 1000px;
+    width: 100%;
+    max-width: 730px;
+    position: relative;
+    z-index: 2;
+  }
+  .launchpad-card {
+    background: var(--launch-card-bg);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1.5px solid var(--launch-card-border);
+    border-radius: 24px;
+    padding: 24px 26px;
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.65), 0 0 30px rgba(20, 184, 166, 0.12);
+    transition: transform 0.15s ease-out, box-shadow 0.25s ease;
+    transform-style: preserve-3d;
+  }
+  .launchpad-card:hover {
+    box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.75), 0 0 40px rgba(20, 184, 166, 0.2);
+    border-color: rgba(45, 212, 191, 0.35);
+  }
+
+  /* ── Autocomplete Search Rows ──────────────────────────────── */
+  .route-picker-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  @media (max-width: 640px) {
+    .route-picker-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .compact-input-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Override place_autocomplete input for launchpad dark mode */
+  .place-autocomplete-container {
+    width: 100%;
+    position: relative;
+  }
+  .place-autocomplete-container .place-input-box {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1.5px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+  }
+  .place-autocomplete-container .place-input-box:focus-within {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #2dd4bf;
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
+  }
+  .place-autocomplete-container .place-text-input {
+    background: transparent !important;
+    border: none !important;
+    color: #ffffff !important;
+    font-size: 0.95rem;
+    font-weight: 600;
+    width: 100%;
+    outline: none !important;
+    padding: 2px 0;
+  }
+  .place-autocomplete-container .place-text-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 400;
+  }
+
+  /* ── Quick Popular Pills ───────────────────────────────────── */
+  .quick-hubs-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding-bottom: 2px;
+  }
+  .quick-hub-pill {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #cbd5e1;
+    border-radius: 999px;
+    padding: 4px 11px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+  .quick-hub-pill:hover {
+    background: #14b8a6;
+    border-color: #14b8a6;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.35);
+  }
+
+  /* ── Compact Control Strip (Dates, Travelers, Budget) ──────── */
+  .trip-controls-strip {
+    display: grid;
+    grid-template-columns: 1.2fr 1.2fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 640px) {
+    .trip-controls-strip {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .strip-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 8px 12px;
+  }
+  .strip-box:focus-within {
+    border-color: #2dd4bf;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .strip-input {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 0.88rem;
+    font-weight: 600;
+    width: 100%;
+    outline: none;
+  }
+  .strip-input::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+  }
+
+  .stepper-mini-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .stepper-mini-btn:hover {
+    background: #14b8a6;
+    border-color: #14b8a6;
+  }
+
+  /* ── Budget Slider Compact Strip ───────────────────────────── */
+  .budget-compact-strip {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+  }
+  .budget-slider {
+    width: 100%;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    outline: none;
+    accent-color: #2dd4bf;
+    cursor: pointer;
+    margin: 4px 0;
+  }
+
+  /* ── Dual Engine Action Buttons ────────────────────────────── */
+  .launch-action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 640px) {
+    .launch-action-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .btn-engine-card {
+    border: 1.5px solid transparent;
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    color: #ffffff;
+    text-decoration: none;
+    width: 100%;
+  }
+
+  .btn-engine-express {
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.22) 0%, rgba(13, 148, 136, 0.3) 100%);
+    border-color: rgba(45, 212, 191, 0.5);
+    box-shadow: 0 4px 16px rgba(20, 184, 166, 0.2);
+  }
+  .btn-engine-express:hover {
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.4) 0%, rgba(13, 148, 136, 0.5) 100%);
+    border-color: #2dd4bf;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(20, 184, 166, 0.38);
+    color: #ffffff;
+  }
+
+  .btn-engine-studio {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, rgba(234, 88, 12, 0.28) 100%);
+    border-color: rgba(251, 146, 60, 0.45);
+    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.18);
+  }
+  .btn-engine-studio:hover {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.38) 0%, rgba(234, 88, 12, 0.46) 100%);
+    border-color: #fb923c;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(249, 115, 22, 0.35);
+    color: #ffffff;
+  }
+
+  .engine-btn-label {
+    font-size: 0.94rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+  }
+  .engine-btn-sub {
+    font-size: 0.74rem;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* ── Clean Link to Dashboard ───────────────────────────────── */
+  .dashboard-pill-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #94a3b8;
+    font-size: 0.8rem;
+    text-decoration: none;
+    margin-top: 18px;
+    transition: color 0.18s ease;
+  }
+  .dashboard-pill-link:hover {
+    color: #2dd4bf;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="launchpad-viewport" id="launchpadViewport">
+  <!-- 3D Interactive Canvas Background -->
+  <canvas id="launchpad3DCanvas"></canvas>
+  
+  <!-- Ambient Atmospheric Light Glows -->
+  <div class="orb-cyan"></div>
+  <div class="orb-coral"></div>
+
+  <!-- Header -->
+  <div class="launchpad-header">
+    <h1 class="launchpad-title">
+      Where to next, <span class="text-cyan-gradient">{{ user_name.split()[0] if user_name else 'Traveler' }}</span>?
+    </h1>
+    <p class="launchpad-sub">
+      Enter your travel route below with smart suggestions, then launch in 1 click.
+    </p>
+  </div>
+
+  <!-- Compact 3D Tilt Card -->
+  <div class="card-3d-wrapper" id="card3DWrapper">
+    <div class="launchpad-card" id="launchpadCard">
+      <form id="masterTripForm" method="POST" action="{{ url_for('planner.new_trip') }}">
+        
+        <!-- Row 1: Source & Destination with Place Autocomplete -->
+        <div class="route-picker-row">
+          <!-- Origin -->
+          <div>
+            <label class="compact-input-label">
+              <i class="bi bi-geo-alt-fill text-muted"></i> From (Origin)
+            </label>
+            <div class="place-autocomplete-container" data-type="origin" id="originContainer">
+              <div class="place-input-box origin-box">
+                <i class="bi bi-geo-alt text-muted"></i>
+                <input type="text" name="source" id="tripSource" class="place-text-input" placeholder="e.g. Bengaluru, Mumbai, Delhi..." value="{{ source or 'Bengaluru' }}" autocomplete="off" required />
+                <button type="button" class="place-clear-btn d-none" title="Clear city"><i class="bi bi-x-lg"></i></button>
+                <div class="place-indicator-chip d-none"><span class="place-chip-badge"></span></div>
+              </div>
+              <div class="place-rec-dropdown d-none"></div>
+            </div>
+          </div>
+
+          <!-- Destination -->
+          <div>
+            <label class="compact-input-label">
+              <i class="bi bi-pin-map-fill text-turquoise"></i> To (Destination)
+            </label>
+            <div class="place-autocomplete-container" data-type="destination" id="destContainer">
+              <div class="place-input-box">
+                <i class="bi bi-pin-map text-turquoise"></i>
+                <input type="text" name="destination" id="tripDestination" class="place-text-input" placeholder="Search destination (e.g. Coorg, Ooty, Hampi)..." value="{{ destination or 'Coorg' }}" autocomplete="off" required />
+                <button type="button" class="place-clear-btn d-none" title="Clear destination"><i class="bi bi-x-lg"></i></button>
+                <div class="place-indicator-chip d-none"><span class="place-chip-badge"></span></div>
+              </div>
+              <div class="place-rec-dropdown d-none"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Destination Pills -->
+        <div class="quick-hubs-bar">
+          <span class="small fw-bold text-uppercase me-1" style="font-size: 0.68rem; color: #64748b; letter-spacing: 0.05em;">POPULAR:</span>
+          <button type="button" class="quick-hub-pill" onclick="selectQuickHub('Coorg', 'Bengaluru')">🌿 Coorg</button>
+          <button type="button" class="quick-hub-pill" onclick="selectQuickHub('Ooty', 'Bengaluru')">🌸 Ooty</button>
+          <button type="button" class="quick-hub-pill" onclick="selectQuickHub('Chikmagalur', 'Bengaluru')">☕ Chikmagalur</button>
+          <button type="button" class="quick-hub-pill" onclick="selectQuickHub('Hampi', 'Bengaluru')">🏛️ Hampi</button>
+          <button type="button" class="quick-hub-pill" onclick="selectQuickHub('South Goa', 'Mumbai')">🏖️ Goa</button>
+          <button type="button" class="quick-hub-pill" onclick="selectQuickHub('Munnar', 'Bengaluru')">🫖 Munnar</button>
+        </div>
+
+        <!-- Row 2: Dates & Travelers in Compact Strip -->
+        <div class="trip-controls-strip">
+          <!-- Start Date -->
+          <div class="strip-box">
+            <label class="compact-input-label"><i class="bi bi-calendar-event text-muted"></i> Start Date</label>
+            <input type="date" name="start_date" id="tripStartDate" class="strip-input" onchange="calculateDuration()" />
+          </div>
+
+          <!-- Return Date -->
+          <div class="strip-box">
+            <label class="compact-input-label">
+              <i class="bi bi-calendar-check text-muted"></i> End Date (<span id="durationBadge" class="text-turquoise">3 Days</span>)
+            </label>
+            <input type="date" name="end_date" id="tripEndDate" class="strip-input" onchange="calculateDuration()" />
+            <input type="hidden" name="num_days" id="tripDays" value="3" />
+          </div>
+
+          <!-- Travelers Counter -->
+          <div class="strip-box">
+            <label class="compact-input-label"><i class="bi bi-people text-muted"></i> Travelers</label>
+            <div class="d-flex align-items-center justify-content-between pt-1">
+              <button type="button" class="stepper-mini-btn" onclick="changeTravelers(-1)">−</button>
+              <span class="fw-bold text-white small" id="travelerCountDisplay">2</span>
+              <input type="hidden" name="num_travelers" id="tripTravelers" value="2" />
+              <button type="button" class="stepper-mini-btn" onclick="changeTravelers(1)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 3: Budget Range Compact Strip -->
+        <div class="budget-compact-strip">
+          <div class="d-flex justify-content-between align-items-center">
+            <label class="compact-input-label mb-0"><i class="bi bi-wallet2 text-turquoise"></i> Budget</label>
+            <div>
+              <span class="fw-extrabold text-white fs-6" id="totalBudgetDisplay">₹30,000</span>
+              <span class="text-white-50 extra-small ms-1" id="perPersonDisplay">(₹15,000/person)</span>
+            </div>
+          </div>
+          <input type="range" class="budget-slider" id="budgetRange" min="5000" max="200000" step="5000" value="30000" oninput="updateBudget(this.value)" />
+          <input type="hidden" name="budget" id="tripBudget" value="30000" />
+        </div>
+
+        <!-- Row 4: Dual Launch Engines (Compact Side-by-Side) -->
+        <div class="launch-action-grid">
+          <!-- 1. Express AI Planner (~30s) -->
+          <button type="button" class="btn-engine-card btn-engine-express" onclick="submitExpressAI()">
+            <div>
+              <div class="engine-btn-label">
+                <span>⚡ Express Auto-Pilot</span>
+              </div>
+              <div class="engine-btn-sub">Instant AI synthesis with Stay in ~30s</div>
+            </div>
+            <i class="bi bi-arrow-right-circle-fill fs-4 text-turquoise"></i>
+          </button>
+
+          <!-- 2. Custom Step Studio -->
+          <button type="button" class="btn-engine-card btn-engine-studio" onclick="submitStepStudio()">
+            <div>
+              <div class="engine-btn-label">
+                <span>🎨 Custom Step Studio</span>
+              </div>
+              <div class="engine-btn-sub">Hand-pick stays, IRCTC rail &amp; sights</div>
+            </div>
+            <i class="bi bi-sliders fs-4 text-warning"></i>
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard Link Bridge -->
+  <a href="{{ url_for('main.dashboard') }}" class="dashboard-pill-link">
+    <i class="bi bi-grid-1x2"></i>
+    <span>Looking for saved trips? Go to <strong>My Travel Dashboard</strong> →</span>
+  </a>
+</section>
+{% endblock %}
+
+{% block modals %}
+<!-- ── Express AI Transit Mode Selection Modal ── -->
+<div class="modal fade" id="expressTransitModal" tabindex="-1" aria-labelledby="expressTransitModalLabel" aria-hidden="true" style="z-index: 1060;">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; overflow: hidden; background: #0B1F33; color: #ffffff; border: 1.5px solid rgba(45, 212, 191, 0.4) !important;">
+      <div class="modal-header border-0 pb-0 pt-4 px-4 px-md-5">
+        <div>
+          <span class="badge rounded-pill bg-turquoise text-dark fw-bold px-3 py-1 mb-2" style="font-size: 0.72rem;">EXPRESS AUTO-PILOT</span>
+          <h4 class="modal-title fw-extrabold text-white" id="expressTransitModalLabel">
+            How would you like to travel to <span id="modalExpressDest" class="text-turquoise">Destination</span>?
+          </h4>
+          <p class="text-white-50 small mb-0">Select your preferred transport mode below for direct AI itinerary generation:</p>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body p-4 p-md-5">
+        <div class="p-3 mb-4 rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-2" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+          <div class="small text-white-50">
+            <i class="bi bi-shield-check text-turquoise me-1"></i> Locked Parameters:
+            <span class="text-white fw-bold ms-1" id="lockedTripSummary">Loading parameters…</span>
+          </div>
+          <span class="badge bg-dark text-turquoise border border-secondary small">⚡ Instant Synthesis</span>
+        </div>
+
+        <div class="row g-3">
+          <!-- 1: Train -->
+          <div class="col-sm-6 col-lg-3">
+            <div class="p-3 rounded-4 text-center h-100 cursor-pointer" style="background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.14); cursor: pointer;" onclick="executeExpressGeneration('train')">
+              <div class="fs-1 mb-1">🚆</div>
+              <h6 class="fw-bold text-white mb-1">Train</h6>
+              <span class="badge bg-secondary-subtle text-white-50 extra-small mb-2" style="font-size: 0.68rem;">IRCTC Rail</span>
+              <p class="extra-small text-white-50 mb-0">Scenic train journey with confirmed berths &amp; station buffer.</p>
+            </div>
+          </div>
+
+          <!-- 2: Bus -->
+          <div class="col-sm-6 col-lg-3">
+            <div class="p-3 rounded-4 text-center h-100 cursor-pointer" style="background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.14); cursor: pointer;" onclick="executeExpressGeneration('bus')">
+              <div class="fs-1 mb-1">🚌</div>
+              <h6 class="fw-bold text-white mb-1">Bus</h6>
+              <span class="badge bg-secondary-subtle text-white-50 extra-small mb-2" style="font-size: 0.68rem;">KSRTC / Sleeper</span>
+              <p class="extra-small text-white-50 mb-0">Direct overnight coach straight to Base Camp.</p>
+            </div>
+          </div>
+
+          <!-- 3: Flight -->
+          <div class="col-sm-6 col-lg-3">
+            <div class="p-3 rounded-4 text-center h-100 cursor-pointer" style="background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.14); cursor: pointer;" onclick="executeExpressGeneration('flight')">
+              <div class="fs-1 mb-1">✈️</div>
+              <h6 class="fw-bold text-white mb-1">Airplane</h6>
+              <span class="badge bg-secondary-subtle text-white-50 extra-small mb-2" style="font-size: 0.68rem;">Airways + Cab</span>
+              <p class="extra-small text-white-50 mb-0">Fastest arrival time with seamless airport pickup transfers.</p>
+            </div>
+          </div>
+
+          <!-- 4: Car / Cab -->
+          <div class="col-sm-6 col-lg-3">
+            <div class="p-3 rounded-4 text-center h-100 cursor-pointer" style="background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.14); cursor: pointer;" onclick="executeExpressGeneration('car')">
+              <div class="fs-1 mb-1">🚗</div>
+              <h6 class="fw-bold text-white mb-1">Car / Cab</h6>
+              <span class="badge bg-secondary-subtle text-white-50 extra-small mb-2" style="font-size: 0.68rem;">Private Drive</span>
+              <p class="extra-small text-white-50 mb-0">Complete freedom with scenic ghat viewpoints &amp; flexible stops.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Place Autocomplete JS -->
+<script src="{{ url_for('static', filename='js/place_autocomplete.js') }}"></script>
+
+<script>
+  // ── 1. Interactive 3D Background Canvas Effect ─────────────
+  (function init3DBackground() {
+    const canvas = document.getElementById("launchpad3DCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let w, h;
+    let particles = [];
+    const PARTICLE_COUNT = 75;
+    let mouse = { x: -1000, y: -1000, targetX: 0, targetY: 0 };
+
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    // 3D Star/Constellation Node
+    class Node3D {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = (Math.random() - 0.5) * w * 1.5;
+        this.y = (Math.random() - 0.5) * h * 1.5;
+        this.z = Math.random() * 800 + 100;
+        this.vz = 0.6 + Math.random() * 0.8;
+        this.radius = Math.random() * 2 + 1;
+        this.color = Math.random() > 0.4 ? "#2dd4bf" : "#38bdf8";
+      }
+      update() {
+        this.z -= this.vz;
+        if (this.z <= 10) {
+          this.z = 900;
+        }
+      }
+      draw() {
+        // 3D Perspective Projection
+        const fov = 350;
+        const scale = fov / (fov + this.z);
+        const x2d = (this.x - mouse.x * 0.08) * scale + w / 2;
+        const y2d = (this.y - mouse.y * 0.08) * scale + h / 2;
+
+        if (x2d < 0 || x2d > w || y2d < 0 || y2d > h) return;
+
+        const alpha = Math.max(0.1, (1 - this.z / 900) * 0.8);
+        ctx.beginPath();
+        ctx.arc(x2d, y2d, this.radius * scale, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = alpha;
+        ctx.fill();
+
+        return { x: x2d, y: y2d, scale: scale, alpha: alpha };
+      }
+    }
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push(new Node3D());
+    }
+
+    // Mouse movement parallax
+    window.addEventListener("mousemove", (e) => {
+      mouse.targetX = (e.clientX - w / 2);
+      mouse.targetY = (e.clientY - h / 2);
+    });
+
+    function animate() {
+      mouse.x += (mouse.targetX - mouse.x) * 0.05;
+      mouse.y += (mouse.targetY - mouse.y) * 0.05;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const projected = [];
+      for (let p of particles) {
+        p.update();
+        const pt = p.draw();
+        if (pt) projected.push(pt);
+      }
+
+      // Draw faint 3D geometric web lines between nearby nodes
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i < projected.length; i++) {
+        for (let j = i + 1; j < projected.length; j++) {
+          const dx = projected[i].x - projected[j].x;
+          const dy = projected[i].y - projected[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 85) {
+            ctx.beginPath();
+            ctx.moveTo(projected[i].x, projected[i].y);
+            ctx.lineTo(projected[j].x, projected[j].y);
+            ctx.strokeStyle = `rgba(45, 212, 191, ${0.18 * (1 - dist / 85)})`;
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+  })();
+
+  // ── 2. Subtle 3D Card Tilt Interaction ──────────────────────
+  (function init3DCardTilt() {
+    const card = document.getElementById("launchpadCard");
+    const wrapper = document.getElementById("card3DWrapper");
+    if (!card || !wrapper) return;
+
+    wrapper.addEventListener("mousemove", (e) => {
+      const rect = wrapper.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      const rotateX = -(y / rect.height) * 8; // subtle max 8 deg
+      const rotateY = (x / rect.width) * 8;
+      card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+
+    wrapper.addEventListener("mouseleave", () => {
+      card.style.transform = "rotateX(0deg) rotateY(0deg)";
+    });
+  })();
+
+  // ── 3. Date & Stepper Controls ──────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    const today = new Date();
+    const departDate = new Date(today);
+    departDate.setDate(today.getDate() + 1);
+    const returnDate = new Date(today);
+    returnDate.setDate(today.getDate() + 4);
+
+    const startInput = document.getElementById('tripStartDate');
+    const endInput = document.getElementById('tripEndDate');
+
+    if (startInput && !startInput.value) {
+      startInput.value = departDate.toISOString().split('T')[0];
+    }
+    if (endInput && !endInput.value) {
+      endInput.value = returnDate.toISOString().split('T')[0];
+    }
+    calculateDuration();
+  });
+
+  function calculateDuration() {
+    const startVal = document.getElementById('tripStartDate')?.value;
+    const endVal = document.getElementById('tripEndDate')?.value;
+    const badge = document.getElementById('durationBadge');
+    const daysInput = document.getElementById('tripDays');
+
+    if (startVal && endVal) {
+      const d1 = new Date(startVal);
+      const d2 = new Date(endVal);
+      const diffTime = d2 - d1;
+      const days = Math.max(1, Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1);
+      if (badge) badge.textContent = `${days} Days`;
+      if (daysInput) daysInput.value = days;
+    }
+  }
+
+  let travelerCount = 2;
+  function changeTravelers(delta) {
+    travelerCount = Math.max(1, Math.min(20, travelerCount + delta));
+    const disp = document.getElementById('travelerCountDisplay');
+    const inp = document.getElementById('tripTravelers');
+    if (disp) disp.textContent = travelerCount;
+    if (inp) inp.value = travelerCount;
+    updateBudget(document.getElementById('budgetRange')?.value || 30000);
+  }
+
+  function updateBudget(val) {
+    const num = parseInt(val);
+    const totalDisp = document.getElementById('totalBudgetDisplay');
+    const perPersonDisp = document.getElementById('perPersonDisplay');
+    const hiddenInp = document.getElementById('tripBudget');
+
+    if (totalDisp) totalDisp.textContent = `₹${num.toLocaleString('en-IN')}`;
+    if (hiddenInp) hiddenInp.value = num;
+
+    const perPerson = Math.round(num / travelerCount);
+    if (perPersonDisp) perPersonDisp.textContent = `(₹${perPerson.toLocaleString('en-IN')}/person)`;
+  }
+
+  function selectQuickHub(dest, src) {
+    const destInp = document.getElementById('tripDestination');
+    const srcInp = document.getElementById('tripSource');
+
+    if (destInp) {
+      destInp.value = dest;
+      destInp.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    if (srcInp && src) {
+      srcInp.value = src;
+      srcInp.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+
+  function validateInputs() {
+    const destInp = document.getElementById('tripDestination');
+    if (!destInp || !destInp.value.trim()) {
+      if (destInp) destInp.focus();
+      return false;
+    }
+    return true;
+  }
+
+  // ── 4. Express AI Submission ────────────────────────────────
+  function submitExpressAI() {
+    if (!validateInputs()) return;
+    const dest = document.getElementById('tripDestination').value.trim();
+    const source = document.getElementById('tripSource').value.trim() || 'Bengaluru';
+    const days = document.getElementById('tripDays').value || 3;
+    const travelers = document.getElementById('tripTravelers').value || 2;
+    const budget = document.getElementById('tripBudget').value || 30000;
+
+    const destTitleEl = document.getElementById('modalExpressDest');
+    if (destTitleEl) destTitleEl.textContent = dest;
+
+    const summaryEl = document.getElementById('lockedTripSummary');
+    if (summaryEl) {
+      summaryEl.textContent = `${source} ➔ ${dest} · ${days} Days · ${travelers} Traveler${travelers > 1 ? 's' : ''} · ₹${parseInt(budget).toLocaleString('en-IN')}`;
+    }
+
+    const modalEl = document.getElementById('expressTransitModal');
+    if (modalEl) {
+      const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+      modal.show();
+    } else {
+      executeExpressGeneration('train');
+    }
+  }
+
+  function executeExpressGeneration(mode) {
+    const modalEl = document.getElementById('expressTransitModal');
+    if (modalEl && window.bootstrap && window.bootstrap.Modal) {
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
+    }
+
+    let transInput = document.getElementById('tripTransport');
+    if (!transInput) {
+      transInput = document.createElement('input');
+      transInput.type = 'hidden';
+      transInput.id = 'tripTransport';
+      transInput.name = 'transport';
+      document.getElementById('masterTripForm').appendChild(transInput);
+    }
+    transInput.value = mode;
+
+    const dest = document.getElementById('tripDestination')?.value.trim() || 'Karnataka';
+    if (window.PlanetRunner && window.PlanetRunner.showModal) {
+      window.PlanetRunner.showModal(
+        `Crafting Your Express ${dest} Itinerary...`,
+        dest,
+        "Cooperative 4-Agent ML actively scouting landmarks, transit & base camps"
+      );
+    }
+
+    const form = document.getElementById('masterTripForm');
+    form.action = "{{ url_for('planner.new_trip') }}";
+    form.submit();
+  }
+
+  // ── 5. Step Studio Submission ───────────────────────────────
+  function submitStepStudio() {
+    if (!validateInputs()) return;
+    const dest = document.getElementById('tripDestination').value.trim();
+    const source = document.getElementById('tripSource').value.trim() || 'Bengaluru';
+    const startDate = document.getElementById('tripStartDate').value;
+    const endDate = document.getElementById('tripEndDate').value;
+    const days = document.getElementById('tripDays').value || 3;
+    const travelers = document.getElementById('tripTravelers').value || 2;
+    const budget = document.getElementById('tripBudget').value || 30000;
+
+    const url = "{{ url_for('planner.wizard') }}" +
+      "?destination=" + encodeURIComponent(dest) +
+      "&source=" + encodeURIComponent(source) +
+      "&start_date=" + encodeURIComponent(startDate) +
+      "&end_date=" + encodeURIComponent(endDate) +
+      "&days=" + encodeURIComponent(days) +
+      "&travelers=" + encodeURIComponent(travelers) +
+      "&budget=" + encodeURIComponent(budget) +
+      "&step=stay";
+
+    window.location.href = url;
+  }
+</script>
+{% endblock %}
+
+{% block footer %}
+<!-- Minimal footer for Launchpad -->
+{% endblock %}

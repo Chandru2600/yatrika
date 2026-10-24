@@ -1,0 +1,62 @@
+[
+  {
+    "query_id": "TP_IND_001",
+    "query": "Plan a 3-day budget trip to Jaipur from Delhi for 2 people with a budget limit of \u20b915,000 INR. Must include fort visits and vegetarian dining.",
+    "constraints": {
+      "days": 3,
+      "travelers": 2,
+      "max_budget_inr": 15000,
+      "dietary": "Vegetarian",
+      "must_see": [
+        "Amber Fort",
+        "Hawa Mahal"
+      ]
+    },
+    "reference_plan": {
+      "day_1": [
+        "Delhi to Jaipur Train",
+        "Hotel Pearl Palace Check-in",
+        "Hawa Mahal"
+      ],
+      "day_2": [
+        "Amber Fort",
+        "Jantar Mantar"
+      ],
+      "day_3": [
+        "City Palace",
+        "Return Train to Delhi"
+      ]
+    }
+  },
+  {
+    "query_id": "TP_IND_002",
+    "query": "Plan a 4-day luxury trip to Goa for a couple with a budget of \u20b91,000,000 INR including beach resort and water sports.",
+    "constraints": {
+      "days": 4,
+      "travelers": 2,
+      "max_budget_inr": 100000,
+      "tier": "Luxury",
+      "activities": [
+        "Water Sports",
+        "Beach Resort"
+      ]
+    },
+    "reference_plan": {
+      "day_1": [
+        "Flight to Goa",
+        "Taj Fort Aguada Check-in",
+        "Baga Beach Sunset"
+      ],
+      "day_2": [
+        "Dudhsagar Waterfalls Trek"
+      ],
+      "day_3": [
+        "Basilica of Bom Jesus",
+        "Cruises"
+      ],
+      "day_4": [
+        "Return Flight"
+      ]
+    }
+  }
+]

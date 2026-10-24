@@ -1,0 +1,320 @@
+id,ident,type,name,latitude_deg,longitude_deg,elevation_ft,municipality,iata_code,gps_code
+42716,IN-0003,small_airport,Daulat Beg Oldi Advanced Landing Ground,35.396467,77.928965,16200,Nubra,,
+42731,IN-0010,small_airport,Walong Advanced Landing Ground,28.12967300415,97.019660949707,,,,
+43966,IN-0011,small_airport,Jakkur Aerodrome,13.07674,77.597645,3013,Bengaluru,,VOJK
+44362,IN-0012,small_airport,Pakyong Airport,27.2313,88.587196,4590,Pakyong,PYG,VEPY
+44908,IN-0013,small_airport,Nadirgul Airport,17.306142,78.561004,1811,Hyderabad,,
+44582,IN-0015,small_airport,Baljek Airport,25.661487579345703,90.34503936767578,,,,
+46481,IN-0023,small_airport,Amreli Airport,21.621416,71.226309,428,Amreli,,
+46518,IN-0024,small_airport,Baramati Airport,18.226944,74.590833,1978,Pune,,
+46512,IN-0025,medium_airport,Maharshi Valmiki International Airport,26.747736,82.163664,335,Faizabad,AYJ,VEAY
+46515,IN-0026,small_airport,Korba Airport,22.414166666699998,82.7194444444,1200,Rumgara,,
+46556,IN-0033,small_airport,Aamby Valley Airport,18.609617,73.377583,2262,Aamby Valley City,,VAAV
+46557,IN-0034,small_airport,Vijay Nagar Airport,19.8841,73.84056666670001,,Vijay Nagar,,
+46581,IN-0053,small_airport,INS Kohassa,13.236316,93.049731,13,Diglipur,,VODX
+46623,IN-0060,small_airport,Khargon Govt. Airstrip,21.810030194599996,75.55443763730001,,,,
+46624,IN-0061,small_airport,Khandwa Airport,21.857117,76.336956,1079,Khandwa,,VAKD
+46625,IN-0062,small_airport,Shirpur Airport,21.3239987933,74.9567341805,,Shirpur,,
+46640,IN-0064,small_airport,Umaria Air Field,23.5325139099,80.80821990970001,1510,Umaria,,
+299082,IN-0065,medium_airport,Amravati  Airport,20.814608,77.717765,1125,Amravati,AVR,VAAM
+300448,IN-0066,small_airport,Madhubani Airport,26.329167,86.06,,Madhubani,,
+300449,IN-0067,small_airport,Ulao Aerodrome,25.42788,86.08819,,Begusarai,,
+299921,IN-0068,small_airport,Birwa Airstrip,22.092639,80.595531,,Baihar,,
+300715,IN-0069,small_airport,Sultanpur Airport,26.2475,82.0425,,Sultanpur,,VESL
+301046,IN-0072,small_airport,Raigarh Airport (JSPL),21.9352805556,83.3502138889,,,,
+301049,IN-0073,small_airport,Savitri Jindal Airport,20.910055,85.036669,623,Angul,,
+301051,IN-0074,small_airport,Barbil Tonto Airstrip,22.045829,85.373468,,Bhusugaon,,VEBL
+301145,IN-0077,small_airport,Bhagalpur Airport,25.249535,87.011976,,Bhagalpur,,
+308281,IN-0085,small_airport,Fury Airport,26.434072,73.101472,768,"Karwar, Jodhpur",,VAJO
+309587,IN-0086,small_airport,CHINDWARA AIRFIELD,22,78.93,,,,
+309591,IN-0087,small_airport,Gauchar Airstrip,30.284585,79.161665,,Gauchar,,
+311989,IN-0088,small_airport,Poonch Airport,33.76875,74.083753,3219,Poonch,,
+309944,IN-0089,small_airport,Noamundi Airport,22.192222,85.548889,1402,Itarbalijor,,
+311047,IN-0091,small_airport,Saharsa Airport,25.892205,86.583016,,Saharsa,,
+311106,IN-0093,small_airport,Vedanta Lanjigarh Airstrip,19.7194444444,83.3936111111,,,,
+317900,IN-0096,small_airport,Akli Airport,25.8077,70.2943,230,Akli,,
+317980,IN-0097,small_airport,Surichua Air Base,24.18824,87.701722,280,Rampurhat,,
+317983,IN-0099,small_airport,Durgapur Steel Plant Airport,23.58331,87.339787,290,Durgapur,,
+317984,IN-0100,small_airport,Sido Kanhu Airport,24.231185,87.269989,470,Dumka,,
+319166,IN-0101,small_airport,Vanasthali Airport,26.407627,75.870128,,Vanasthali,,
+336938,IN-0102,small_airport,Mandla Airstrip,22.500929,80.331195,,Dhenko,,
+331217,IN-0106,small_airport,Mithapur Airport,22.412068,68.993632,11,Mithapur,,
+331218,IN-0107,medium_airport,Sindhudurg Airport,16.002552,73.529846,203,Chipi,SDW,VOSR
+340180,IN-0176,small_airport,Mandvi Airport,22.83932,69.30498,,Mandvi,,
+340181,IN-0177,small_airport,Mehsana Airport,23.60118,72.37399,,Mehsana,,
+342093,IN-0276,large_airport,Navi Mumbai International Airport,18.984597,73.065253,184,Navi Mumbai,NMI,VANM
+342197,IN-0279,small_airport,Chushul Airstrip,33.55493,78.72214,14213,Chushul,,
+342873,IN-0283,small_airport,Therubali Aerodrome,19.34564,83.43444,830,Deopur,,
+348753,IN-0300,small_airport,Viraf Airstrip,17.728462,78.700909,2010,Mamidiyal,,
+354545,IN-0301,medium_airport,Rashtrakavi Kuvempu Airport,13.858024,75.618868,2017,Shimoga,RQY,VOSH
+350876,IN-0302,small_airport,Nyoma Airstrip,33.16913,78.72971,13589,Nyoma,,
+350890,IN-0307,small_airport,Tuting Advanced Landing Ground,28.98876,94.89863,1562,Tuting,,VETU
+354546,IN-0308,medium_airport,Itanagar Donyi Polo Hollongi Airport,26.96683,93.638792,328,Hollongi,HGI,VEHO
+356132,IN-0338,small_airport,Birasal Airport,20.98366,85.681622,240,Rahani,,
+356352,IN-0341,small_airport,Mohammadabad Airport,27.316258,79.451555,,Mohammadabad,,
+429737,IN-0342,small_airport,Marhamtabad Airport,26.58182,79.96797,,Marhamtabad,,
+429738,IN-0343,small_airport,Benti Airstrip,25.67292,81.49592,,Benti,,
+429740,IN-0345,small_airport,Andhau Airfield,25.6155,83.56064,,Biraich,,
+429741,IN-0346,small_airport,Bihta Air Force Station,25.59124,84.88312,194,Patna,,
+429854,IN-0360,small_airport,Dinjan Airfield,27.53606,95.2682,390,Baghbari Gaon,,
+3305,IN-0363,small_airport,Dhule Airport,20.9265,74.737099,920,Dhule(Gondur),,
+3306,IN-0364,small_airport,Abu Road Airport,24.4942,72.781502,875,,,
+508628,IN-0367,small_airport,Dahod Helipad,22.874296,74.243247,860,Dahod,,
+508630,IN-0369,medium_airport,Sant Gadge Baba Yavatmal Airport,20.395781,78.216272,1403,Yavatmal,,
+517010,IN-0370,small_airport,Gunna Ka Pura,26.65022,77.792484,791,Khanpura,,
+517212,IN-0373,small_airport,Tarpura Airfield,27.729912,75.24086,1434,Dadiya,,
+26454,IN-0382,small_airport,Gandhinagar Airfield,19.963699,73.807602,1959,Nashik,,VANR
+597483,IN-0390,small_airport,Kannur Heliport,11.862516,75.366505,24,Kannur,,
+597786,IN-0392,large_airport,Noida International Airport,28.179868,77.611843,644,Gautam Buddha Nagar,DXN,VIND
+598586,IN-0393,medium_airport,Maa Mahamaya Airport,22.98753,83.19612,1930,Ambikapur,AHA,
+31698,IN-JGB,small_airport,Jagdalpur Airport,19.074301,82.036797,1822,Jagdalpur,JGB,VEJR
+32215,IN-RJI,small_airport,Rajouri Airport,33.377899,74.315201,3000,Rajouri,RJI,
+3302,IN-VA38,small_airport,Sirohi Airport,24.895099639892578,72.84590148925781,1000,,,VA38
+3304,IN-VA51,small_airport,Banswara Airport,23.589259,74.314048,700,,,
+314033,OMN,small_airport,Osmanabad Airport,18.281,76.0574,2277,Osmanabad,,
+3283,VA1B,small_airport,Chanda Airport,19.994699478149414,79.22250366210938,625,,,VA1B
+3284,VA1C,small_airport,Birlagram Airport,23.4468994140625,75.42030334472656,1541,,,VA1C
+3285,VA1D,small_airport,Muirpur Airport,24.125200271606445,83.04060363769531,1122,,,VA1D
+3286,VA1E,small_airport,Bhilai Airport,21.294200897216797,81.37950134277344,1014,,,VA1E
+3287,VA1F,small_airport,Sidhi Airport,24.402299880981445,81.8147964477539,1093,,,VA1F
+3288,VA1G,medium_airport,"Rewa Airport, Chorhata, REWA",24.503401,81.220299,1000,Rewa,REW,VA1G
+3289,VA1H,small_airport,Ondwa Airport,25.14150047302246,74.61150360107422,1450,,,VA1H
+3290,VA1J,small_airport,Dhana Airport,23.753599166870117,78.85579681396484,1706,,,VA1J
+3291,VA1K,small_airport,Naliya Air Force Station,23.2223,68.891296,135,Naliya,,VANY
+3292,VA1L,small_airport,Amla Airport,21.926399,78.113602,2435,Amla,,VA1L
+3293,VA1M,small_airport,Karad Airport,17.285900115966797,74.15809631347656,1890,,,VA1M
+3294,VA1N,small_airport,Nimach Airport,24.43079948425293,74.8677978515625,1617,,,VA1N
+3295,VA1O,small_airport,Burhar Airport,23.235200881958008,81.50370025634766,1500,,,VA1O
+3296,VA1P,small_airport,Diu Airport,20.714185,70.921855,31,Diu,DIU,VADU
+3297,VA2A,small_airport,Phalodi Airport,27.112899780273438,72.38899993896484,781,,,VA2A
+3298,VA2B,small_airport,Dr. Bhimrao Ambedkar Airstrip,28.904933,77.677524,732,Meerut,,VA2B
+3299,VA2C,medium_airport,Gondia Airport,21.526817,80.290347,987,Gondia,GDB,VAGD
+3300,VA2D,small_airport,Ratlam Airport,23.381399154663086,75.02559661865234,1702,,,VA2D
+26431,VAAH,large_airport,Sardar Vallabh Patel International Airport,23.0772,72.634697,189,Ahmedabad,AMD,VAAH
+26432,VAAK,medium_airport,Akola Airport,20.698931,77.056883,999,Akola,AKD,VAAK
+26433,VAAU,medium_airport,Aurangabad Airport,19.862875,75.396312,1911,Aurangabad,IXU,VAAU
+26434,VABB,large_airport,Chhatrapati Shivaji Maharaj International Airport,19.088699,72.867897,39,Mumbai,BOM,VABB
+26436,VABJ,medium_airport,Bhuj Airport,23.2877998352,69.6701965332,268,Bhuj,BHJ,VABJ
+26437,VABM,medium_airport,Belagavi Airport,15.8593,74.618301,2487,Belgaum,IXG,VOBM
+26438,VABO,large_airport,Vadodara International Airport,22.336201,73.226303,129,Vadodara,BDQ,VABO
+26439,VABP,large_airport,Raja Bhoj International Airport,23.2875,77.337402,1711,Bhopal,BHO,VABP
+26440,VABV,medium_airport,Bhavnagar Airport,21.752199173,72.1852035522,44,Bhavnagar,BHU,VABV
+26441,VADN,medium_airport,Daman Airport,20.434401,72.843201,33,Daman,NMB,VADN
+26442,VADS,small_airport,Deesa Airport,24.2679,72.204399,485,Deesa,,VADS
+26443,VAGN,small_airport,Guna Airport,24.654699,77.347298,1600,,GUX,VAGN
+26445,VAHB,medium_airport,Hubballi Airport,15.361084,75.082096,2171,Hubballi,HBX,VOHB
+512065,VAHS,large_airport,Rajkot International Airport,22.378824,71.039391,647,Rajkot,HSR,VAHS
+26446,VAID,large_airport,Devi Ahilya Bai Holkar International Airport,22.721404,75.80051,1850,Indore,IDR,VAID
+26447,VAJB,medium_airport,Jabalpur Airport,23.177799,80.052002,1624,Jabalpur,JLR,VAJB
+30171,VAJJ,small_airport,Juhu Aerodrome,19.098100662231445,72.83419799804688,13,Mumbai,,VAJJ
+3303,VAJL,small_airport,Jalgaon Airport,20.962678,75.627492,818,Jalgaon,JLG,VAJL
+26448,VAJM,medium_airport,Jamnagar Airport,22.465499877929688,70.01260375976562,69,Jamnagar,JGA,VAJM
+26449,VAKE,medium_airport,Kandla Airport,23.1127,70.100304,96,Kandla,IXY,VAKE
+26450,VAKJ,medium_airport,Khajuraho Airport,24.8172,79.918602,728,Khajuraho,HJR,VEKO
+26451,VAKP,medium_airport,Kolhapur Airport,16.6647,74.289398,1996,Kolhapur,KLH,VAKP
+26452,VAKS,medium_airport,Keshod Airport,21.317101,70.270401,167,Keshod,IXK,VAKS
+3341,VALT,medium_airport,Murod Kond Airport,18.411501,76.464699,2136,Latur,LTU,VALT
+340182,VAMA,small_airport,Mundra Airport,22.834795,69.765408,,Mundra,,VAMA
+30180,VAND,medium_airport,Nanded Airport,19.1833,77.316704,1250,Nanded,NDC,VOND
+26453,VANP,large_airport,Dr. Babasaheb Ambedkar International Airport,21.092199,79.047203,1033,Nagpur,NAG,VANP
+3301,VAOZ,large_airport,Nashik International Airport,20.119101,73.912903,1900,Nashik,ISK,VAOZ
+26455,VAPO,large_airport,Pune International Airport,18.5821,73.919701,1942,Pune,PNQ,VAPO
+26456,VAPR,medium_airport,Porbandar Airport,21.649524,69.656405,23,Porbandar,PBD,VAPR
+26457,VARG,medium_airport,Ratnagiri Airport,17.013599,73.327797,305,,RTC,VARG
+26458,VARK,medium_airport,Rajkot Airport,22.3092,70.779503,441,Rajkot,RAJ,VARK
+26459,VARP,medium_airport,Swami Vivekananda Airport,21.180401,81.7388,1041,Raipur,RPR,VERP
+327452,VASD,large_airport,Shirdi International Airport,19.689211,74.373655,1926,Kakadi,SAG,VASD
+26460,VASL,medium_airport,Solapur Airport,17.6280002594,75.93479919430001,1584,Solapur,SSE,VASL
+26461,VASU,large_airport,Surat International Airport,21.115531,72.743251,16,Surat,STV,VASU
+26462,VAUD,medium_airport,Maharana Pratap Airport,24.617700576799997,73.89610290530001,1684,Udaipur,UDR,VAUD
+3307,VE23,small_airport,Burnpur Airport,23.631500244140625,86.97550201416016,310,,,VE23
+3308,VE24,small_airport,Sookerating (Doomdooma) Airport,27.5529,95.570602,400,Sokriting T.E.,,VE24
+3310,VE36,small_airport,Nuagaon Airport,20.511699676513672,83.4480972290039,656,,,VE36
+3311,VE41,small_airport,Giridih Airport,24.201900482177734,86.28980255126953,1000,,,VE41
+3315,VE54,small_airport,Daltonganj Airport,24.01930046081543,84.09510040283203,803,,,VE54
+3316,VE62,small_airport,Cuttack Airport / Charbatia Air Force Station,20.549601,85.886299,115,Bandalo,,VE62
+3317,VE67,small_airport,Mechuka Advanced Landing Ground,28.602458,94.126139,7900,Kargong,,VE67
+3318,VE85,small_airport,Bentayan Airport,23.09510040283203,75.88529968261719,1666,Ujjain,,
+3320,VE91,small_airport,Vijaynagar Advanced Landing Ground,27.1935997009,97.00370025630001,4167,,,VE91
+3321,VE96,small_airport,Thuniabhand Airport,22.00160026550293,78.91719818115234,2182,,,VE96
+525150,VEAH,small_airport,Azamgarh Airport,26.153333,83.118333,250,Azamgarh,AZH,VEAH
+26488,VEAN,medium_airport,Along Airport,28.17530059814453,94.802001953125,900,,IXV,VEAN
+26489,VEAT,medium_airport,Agartala - Maharaja Bir Bikram Airport,23.886999,91.240402,46,Agartala,IXA,VEAT
+26490,VEAZ,small_airport,Tuirial Airfield,23.746214,92.802846,1093,Aizawl,,VEAZ
+29689,VEBA,small_airport,Behala Airport,22.50423,88.293427,10,Kolkata,,VEBA
+26491,VEBD,large_airport,Bagdogra Airport,26.6812,88.328598,412,Siliguri,IXB,VEBD
+32206,VEBG,small_airport,Balurghat Airport,25.2617,88.795601,78,Balurghat,RGH,VEBG
+26492,VEBI,medium_airport,Shillong Airport,25.70359992980957,91.97869873046875,2910,Shillong,SHL,VEBI
+26493,VEBK,small_airport,Bokaro Airport,23.643499,86.148903,715,,,VEBK
+340009,VEBM,small_airport,Berhampur Rangeilunda Airport,19.2975,84.876944,100,Berhampur (Brahmapur),,VEBM
+26545,VEBN,large_airport,Lal Bahadur Shastri International Airport,25.452171,82.862549,266,Varanasi,VNS,VEBN
+26494,VEBS,large_airport,Biju Patnaik International Airport,20.251021,85.814747,138,Bhubaneswar,BBI,VEBS
+26435,VEBU,medium_airport,Bilaspur Airport,21.9884,82.111,899,Bilaspur,PAB,VEBU
+26495,VECA,small_airport,Chabua Air Force Station,27.4622,95.117699,367,Chabua,,VECA
+26496,VECC,large_airport,Netaji Subhash Chandra Bose International Airport,22.654012,88.44765,16,Kolkata,CCU,VECC
+29775,VECK,small_airport,Chakulia Airport,22.463625,86.705219,430,,,VECK
+26497,VECO,small_airport,Cooch Behar Airport,26.3305,89.467201,138,Cooch Behar,COH,VECO
+525147,VECT,small_airport,Chitrakoot Airport,25.167694,80.9358,1050,Chitrakoot,CWK,VECT
+26498,VEDB,medium_airport,Dhanbad Airport,23.834,86.425301,847,,DBD,VEDB
+317982,VEDG,medium_airport,Kazi Nazrul Islam Airport,23.6225,87.243,300,Durgapur,RDP,VEDG
+3319,VEDH,medium_airport,Darbhanga Airport,26.192801,85.916901,156,Darbhanga,DBR,VEDH
+312234,VEDO,small_airport,Deoghar Airport,24.446842,86.704955,361,Deoghar,DGH,VEDO
+26499,VEDX,small_airport,Kharagpur Airport / Kalaikunda Air Force Station,22.3395,87.2145,200,Doarkhol,,VEDX
+44474,VEDZ,small_airport,Daporijo Airport,27.985500335699996,94.22280120850002,750,Daporijo,DEP,VEDZ
+26500,VEGK,medium_airport,Gorakhpur Airport,26.739700317399997,83.4496994019,259,Gorakhpur,GOP,VEGK
+26501,VEGT,large_airport,Lokpriya Gopinath Bordoloi International Airport,26.106654,91.585226,162,Guwahati,GAU,VEGT
+26502,VEGY,medium_airport,Gaya Airport,24.744301,84.951202,380,Gaya,GAY,VEGY
+26503,VEHK,small_airport,Hirakud Airport,21.5802,84.005699,658,Sambalpur,,VEHK
+3312,VEHX,medium_airport,Hashimara Air Force Station,26.698299,89.369102,340,Jalpaiguri,,VEHX
+26504,VEIM,large_airport,Bir Tikendrajit International Airport,24.76,93.896698,2540,Imphal,IMF,VEIM
+26505,VEJH,small_airport,Jharsuguda Airport,21.9135,84.0504,751,,JRG,VEJH
+32183,VEJP,small_airport,Jeypore Airport,18.879549,82.552478,1952,Jeypore,PYB,VEJP
+26506,VEJS,medium_airport,Sonari Airport,22.813706,86.168981,475,Jamshedpur,IXW,VEJS
+26507,VEJT,medium_airport,Jorhat Airport,26.730456,94.175416,311,Jorhat,JRH,VEJT
+599962,VEKG,small_airport,Kishanganj Airport,26.075836,87.93965,139,Kishanganj,,VEKG
+350147,VEKI,medium_airport,Kushinagar International Airport,26.776534,83.889214,266,Kushinagar,KBK,VEKI
+309893,VEKJ,small_airport,Kendujhar Airport,21.696667,85.581667,,Gopinathapur,,VEKJ
+30005,VEKM,small_airport,Kamalpur Airport,24.134325,91.810769,131,Manik Bhandar,IXQ,VEKM
+26508,VEKR,medium_airport,Kailashahar Airport,24.308657,92.00768,79,Kailashahar,IXH,VEKR
+26509,VEKU,medium_airport,Silchar Airport,24.9129009247,92.97869873050001,352,Silchar,IXS,VEKU
+31691,VEKW,small_airport,Khowai Airport,24.061899,91.603897,95,Khowai,IXN,VEKW
+26510,VELP,medium_airport,Lengpui Airport,23.840599,92.619698,1398,Aizawl (Lengpui),AJL,VELP
+26511,VELR,medium_airport,Lilabari North Lakhimpur Airport,27.295682,94.097266,330,Lilabari,IXI,VELR
+31799,VEMH,small_airport,Malda Airport,25.01018,88.126917,79,Malda,LDA,VEMH
+26512,VEMN,medium_airport,Dibrugarh Airport,27.4839000702,95.0168991089,362,Dibrugarh,DIB,VEMN
+26513,VEMR,medium_airport,Dimapur Airport,25.883899688699998,93.77110290530001,487,Dimapur,DMU,VEMR
+26514,VEMZ,medium_airport,Muzaffarpur Airport,26.119101,85.313698,174,Muzaffarpur,MZU,VEMZ
+26515,VENP,small_airport,Nawapara Airport,20.870001,82.5196,1058,Nawapara,,VENP
+31692,VEPG,small_airport,Pasighat Airport,28.064786,95.336952,477,Pasighat,IXT,VEPG
+26516,VEPH,medium_airport,Panagarh Air Force Station,23.474300384499998,87.4274978638,240,,,VEPH
+3309,VEPI,small_airport,Barrackpore Air Force Station,22.7810001373,88.3591995239,18,Barrackpore,,VEPI
+26517,VEPT,medium_airport,Jay Prakash Narayan Airport,25.591299,85.087997,170,Patna,PAT,VEPT
+26518,VEPU,small_airport,Purnea Airport,25.759599685668945,87.41000366210938,129,,,VEPU
+26519,VERC,medium_airport,Birsa Munda Airport,23.314300537100003,85.3217010498,2148,Ranchi,IXR,VERC
+26520,VERK,medium_airport,Rourkela Airport,22.256571,84.815193,659,Rourkela,RRK,VERK
+30325,VERL,small_airport,Raxaul Airport,26.9667,84.833298,259,,,VERL
+30356,VERU,small_airport,Rupsi Airport,26.141867,89.907892,131,Rupsi,RUP,VERU
+32433,VETJ,small_airport,Tezu Airport,27.9412002563,96.1343994141,800,Tezu,TEI,VETJ
+26521,VETZ,medium_airport,Tezpur Airport,26.7091007232666,92.78469848632812,240,,TEZ,VETZ
+26522,VEUK,medium_airport,Utkela Airport,20.097778,83.183333,685,Bhawanipatna,UKE,VEUK
+26523,VEVZ,medium_airport,INS Dega Airport (visakhapatnam international airport),17.723506,83.227729,15,Visakhapatnam,,VOVZ
+26524,VEZO,medium_airport,Ziro Airport,27.588301,93.828102,5403,Ziro,ZER,VEZO
+429736,VI00,small_airport,Saifai Airport,26.9202,79.06277,,Barauli Khurd,,VI00
+3322,VI20,small_airport,Narnaul Airport,28.077101,76.205002,955,,,VINL
+3323,VI40,small_airport,Karnal Airport,29.714663,77.037438,829,Niawal,,VI40
+3324,VI43,small_airport,Suratgarh New Airport,29.387800216674805,73.90390014648438,554,,,VI43
+3325,VI57,small_airport,Thoise Airport,34.652599,77.375801,10046,Nubra,,VI57
+3327,VI65,small_airport,Kargil Airport,34.5243,76.155899,9604,Kargil,,VI65
+3328,VI66,small_airport,Fukche Advanced Landing Ground,32.937401,79.213203,13700,Koyul,,VI66
+3329,VI69,small_airport,Jhunjhunu Airport,28.106700897216797,75.37560272216797,1110,,,VI69
+3330,VI70,small_airport,Pilani New Airport,28.348800659179688,75.59369659423828,1100,,,VI70
+3331,VI71,small_airport,Pinjore Airfield and Flying Club,30.82457,76.883652,1700,Gannan,,VI71
+3332,VI73,small_airport,Nagaur Airport,27.20829963684082,73.7114028930664,950,,,VI73
+3333,VI75,small_airport,IIT Kanpur Airport,26.520399,80.232904,400,Kanpur,,
+3334,VI76,small_airport,Band Tal Airport,26.000099182128906,78.26180267333984,790,,,VI76
+3335,VI82,small_airport,Maa Ganga Airport Uttarkashi,30.582583,78.323164,2983,Chinyalisour,,VI82
+3336,VI88,small_airport,Beas Airport,31.559999,75.341301,741,Bhaini,,VI88
+3337,VI90,small_airport,Akbarpur Mahamaya Rajkiya Airport,26.447599,82.568199,288,Akbarpur,,VI90
+26537,VIAG,medium_airport,Agra Airport / Agra Air Force Station,27.157975,77.961025,551,Agra,AGR,VIAG
+298454,VIAH,small_airport,Aligarh Airport,27.861437,78.145404,619,Aligarh,HRH,VIAH
+26538,VIAL,medium_airport,Prayagraj Airport,25.4401,81.733902,322,Allahabad,IXD,VEAB
+26539,VIAM,medium_airport,Ambala Air Force Station,30.368099,76.816704,909,Ambala,,VIAM
+26540,VIAR,large_airport,Sri Guru Ram Das Ji International Airport,31.7096,74.797302,756,Amritsar,ATQ,VIAR
+26541,VIAW,small_airport,Awantipura Air Force Station,33.876598,74.9757,5393,Awantipura,,VIAW
+26542,VIAX,small_airport,Adampur Airport,31.4338,75.758797,775,Adampur,AIP,VIAX
+26543,VIBK,medium_airport,Nal Airport,28.070601,73.207199,750,Bikaner,BKB,VIBK
+26544,VIBL,small_airport,Bakshi Ka Talab Air Force Station,26.9883,80.893097,385,Lucknow,,VIBL
+26546,VIBR,medium_airport,Kullu Manali Airport,31.876699,77.154404,3573,Bhuntar,KUU,VIBR
+26547,VIBT,medium_airport,Bhatinda Air Force Station,30.2701,74.755798,662,,BUP,VIBT
+26548,VIBW,small_airport,Bhiwani Airport,28.837,76.1791,720,Bhiwani,,VIBW
+26549,VIBY,medium_airport,Bareilly Air Force Station,28.4221,79.450798,580,Bareilly,BEK,VIBY
+26550,VICG,large_airport,Shaheed Bhagat Singh International Airport,30.6735,76.788498,1012,Chandigarh,IXC,VICG
+26551,VICX,medium_airport,Kanpur Airport,26.404301,80.410103,410,Kanpur,KNU,VEKA
+26552,VIDD,medium_airport,Safdarjung Airport,28.585453,77.203563,705,New Delhi,,VIDD
+26553,VIDF,small_airport,Pithoragarh Airport,29.593599,80.239197,4910,Pithoragarh,,VIPG
+26554,VIDN,medium_airport,Dehradun Jolly Grant Airport,30.189243,78.176651,1831,Dehradun (Jauligrant),DED,VIDN
+26555,VIDP,large_airport,Indira Gandhi International Airport,28.55563,77.09519,777,New Delhi,DEL,VIDP
+26556,VIDX,small_airport,Hindon Airport / Hindon Air Force Station,28.707701,77.358902,700,Ghaziabad,HDO,VIDX
+26557,VIGG,medium_airport,Kangra Airport,32.164902,76.263018,2525,Kangra,DHM,VIGG
+26558,VIGR,medium_airport,Gwalior Airport,26.29330062866211,78.22779846191406,617,Gwalior,GWL,VIGR
+26559,VIHR,large_airport,Maharaja Agrasen International Airport,29.186065,75.74142,700,Hisar,HSS,VIHR
+26560,VIHX,large_airport,Halwara International Airport,30.748501,75.629799,790,Halwara,HWR,VIHX
+26561,VIJN,small_airport,Jhansi Airport,25.491199,78.558403,801,,,VIJN
+26562,VIJO,medium_airport,Jodhpur Airport,26.251100540161133,73.04889678955078,717,Jodhpur,JDH,VIJO
+26563,VIJP,large_airport,Jaipur International Airport,26.8242,75.812202,1263,Jaipur,JAI,VIJP
+26564,VIJR,medium_airport,Jaisalmer Airport,26.8887,70.864998,751,,JSA,VIJR
+26565,VIJU,medium_airport,Jammu Airport,32.688849,74.838152,996,Jammu,IXJ,VIJU
+26566,VIKA,small_airport,Kanpur Civil Airport (Old),26.440857,80.365029,411,Kanpur,,VIKA
+327453,VIKG,medium_airport,Kishangarh Airport Ajmer,26.591007,74.812956,,Ajmer (Kishangarh),KQH,VIKG
+26567,VIKO,medium_airport,Kota Airport,25.160200119,75.84559631350001,896,Kota,KTU,VIKO
+26568,VILD,medium_airport,Ludhiana Airport,30.854700088500977,75.95259857177734,834,,LUH,VILD
+26569,VILH,medium_airport,Leh Kushok Bakula Rimpochee Airport,34.135899,77.546501,10682,Leh,IXL,VILH
+26570,VILK,large_airport,Chaudhary Charan Singh International Airport,26.760599,80.889297,410,Lucknow,LKO,VILK
+32576,VILP,small_airport,Lalitpur Airport,24.716999053955078,78.41699981689453,1204,Lalitpur,,VILP
+558007,VIMB,medium_airport,Moradabad Airport,28.81746,78.92187,637,Moradabad,MZS,VIMB
+26571,VIPK,medium_airport,Pathankot Airport,32.233611,75.634444,1017,Pathankot,IXP,VIPK
+26572,VIPL,small_airport,Patiala Airport,30.3148,76.364502,820,,,VIPL
+26573,VIPT,medium_airport,Pantnagar Airport,29.0334,79.473701,769,Pantnagar,PGH,VIPT
+525296,VIPX,small_airport,Phalodi Air Force Station,27.104866,72.212894,,,,VIPX
+26574,VIRB,small_airport,Fursatganj Airport,26.248501,81.380501,360,Tarauna,,VERB
+26575,VISA,medium_airport,Sirsa Air Force Station,29.5606,75.006104,650,,,VISA
+26576,VISM,small_airport,Shimla Airport,31.0818,77.068001,5072,Jubbarhatti,SLV,VISM
+26577,VISP,small_airport,Sarsawa Air Force Station,29.994303,77.42456,891,Sherpur Naqeebpur,SWN,VISP
+26578,VISR,large_airport,Srinagar International Airport,33.987099,74.7742,5429,Srinagar,SXR,VISR
+26579,VIST,small_airport,Satna Airport,24.56262,80.852927,1060,,TNI,VEST
+525168,VISV,small_airport,Shravasti Airport,27.499732,82.032927,366,Shravasti,VSV,VISV
+26580,VIUT,small_airport,Uttarlai Airport,25.813,71.4823,500,,,VIUT
+26581,VIUX,medium_airport,Udhampur Air Force Station,32.902152,75.155709,2066,Udhampur,,VIUX
+3338,VO26,small_airport,Kovilpatti Airport,9.15389,77.821198,325,Nallatinputhur,,VO26
+3340,VO52,small_airport,Harihar Airport,14.534533,75.786879,1750,Harihar,,VO52
+3343,VO94,medium_airport,Campbell Bay Airport / INS Baaz,7.01304,93.922798,16,Campbell Bay,,VOBX
+3344,VO95,small_airport,Hosur Airport,12.661299705505371,77.76719665527344,3116,,,VO95
+26601,VOAR,small_airport,INS Rajali / Arakkonam Naval Air Station,13.0712,79.6912,265,Arakkonam,,VOAR
+26602,VOAT,medium_airport,Agatti Airport,10.8237,72.176003,14,Agatti,AGX,VOAT
+26603,VOBG,medium_airport,HAL Airport,12.95,77.668198,2912,Bangalore,,VOBG
+26604,VOBI,medium_airport,Bellary Airport,15.162799835205078,76.88279724121094,30,Bellary,BEP,VOBI
+35145,VOBL,large_airport,Kempegowda International Airport Bengaluru,13.1979,77.706299,3000,Bengaluru,BLR,VOBL
+26605,VOBR,medium_airport,Bidar Airport / Bidar Air Force Station,17.9081,77.487099,2178,Bidar,IXX,VOBR
+26606,VOBZ,large_airport,Vijayawada International Airport,16.530011,80.804888,82,Vijayawada,VGA,VOBZ
+26607,VOCB,large_airport,Coimbatore International Airport,11.03,77.043404,1324,Coimbatore,CJB,VOCB
+26608,VOCC,small_airport,INS Garuda / Willingdon Island Naval Air Station,9.946064,76.271947,8,Kochi,,VOCC
+26609,VOCI,large_airport,Cochin International Airport,10.151047,76.400838,30,Kochi,COK,VOCI
+26610,VOCL,large_airport,Calicut International Airport,11.135996,75.955152,342,Calicut,CCJ,VOCL
+26611,VOCP,medium_airport,Kadapa Airport,14.513154,78.769183,430,Kadapa,CDP,VOCP
+26612,VOCX,medium_airport,Car Nicobar Air Force Base,9.153056,92.819273,5,IAF Camp,CBD,VOCX
+26613,VODG,medium_airport,Dundigul Air Force Academy,17.627199173,78.4033966064,2013,Hyderabad,,VODG
+342094,VOGA,large_airport,Manohar International Airport,15.744257,73.860625,552,Mopa,GOX,VOGA
+506610,VOGB,small_airport,Kalaburagi Airport,17.308154,76.965246,1571,Kalaburagi,GBI,VOGB
+26444,VOGO,large_airport,Goa Dabolim International Airport,15.380062,73.833328,150,Vasco da Gama,GOI,VOGO
+26614,VOHK,small_airport,Hakimpet Airport,17.553499,78.524902,2020,Secunderabad,,VOHK
+35141,VOHS,large_airport,Rajiv Gandhi International Airport,17.231318,78.429855,2024,Hyderabad,HYD,VOHS
+26615,VOHY,medium_airport,Begumpet Airport,17.4531,78.467598,1742,Hyderabad,BPM,VOHY
+301040,VOJV,small_airport,Jindal Vijaynagar Airport,15.175921,76.63303,1670,Toranagallu,VDY,VOJV
+329504,VOKN,large_airport,Kannur International Airport,11.916343,75.544979,330,Kannur,CNN,VOKN
+44630,VOKP,small_airport,Baldota Koppal Aerodrome,15.359481,76.219411,1700,Basapur,,VOKP
+340146,VOKU,medium_airport,Kurnool Airport,15.716288,78.16923,920,Orvakal,KJB,VOKU
+26616,VOMD,medium_airport,Madurai Airport,9.83450984955,78.09339904790001,459,Madurai,IXM,VOMD
+26617,VOML,large_airport,Mangaluru International Airport,12.95471,74.886812,337,Mangaluru,IXE,VOML
+26618,VOMM,large_airport,Chennai International Airport,12.990005,80.169296,52,Chennai,MAA,VOMM
+31996,VOMY,medium_airport,Mysore Airport,12.229751,76.653683,2349,Mysore,MYQ,VOMY
+26619,VONS,small_airport,Nagarjuna Sagar Airport,16.541574,79.316504,658,Nagarjuna Sagar,,VONS
+42723,VONV,small_airport,Neyveli Airport,11.612956,79.527382,184,Neyveli,NVY,VONV
+26620,VOPB,large_airport,Veer Savarkar International Airport / INS Utkrosh,11.640194,92.72902,13,Port Blair,IXZ,VOPB
+26621,VOPC,medium_airport,Pondicherry Airport,11.968,79.812,134,Puducherry (Pondicherry),PNY,VOPC
+26622,VOPN,medium_airport,Sri Sathya Sai Airport,14.1492996216,77.7910995483,1558,Puttaparthi,PUT,VOPN
+313997,VORG,small_airport,Basanth Nagar Airport,18.701,79.3923,670,Ramagundam,RMD,VORG
+32591,VORM,small_airport,Ramnad Naval Air Station,9.32509,78.971497,16,Ramnad,,VORM
+520738,VORR,small_airport,Raichur Airport,16.279722,77.360278,1230,,,VORR
+26623,VORY,medium_airport,Rajahmundry Airport,17.105799,81.813204,151,Madhurapudi,RJA,VORY
+26624,VOSM,medium_airport,Salem Airport,11.78330039978,78.06559753418,1008,Salem,SXV,VOSM
+26625,VOSX,small_airport,Coimbatore Air Force Station,11.0136,77.159698,1250,Sulur,,VOSX
+26626,VOTJ,small_airport,Thanjavur Air Force Station,10.723835,79.109457,253,Thanjavur,TJV,VOTJ
+3342,VOTK,small_airport,Tuticorin Airport,8.724241,78.025803,129,Vagaikulam,TCR,VOTK
+26627,VOTP,large_airport,Tirupati International Airport,13.631988,79.539869,350,Tirupati,TIR,VOTP
+26628,VOTR,large_airport,Tiruchirappalli International Airport,10.762915,78.717741,288,Tiruchirappalli,TRZ,VOTR
+26629,VOTV,large_airport,Thiruvananthapuram International Airport,8.481889,76.920029,15,Thiruvananthapuram,TRV,VOTV
+26630,VOTX,small_airport,Tambaram Air Force Station,12.9072,80.121902,90,Chennai,,VOTX
+610317,VOVI,large_airport,Alluri Sitarama Raju International Airport (Vizag),17.971512,83.503617,188,Visakhapatnam,VTZ,VOVI
+32592,VOVR,small_airport,Vellore Airport,12.9088,79.066803,764,Vellore,,VOVR
+32647,VOWA,small_airport,Warangal Airport,17.9144,79.602203,935,Warangal,WGC,VOWA
+26631,VOYK,small_airport,Yelahanka Air Force Station,13.135499954223633,77.60600280761719,3045,Yelahanka,,VOYK

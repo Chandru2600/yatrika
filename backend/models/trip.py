@@ -8,12 +8,16 @@ from backend.database.db import execute_query, execute_insert
 
 def create_trip(user_id: int, data: dict) -> int:
     """Insert a new trip and return its ID."""
+    transit_details = data.get("transit_details", {})
+    transit_details_str = json.dumps(transit_details) if isinstance(transit_details, (dict, list)) else str(transit_details or "")
+
     return execute_insert("""
         INSERT INTO trips
             (user_id, destination, start_date, end_date, num_days, budget,
-             num_travelers, travel_style, transport, interests,
+             num_travelers, travel_style, transport, transit_mode, transit_cost,
+             arrival_time, transit_details_json, interests,
              special_requirements, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')
     """, (
         user_id,
         data.get("destination"),
@@ -24,9 +28,14 @@ def create_trip(user_id: int, data: dict) -> int:
         data.get("num_travelers", 1),
         data.get("travel_style", "budget"),
         data.get("transport", "flight"),
+        data.get("transit_mode", data.get("transport", "car")),
+        float(data.get("transit_cost", 0)),
+        data.get("arrival_time", "10:00"),
+        transit_details_str,
         json.dumps(data.get("interests", [])),
         json.dumps(data.get("special_requirements", []))
     ))
+
 
 
 def get_trip_by_id(trip_id: int):

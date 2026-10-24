@@ -1,0 +1,271 @@
+/* =====================================================================
+   Sticky Reveal Footer - Master Stylesheet
+   Under-page sticky footer that uncovers, fades, and scales in on scroll
+   Inspired by Framer Motion / Motion for React sticky reveal footer
+   ===================================================================== */
+
+/* ── Main content sits above the footer ──────────────────────────── */
+.site-main-wrapper {
+  position: relative;
+  z-index: 10;
+  background-color: var(--c-warm-white, #FAFAF7);
+  box-shadow: 0 20px 48px rgba(11, 31, 51, 0.14);
+  min-height: 70vh;
+}
+
+/* ── Spacer matching footer height ───────────────────────────────── */
+.footer-reveal-spacer {
+  position: relative;
+  width: 100%;
+  pointer-events: none;
+  background: transparent;
+}
+
+/* ── Fixed under-page sticky footer container ────────────────────── */
+.sticky-reveal-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1;
+  pointer-events: auto;
+  background: #F8FAFC !important; /* Crisp Light Slate — complete contrast against dark CTA above */
+  color: #1E293B;
+  overflow: hidden;
+  border-top: 1px solid #E2E8F0;
+  box-shadow: 0 -10px 32px rgba(11, 31, 51, 0.08);
+}
+
+/* Ambient Subtle Radial Glow on Footer Top */
+.sticky-reveal-footer::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(0, 168, 150, 0.08) 0%, rgba(0, 168, 150, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Top Luminous Gradient Line */
+.footer-luminous-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(0, 168, 150, 0.4) 20%, #00A896 50%, rgba(0, 168, 150, 0.4) 80%, transparent 100%);
+  box-shadow: 0 1px 4px rgba(0, 168, 150, 0.25);
+  z-index: 2;
+}
+
+/* ── Inner content that fades, scales, and translates ────────────── */
+.footer-reveal-inner {
+  position: relative;
+  z-index: 1;
+  padding: 22px 0 14px;
+  will-change: transform, opacity, filter;
+  transform-origin: center bottom;
+  opacity: 0.4;
+  transform: scale(0.96) translateY(-12px);
+  filter: blur(3px);
+  transition: filter 0.15s ease-out;
+}
+
+/* Brand area */
+.footer-brand-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0B1F33;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.footer-brand-tagline {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #008F80;
+  text-transform: uppercase;
+}
+
+.footer-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  background: rgba(0, 168, 150, 0.1);
+  border: 1px solid rgba(0, 168, 150, 0.25);
+  color: #008F80;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.footer-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #00A896;
+  box-shadow: 0 0 8px rgba(0, 168, 150, 0.5);
+  animation: footerPulse 2s infinite ease-in-out;
+}
+
+@keyframes footerPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.35); opacity: 0.6; }
+}
+
+.footer-top-btn {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #1E293B;
+  border-radius: 9999px;
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.footer-top-btn:hover {
+  background: var(--c-turquoise, #00A896);
+  border-color: var(--c-turquoise, #00A896);
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(0, 168, 150, 0.28);
+  transform: translateY(-2px);
+}
+
+/* Columns */
+.footer-col-heading {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.footer-nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.footer-nav-link {
+  color: #334155;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.16s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-nav-link:hover {
+  color: #008F80;
+  transform: translateX(3px);
+}
+
+.footer-bottom-bar {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #E2E8F0;
+  font-size: 0.76rem;
+  color: #64748B;
+}
+
+@media (max-width: 768px) {
+  .sticky-reveal-footer {
+    position: relative !important;
+    z-index: 10 !important;
+    border-top: 1px solid #E2E8F0;
+  }
+  .footer-reveal-spacer {
+    display: none !important;
+    height: 0 !important;
+  }
+  .footer-reveal-inner {
+    padding: 24px 16px 20px !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .footer-brand-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0B1F33;
+  }
+  .footer-brand-tagline {
+    display: none !important;
+  }
+  .footer-live-badge {
+    display: none !important;
+  }
+  .footer-top-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    min-height: 36px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    color: #1E293B;
+  }
+  .footer-col-mission {
+    display: none !important;
+  }
+  .footer-col-heading {
+    margin-top: 8px;
+    margin-bottom: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #008F80;
+  }
+  .footer-nav-list {
+    gap: 4px;
+    display: flex;
+    flex-direction: column;
+  }
+  .footer-nav-link {
+    font-size: 0.84rem;
+    padding: 4px 0;
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    color: #334155;
+  }
+  .footer-account-links {
+    flex-direction: row !important;
+    gap: 12px !important;
+    justify-content: center !important;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .footer-bottom-bar {
+    margin-top: 16px;
+    padding-top: 12px;
+    font-size: 0.78rem;
+    text-align: center;
+    flex-direction: column !important;
+    gap: 6px !important;
+    border-top: 1px solid #E2E8F0;
+    color: #64748B;
+  }
+}

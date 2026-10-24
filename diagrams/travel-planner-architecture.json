@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "TravelPlannerAgent Multi-Agent Architecture & Datasets",
+    "output": "diagrams/travel-planner-architecture.html",
+    "visual_preset": "signal-flow",
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "e2e-pipeline",
+        "label": "Full cooperative pipeline",
+        "focus": ["traveler", "gateway", "agent4", "agent1", "agent2", "agent3", "granite", "dossier"],
+        "note": "Follow traveler request through the 4 cooperative agents and Granite LLM synthesis."
+      },
+      {
+        "id": "dataset-grounding",
+        "label": "All 4 Agent Production Datasets",
+        "focus": ["agent4", "data_hotels", "agent1", "data_transit", "agent2", "data_attractions", "agent3", "data_budget"],
+        "note": "Each agent is grounded in its dedicated All-India production dataset from the datasets folder."
+      },
+      {
+        "id": "stay-first",
+        "label": "Stay-first base camp paradigm",
+        "focus": ["gateway", "agent4", "data_hotels", "agent1"],
+        "note": "Agent 4 anchors verified base camp before multimodal transit and circular loops are formed."
+      }
+    ]
+  },
+  "components": [
+    { "id": "data_hotels", "type": "database", "label": "Hotels & Stays (1.5L)", "sublabel": "hotels_150000.csv", "pos": [230, 40], "size": [155, 62], "tag": "Agent 4 Data" },
+    { "id": "data_transit", "type": "database", "label": "Transit Network (17k)", "sublabel": "8.9k Rail / 5k Hubs / 3k Bus", "pos": [440, 40], "size": [155, 62], "tag": "Agent 1 Data" },
+    { "id": "data_attractions", "type": "database", "label": "Attractions (10,025)", "sublabel": "attractions_10025.csv", "pos": [650, 40], "size": [155, 62], "tag": "Agent 2 Data" },
+    { "id": "data_budget", "type": "database", "label": "ML Budget Trips (25k)", "sublabel": "ml_training_25000.csv", "pos": [860, 40], "size": [155, 62], "tag": "Agent 3 Data" },
+
+    { "id": "traveler", "type": "external", "label": "Traveler Request", "sublabel": "10-Step Wizard UI", "pos": [30, 240], "size": [140, 62] },
+    { "id": "agent4", "type": "backend", "label": "Agent 4: Stay Anchor", "sublabel": "K-Means Stay Cluster", "pos": [230, 240], "size": [155, 62], "tag": "Base Camp First" },
+    { "id": "agent1", "type": "backend", "label": "Agent 1: Transit", "sublabel": "Door-to-Door Route", "pos": [440, 240], "size": [155, 62], "tag": "Multimodal" },
+    { "id": "agent2", "type": "backend", "label": "Agent 2: Sightseeing", "sublabel": "Circular Day Loops", "pos": [650, 240], "size": [155, 62], "tag": "Non-backtracking" },
+    { "id": "agent3", "type": "backend", "label": "Agent 3: Budget ML", "sublabel": "RF Regressor 90.92% R²", "pos": [860, 240], "size": [155, 62], "tag": "Feasibility" },
+
+    { "id": "gateway", "type": "frontend", "label": "Flask API Gateway", "sublabel": "Cooperative Orchestrator", "pos": [30, 430], "size": [140, 62] },
+    { "id": "dossier", "type": "backend", "label": "Final Travel Dossier", "sublabel": "MapLibre GL & PDF Report", "pos": [440, 430], "size": [155, 62], "tag": "Client Export" },
+    { "id": "granite", "type": "cloud", "label": "IBM Granite LLM", "sublabel": "watsonx.ai Synthesis", "pos": [860, 430], "size": [155, 62], "tag": "Granite-4-H" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Grounding Datasets Tier (datasets/ folder)", "wraps": ["data_hotels", "data_transit", "data_attractions", "data_budget"], "pad": 16 },
+    { "kind": "security-group", "label": "4-Agent Cooperative Intelligence Pipeline", "wraps": ["agent4", "agent1", "agent2", "agent3"], "pad": 16 }
+  ],
+  "connections": [
+    { "from": "traveler", "to": "gateway", "label": "submit", "variant": "emphasis", "labelDy": 30 },
+    { "from": "gateway", "to": "agent4", "label": "anchor stay", "variant": "emphasis" },
+
+    { "from": "data_hotels", "to": "agent4", "label": "150k stays", "variant": "dashed", "labelDy": 30 },
+    { "from": "agent4", "to": "agent1", "label": "stay coords", "variant": "emphasis", "labelDy": 55 },
+
+    { "from": "data_transit", "to": "agent1", "label": "routes & fares", "variant": "dashed", "labelDy": 30 },
+    { "from": "agent1", "to": "agent2", "label": "schedule", "variant": "emphasis" },
+
+    { "from": "data_attractions", "to": "agent2", "label": "10k POIs", "variant": "dashed", "labelDy": 30 },
+    { "from": "agent2", "to": "agent3", "label": "costs", "variant": "default" },
+
+    { "from": "data_budget", "to": "agent3", "label": "25k ML trips", "variant": "dashed", "labelDy": 30 },
+    { "from": "agent3", "to": "granite", "label": "verified plan", "variant": "emphasis", "labelDy": 30 },
+
+    { "from": "granite", "to": "dossier", "label": "synthesis", "variant": "emphasis" },
+    { "from": "dossier", "to": "gateway", "label": "return dossier", "variant": "default" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "All 4 Production Datasets",
+      "items": [
+        "Agent 4 Stay: all_india_hotels_150000.csv (150,000 properties across India)",
+        "Agent 1 Transit: 8,989 rail stations + 5,000 transit hubs + 3,000 bus terminals",
+        "Agent 2 Sightseeing: all_india_tourist_attractions_10025.csv (10,025 verified POIs)",
+        "Agent 3 Budget: trip_budget_ml_training_25000.csv + 73 State RTC & bus tariffs"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Stay-First Cooperative Architecture",
+      "items": [
+        "Base Camp hotel is selected first to anchor transit routes and prevent backtracking",
+        "Random Forest Regressor (R² = 90.92%) validates expenses before IBM Granite synthesis"
+      ]
+    }
+  ]
+}

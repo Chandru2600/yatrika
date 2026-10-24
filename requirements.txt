@@ -11,9 +11,7 @@ reportlab==4.2.5
 # ── Environment Variables ────────────────────────────────────────
 python-dotenv==1.0.1
 
-# ── Date / Time ─────────────────────────────────────────────────
-python-dateutil==2.9.0
-
 # ── Production WSGI Server ───────────────────────────────────────
 gunicorn==22.0.0
+
 

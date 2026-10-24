@@ -1,198 +1,774 @@
 {% extends "base.html" %}
-{% block title %}Home — AI Travel Planner{% endblock %}
+{% block title %}Yatrika — the traveler | Intelligent Indian Journeys{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/liquid_glass_carousel.css') }}" />
+<style>
+  .hero-wrapper {
+    background: radial-gradient(circle at 10% 20%, rgba(238, 244, 247, 0.9) 0%, rgba(250, 250, 247, 1) 90%);
+    padding: 60px 0 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  /* ── Hero Search Card: Animated & Floating Micro-Interactions ── */
+  .hero-search-card {
+    position: relative;
+    z-index: 2;
+    background: var(--c-white);
+    border: 1px solid rgba(0, 168, 150, 0.22);
+    border-radius: var(--radius-xl);
+    padding: 24px;
+    margin-top: 32px;
+    box-shadow: 0 12px 35px -5px rgba(11, 31, 51, 0.08), 0 0 20px -2px rgba(0, 168, 150, 0.08);
+    animation: heroCardEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) both,
+               heroCardFloat 5s ease-in-out 0.7s infinite alternate;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.3s ease;
+  }
+  /* Ambient glowing aura layer behind the card */
+  .hero-search-card::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: calc(var(--radius-xl) + 3px);
+    background: linear-gradient(135deg, rgba(0, 168, 150, 0.4), rgba(2, 128, 144, 0.22), rgba(244, 162, 97, 0.35), rgba(0, 168, 150, 0.4));
+    background-size: 300% 300%;
+    z-index: -2;
+    filter: blur(14px);
+    opacity: 0.45;
+    animation: heroAuraShift 8s ease infinite;
+    pointer-events: none;
+    transition: opacity 0.4s ease, filter 0.4s ease;
+  }
+  /* Card inner solid background to isolate from blur */
+  .hero-search-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-xl);
+    background: #ffffff;
+    z-index: -1;
+    pointer-events: none;
+  }
+  /* Interactive hover & typing focus states */
+  .hero-search-card:hover,
+  .hero-search-card:focus-within {
+    animation-play-state: paused;
+    transform: translateY(-4px);
+    border-color: rgba(0, 168, 150, 0.45);
+    box-shadow: 0 22px 48px -6px rgba(11, 31, 51, 0.13), 0 0 32px 0px rgba(0, 168, 150, 0.2);
+  }
+  .hero-search-card:hover::before,
+  .hero-search-card:focus-within::before {
+    opacity: 0.8;
+    filter: blur(18px);
+  }
+  /* Submit button micro-animation */
+  .hero-search-card .btn-turquoise {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.25s ease,
+                background-color 0.2s ease;
+  }
+  .hero-search-card .btn-turquoise i {
+    display: inline-block;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .hero-search-card .btn-turquoise:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 168, 150, 0.4);
+  }
+  .hero-search-card .btn-turquoise:hover i {
+    transform: translateX(5px);
+  }
+  .hero-search-card .btn-turquoise:active {
+    transform: scale(0.96);
+  }
+  /* Popular Hub chips micro-animation */
+  .hero-search-card .chip-selectable {
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+                background-color 0.2s ease,
+                border-color 0.2s ease,
+                box-shadow 0.2s ease,
+                color 0.2s ease;
+  }
+  .hero-search-card .chip-selectable:hover {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 4px 12px rgba(0, 168, 150, 0.14);
+    border-color: var(--c-turquoise);
+  }
+  .hero-search-card .chip-selectable:active {
+    transform: scale(0.95);
+  }
+
+  /* Card Animation Keyframes */
+  @keyframes heroCardEntrance {
+    0% {
+      opacity: 0;
+      transform: translateY(22px) scale(0.98);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  @keyframes heroCardFloat {
+    0% {
+      transform: translateY(0);
+      box-shadow: 0 12px 35px -5px rgba(11, 31, 51, 0.08), 0 0 20px -2px rgba(0, 168, 150, 0.08);
+    }
+    100% {
+      transform: translateY(-5px);
+      box-shadow: 0 18px 44px -6px rgba(11, 31, 51, 0.12), 0 0 28px 0px rgba(0, 168, 150, 0.15);
+    }
+  }
+  @keyframes heroAuraShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .hero-visual-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .hero-img-card {
+    height: 180px;
+    border-radius: var(--radius-lg);
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.25s ease;
+  }
+  .hero-img-card:hover {
+    transform: scale(1.02);
+  }
+  .hero-img-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(11, 31, 51, 0.75) 100%);
+  }
+  .hero-img-label {
+    position: absolute;
+    bottom: 12px;
+    left: 14px;
+    z-index: 2;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .step-icon-circle {
+    width: 54px;
+    height: 54px;
+    border-radius: var(--radius-md);
+    background: var(--c-soft-bg);
+    color: var(--c-turquoise);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+    border: 1px solid var(--c-border);
+  }
+
+  /* ── 3D Hero Split Card ─────────────────────────────────────── */
+  .hero-split-card-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .split-hint-badge {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .btn-split-toggle {
+    background: var(--c-white);
+    border: 1px solid var(--c-border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--c-navy);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s ease;
+  }
+  .btn-split-toggle:hover {
+    background: var(--c-turquoise);
+    border-color: var(--c-turquoise);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+  }
+  .hero-split-scene {
+    position: relative;
+    height: 380px;
+    width: 100%;
+    perspective: 1200px;
+    -webkit-perspective: 1200px;
+    cursor: pointer;
+  }
+  .hero-split-cards {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hero-split-card {
+    position: relative;
+    height: 100%;
+    flex: 1;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hero-split-face {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 16px;
+    box-shadow: 0 12px 36px rgba(11, 31, 51, 0.15);
+    transition: border-radius 0.4s ease, box-shadow 0.4s ease;
+  }
+  .hero-split-face.front {
+    z-index: 2;
+  }
+  .hero-split-face.back {
+    z-index: 1;
+    transform: rotateY(180deg);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 24px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), inset 0 -20px 40px rgba(0,0,0,0.4), 0 16px 36px rgba(0,0,0,0.3);
+  }
+  .hero-split-img {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    width: 300%;
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  #heroCardLeft .hero-split-img { left: 0%; }
+  #heroCardCenter .hero-split-img { left: -100%; }
+  #heroCardRight .hero-split-img { left: -200%; }
+
+  /* Initial seamless merged state */
+  #heroCardLeft .hero-split-face {
+    border-radius: 16px 0 0 16px;
+  }
+  #heroCardCenter .hero-split-face {
+    border-radius: 0;
+  }
+  #heroCardRight .hero-split-face {
+    border-radius: 0 16px 16px 0;
+  }
+
+  /* Split & Flip States */
+  .hero-split-scene.is-split #heroCardLeft {
+    transform: translateX(-18px) rotateY(180deg) rotateZ(3deg);
+  }
+  .hero-split-scene.is-split #heroCardCenter {
+    transform: translateX(0px) rotateY(180deg);
+  }
+  .hero-split-scene.is-split #heroCardRight {
+    transform: translateX(18px) rotateY(180deg) rotateZ(-3deg);
+  }
+  .hero-split-scene.is-split .hero-split-cards {
+    transform: scale(0.96);
+  }
+  .hero-split-scene.is-split .hero-split-face {
+    border-radius: 16px !important;
+  }
+
+  .split-card-noise {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.18;
+    mix-blend-mode: overlay;
+    background-image: url("https://framerusercontent.com/images/6mcf62RlDfRfU61Yg5vb2pefpi4.png?width=256&height=256");
+    background-repeat: repeat;
+  }
+  .hero-split-icon {
+    position: relative;
+    z-index: 10;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: auto;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  .hero-split-tag {
+    position: relative;
+    z-index: 10;
+    display: inline-flex;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+    width: fit-content;
+  }
+  .hero-split-title {
+    position: relative;
+    z-index: 10;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    color: #ffffff;
+  }
+  .hero-split-desc {
+    position: relative;
+    z-index: 10;
+    font-size: 0.76rem;
+    line-height: 1.4;
+    opacity: 0.88;
+    color: #e2e8f0;
+    margin-bottom: 0;
+  }
+
+  /* ── Interactive Text Repel ─────────────────────────────────── */
+  .hero-repel-title {
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
+    line-height: 1.15;
+    font-size: clamp(1.85rem, 3.4vw, 2.75rem);
+    letter-spacing: -0.02em;
+  }
+  .repel-line {
+    display: inline-block;
+    position: relative;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  .repel-word {
+    display: inline-block;
+    white-space: nowrap;
+    position: relative;
+  }
+  .repel-char {
+    display: inline-block;
+    position: relative;
+    will-change: transform;
+    transform-origin: center center;
+    transform: translate3d(0, 0, 0);
+  }
+  .repel-space {
+    display: inline-block;
+    width: 0.28em;
+  }
+  @media (max-width: 768px) {
+    .hero-wrapper {
+      padding: 24px 0 36px;
+    }
+    .hero-lead-desc {
+      font-size: 0.95rem !important;
+      line-height: 1.45;
+      margin-bottom: 14px !important;
+    }
+    .hero-search-card {
+      padding: 18px 16px;
+      border-radius: 18px;
+      margin-top: 14px;
+      animation: heroCardEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .hero-search-card::before {
+      filter: blur(10px);
+      opacity: 0.4;
+      border-radius: 20px;
+    }
+    .hero-search-card::after {
+      border-radius: 18px;
+    }
+    .hero-search-card .row.g-3 {
+      --bs-gutter-y: 0.75rem;
+      --bs-gutter-x: 0.75rem;
+    }
+    .hero-search-card .form-label-modern {
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--c-navy);
+    }
+    .hero-search-card .place-input-box {
+      min-height: 48px;
+      height: 48px;
+      padding: 6px 12px;
+      border-radius: 12px;
+      gap: 8px;
+    }
+    .hero-search-card .place-input-icon {
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      font-size: 0.92rem;
+      border-radius: 8px;
+    }
+    .hero-search-card .place-text-input {
+      font-size: 16px !important;
+    }
+    .hero-search-card .place-indicator-chip .place-chip-badge {
+      font-size: 0.68rem;
+      padding: 2px 6px;
+    }
+    .hero-search-card .btn-turquoise {
+      padding: 12px 20px !important;
+      min-height: 48px;
+      height: 48px;
+      font-size: 0.96rem;
+      font-weight: 700;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    .hero-quick-hubs {
+      margin-top: 12px !important;
+      padding-top: 12px !important;
+      gap: 6px !important;
+      flex-wrap: nowrap !important;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 4px;
+    }
+    .hero-quick-hubs::-webkit-scrollbar {
+      display: none;
+    }
+    .hero-quick-hubs span.extra-small {
+      font-size: 0.76rem !important;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .hero-search-card .chip-selectable {
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      flex-shrink: 0;
+      border-radius: 999px;
+    }
+
+    .hero-repel-title {
+      font-size: clamp(1.75rem, 5.5vw, 2.25rem);
+      line-height: 1.2;
+      margin-bottom: 12px !important;
+      text-wrap: balance;
+    }
+    .repel-line {
+      white-space: normal;
+    }
+
+    /* 3D Hero Split Card: Scaled neatly on mobile */
+    .split-hint-badge {
+      display: none !important;
+    }
+    .hero-split-scene {
+      height: 180px !important;
+      margin-top: 16px !important;
+      border-radius: 16px;
+    }
+    .hero-split-face.back {
+      padding: 12px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    .hero-split-title,
+    .hero-split-desc,
+    .hero-split-tag {
+      display: none !important;
+    }
+    .hero-split-icon {
+      width: 44px !important;
+      height: 44px !important;
+      font-size: 1.35rem !important;
+      margin-bottom: 0 !important;
+      border-radius: 12px !important;
+    }
+    .hero-split-scene.is-split #heroCardLeft {
+      transform: translateX(-6px) rotateY(180deg) rotateZ(1deg);
+    }
+    .hero-split-scene.is-split #heroCardRight {
+      transform: translateX(6px) rotateY(180deg) rotateZ(-1deg);
+    }
+  }
+  @media (max-width: 480px) {
+    .hero-repel-title {
+      font-size: 1.6rem;
+    }
+    .hero-search-card {
+      padding: 16px 14px;
+    }
+    .hero-split-scene {
+      height: 160px !important;
+    }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
+<!-- ── Hero Section (with Interactive Dot-Grid Radar Canvas Background) ── -->
+<section class="hero-wrapper" id="homeHeroWrapper" style="position: relative; overflow: hidden; background: #F8FAFC;">
+  <!-- Quordix Canvas Background: Interactive Radar Grid & Particles -->
+  <canvas id="heroDotGridCanvas" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;"></canvas>
 
-<!-- ── Hero Section ───────────────────────────────────────── -->
-<section class="hero-section">
-  <div class="hero-bg-shapes"></div>
-  <div class="container hero-content">
-    <div class="row align-items-center min-vh-100 pt-5">
-      <div class="col-lg-6 text-white">
-        <div class="ibm-badge mb-4">
-          <img src="{{ url_for('static', filename='images/ibm-logo.svg') }}" alt="IBM" height="18" />
-          <span class="ms-2">Powered by IBM Granite AI</span>
+  <!-- Soft Ambient Slate Glow Blobs -->
+  <div style="position: absolute; top: -20%; left: -10%; width: 50%; height: 50%; background: rgba(203,213,225,0.45); filter: blur(120px); border-radius: 9999px; pointer-events: none; z-index: 0;"></div>
+  <div style="position: absolute; bottom: -20%; right: -10%; width: 40%; height: 40%; background: rgba(203,213,225,0.45); filter: blur(120px); border-radius: 9999px; pointer-events: none; z-index: 0;"></div>
+
+  <!-- Giant Subtle Code Brackets -->
+  <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; user-select: none; opacity: 0.025; z-index: 0;">
+    <span style="font-size: 35vw; font-weight: 900; line-height: 1; color: #000;">&lt;</span>
+    <span style="width: 25vw;"></span>
+    <span style="font-size: 35vw; font-weight: 900; line-height: 1; color: #000;">&gt;</span>
+  </div>
+
+  <div class="container" style="position: relative; z-index: 1;">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <h1 class="display-5 fw-extrabold text-navy mb-3 hero-repel-title" id="heroRepelTitle">
+          <div class="repel-line" data-text-repel>Explore • Discover • Belong</div><br>
+          <div class="repel-line text-turquoise" data-text-repel>Travel a Deeper Story.</div>
+        </h1>
+
+        <!-- Quick Launch Search Box -->
+        <div class="hero-search-card">
+          <form action="{{ url_for('planner.new_trip') }}" method="GET">
+            <div class="row g-3 align-items-end">
+              <div class="col-md-5">
+                <label class="form-label-modern mb-1"><i class="bi bi-geo-alt me-1 text-muted"></i>From (Origin)</label>
+                <div class="place-autocomplete-container" data-type="origin">
+                  <div class="place-input-box origin-box">
+                    <div class="place-input-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                    <div class="place-input-content">
+                      <input type="text" name="source" class="place-text-input" placeholder="e.g. Bengaluru, Mumbai" value="Bengaluru" autocomplete="off" />
+                    </div>
+                    <button type="button" class="place-clear-btn d-none" title="Clear city"><i class="bi bi-x-lg"></i></button>
+                    <div class="place-indicator-chip d-none"><span class="place-chip-badge"></span></div>
+                  </div>
+                  <div class="place-rec-dropdown d-none"></div>
+                </div>
+              </div>
+              <div class="col-md-5">
+                <label class="form-label-modern mb-1"><i class="bi bi-pin-map me-1 text-turquoise"></i>To (Destination)</label>
+                <div class="place-autocomplete-container" data-type="destination">
+                  <div class="place-input-box">
+                    <div class="place-input-icon"><i class="bi bi-pin-map-fill"></i></div>
+                    <div class="place-input-content">
+                      <input type="text" name="destination" class="place-text-input" placeholder="e.g. Coorg, Goa, Manali" value="Coorg" autocomplete="off" required />
+                    </div>
+                    <button type="button" class="place-clear-btn d-none" title="Clear destination"><i class="bi bi-x-lg"></i></button>
+                    <div class="place-indicator-chip d-none"><span class="place-chip-badge"></span></div>
+                  </div>
+                  <div class="place-rec-dropdown d-none"></div>
+                </div>
+              </div>
+              <div class="col-md-2">
+                <button type="submit" class="btn-turquoise w-100 py-3 d-inline-flex align-items-center justify-content-center" title="Start AI Planning" aria-label="Start AI Planning">
+                  <span class="d-md-none me-2 fw-bold">Start AI Journey</span>
+                  <i class="bi bi-arrow-right fs-5"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- 1-Click Quick Destinations -->
+            <div class="hero-quick-hubs mt-3 pt-3 border-top d-flex flex-wrap align-items-center gap-2">
+              <span class="extra-small fw-bold text-muted text-uppercase" style="font-size: 0.72rem;">Popular Hubs:</span>
+              <a href="{{ url_for('planner.new_trip', destination='Coorg', source='Bengaluru') }}" class="chip-selectable">🌿 Coorg</a>
+              <a href="{{ url_for('planner.new_trip', destination='Chikmagalur', source='Bengaluru') }}" class="chip-selectable">☕ Chikmagalur</a>
+              <a href="{{ url_for('planner.new_trip', destination='Samse', source='Hubballi') }}" class="chip-selectable">🍃 Samse</a>
+              <a href="{{ url_for('planner.new_trip', destination='Goa', source='Mumbai') }}" class="chip-selectable">🏖️ Goa</a>
+              <a href="{{ url_for('planner.new_trip', destination='Manali', source='Delhi') }}" class="chip-selectable">🏔️ Manali</a>
+              <a href="{{ url_for('planner.new_trip', destination='Hampi', source='Bengaluru') }}" class="chip-selectable">🛕 Hampi</a>
+            </div>
+          </form>
         </div>
-        <h1 class="hero-title">Plan Your Dream<br><span class="text-gradient">Trip with AI</span></h1>
-        <p class="hero-subtitle mt-3">
-          Get personalized travel itineraries, real-time weather insights, hotel recommendations,
-          and complete budget planning — all generated by IBM Granite through watsonx.ai.
-        </p>
-        <div class="hero-cta d-flex flex-wrap gap-3 mt-4">
-          {% if user_id %}
-          <a href="{{ url_for('planner.wizard') }}" class="btn btn-ibm btn-lg px-5" style="background:linear-gradient(135deg,#0062FF,#6929C4);border:none">
-            <i class="bi bi-magic me-2"></i>Launch Smart Wizard
-          </a>
-          {% else %}
-          <a href="{{ url_for('auth.register') }}" class="btn btn-ibm btn-lg px-5">
-            <i class="bi bi-rocket-takeoff me-2"></i>Start Planning Free
-          </a>
-          {% endif %}
-          <a href="{{ url_for('planner.destinations') }}" class="btn btn-outline-light btn-lg px-4">
-            <i class="bi bi-compass me-2"></i>Explore Destinations
-          </a>
-        </div>
-        <div class="hero-stats d-flex gap-4 mt-5">
-          <div class="stat-item">
-            <div class="stat-number">10</div>
-            <div class="stat-label">Destinations</div>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat-item">
-            <div class="stat-number">10</div>
-            <div class="stat-label">Wizard Steps</div>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat-item">
-            <div class="stat-number">100%</div>
-            <div class="stat-label">Interactive</div>
-          </div>
-        </div>
+
       </div>
-      <div class="col-lg-6 d-none d-lg-flex justify-content-center">
-        <div class="hero-card-stack">
-          <div class="hero-float-card card-1">
-            <div class="float-card-icon">🌤</div>
-            <div class="float-card-text">
-              <div class="fw-semibold">Paris, France</div>
-              <div class="small text-muted">22°C · Partly Cloudy</div>
+
+      <!-- Right: Interactive 3D Split Card (replaces 4 static images) -->
+      <div class="col-lg-6">
+        <div class="hero-split-card-wrapper" id="heroSplitCardWrapper">
+          <div class="split-hint-badge d-none d-md-flex">
+            <span class="badge-tag badge-tag-turquoise">
+              <i class="bi bi-sparkles me-1"></i> Interactive 3D Journey
+            </span>
+            <button type="button" class="btn-split-toggle" id="splitToggleBtn" title="Click to split & flip">
+              <i class="bi bi-arrow-repeat"></i> <span id="toggleBtnText">Flip Cards</span>
+            </button>
+          </div>
+
+          <!-- 3D Card Scene -->
+          <div class="hero-split-scene" id="heroSplitScene" title="Hover or click to split and flip">
+            <div class="hero-split-cards" id="heroSplitCards">
+              <!-- Card 1: Left / Base Camp Anchor -->
+              <div class="hero-split-card" id="heroCardLeft">
+                <div class="hero-split-face front" id="heroFrontLeft">
+                  <div class="hero-split-img" style="background-image: url('https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=1600&q=85');"></div>
+                </div>
+                <div class="hero-split-face back" style="background-color: #07222B; color: #E6FBF5;">
+                  <div class="split-card-noise"></div>
+                  <div class="hero-split-icon" style="background: rgba(45, 212, 191, 0.15); color: #2dd4bf;">
+                    <i class="bi bi-houses-fill"></i>
+                  </div>
+                  <span class="hero-split-tag" style="background: rgba(45, 212, 191, 0.2); color: #2dd4bf;">Stay First</span>
+                  <h4 class="hero-split-title">Base Camp Anchor</h4>
+                  <p class="hero-split-desc">150,000+ Indian stays anchored first to eliminate backtracking.</p>
+                </div>
+              </div>
+
+              <!-- Card 2: Center / Multimodal Transit -->
+              <div class="hero-split-card" id="heroCardCenter">
+                <div class="hero-split-face front" id="heroFrontCenter">
+                  <div class="hero-split-img" style="background-image: url('https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=1600&q=85');"></div>
+                </div>
+                <div class="hero-split-face back" style="background-color: #0A1E38; color: #E8F4FD;">
+                  <div class="split-card-noise"></div>
+                  <div class="hero-split-icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">
+                    <i class="bi bi-signpost-2-fill"></i>
+                  </div>
+                  <span class="hero-split-tag" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;">Door-to-Door</span>
+                  <h4 class="hero-split-title">Transit Network</h4>
+                  <p class="hero-split-desc">8,989 rail stations &amp; 3,000 bus routes to your stay gates.</p>
+                </div>
+              </div>
+
+              <!-- Card 3: Right / ML & AI Intelligence -->
+              <div class="hero-split-card" id="heroCardRight">
+                <div class="hero-split-face front" id="heroFrontRight">
+                  <div class="hero-split-img" style="background-image: url('https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=1600&q=85');"></div>
+                </div>
+                <div class="hero-split-face back" style="background-color: #1A1333; color: #F3EEFF;">
+                  <div class="split-card-noise"></div>
+                  <div class="hero-split-icon" style="background: rgba(167, 139, 250, 0.15); color: #a78bfa;">
+                    <i class="bi bi-cpu-fill"></i>
+                  </div>
+                  <span class="hero-split-tag" style="background: rgba(167, 139, 250, 0.2); color: #a78bfa;">watsonx AI</span>
+                  <h4 class="hero-split-title">90.9% ML Feasibility</h4>
+                  <p class="hero-split-desc">RF Regressor cost checks and IBM Granite cultural itineraries.</p>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="hero-float-card card-2">
-            <div class="float-card-icon">🏨</div>
-            <div class="float-card-text">
-              <div class="fw-semibold">Hotel Lumière</div>
-              <div class="small text-muted">⭐ 4.8 · $85/night</div>
-            </div>
-          </div>
-          <div class="hero-float-card card-3">
-            <div class="float-card-icon">🗺</div>
-            <div class="float-card-text">
-              <div class="fw-semibold">Day 1 Itinerary</div>
-              <div class="small text-muted">Eiffel Tower · Louvre</div>
-            </div>
-          </div>
-          <div class="hero-globe">🌍</div>
         </div>
       </div>
     </div>
   </div>
-  <div class="hero-wave">
-    <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="var(--bg-primary)"/>
-    </svg>
-  </div>
 </section>
 
-<!-- ── Features Section ───────────────────────────────────── -->
-<section id="features" class="section-padding">
-  <div class="container">
-    <div class="section-header text-center mb-5">
-      <span class="section-tag">What We Offer</span>
-      <h2 class="section-title">Everything You Need<br>for Perfect Travel</h2>
-      <p class="section-sub text-muted">Powered by IBM Granite AI for intelligent, personalized recommendations</p>
+<!-- ── 3-Step Architectural Advantage (Dark Theme with Neon Gradient Glow Cards) ── -->
+<section class="py-5" style="background: #081022; color: #ffffff; position: relative; overflow: hidden;">
+  <!-- Subtle ambient radial aura in background -->
+  <div style="position: absolute; top: 20%; left: 50%; transform: translateX(-50%); width: 680px; height: 320px; background: radial-gradient(ellipse, rgba(0, 168, 150, 0.14) 0%, rgba(99, 102, 241, 0.06) 50%, transparent 70%); pointer-events: none; z-index: 0;"></div>
+
+  <div class="container py-4" style="position: relative; z-index: 1;">
+    <div class="text-center max-w-700 mx-auto mb-5">
+      <span class="badge-tag badge-tag-turquoise mb-2">
+        <i class="bi bi-cpu me-1"></i>Stay-First Architecture
+      </span>
+      <h2 class="text-white fw-extrabold mb-2">Travel Planning Built Around Your Stay</h2>
+      <p class="small text-white-50 d-none d-md-block">Most planners place your hotel last. We anchor your entire journey to your Base Camp stay with mathematical precision.</p>
     </div>
 
     <div class="row g-4">
-      {% set features = [
-        ("bi-cpu", "AI Itinerary Generator", "IBM Granite creates detailed day-wise itineraries with morning, afternoon, and evening plans tailored to your style.", "#0062FF"),
-        ("bi-cloud-sun", "Real-time Weather", "Live weather data from OpenWeatherMap with 7-day forecasts and travel-specific alerts.", "#0043CE"),
-        ("bi-map", "Interactive Maps", "MapLibre-powered maps showing attractions, hotels, restaurants, and transport hubs.", "#6929C4"),
-        ("bi-wallet2", "Budget Planner", "Automatic cost breakdown across accommodation, food, transport, and activities.", "#009D9A"),
-        ("bi-building", "Hotel Finder", "AI-curated budget, mid-range, and luxury hotel picks with pricing and amenities.", "#198038"),
-        ("bi-file-earmark-pdf", "PDF Export", "Download your complete itinerary as a professional PDF with all details.", "#B28600"),
-        ("bi-bookmark-star", "Saved Trips", "Save, edit, and manage multiple trip plans from your personal dashboard.", "#FA4D56"),
-        ("bi-person-badge", "Local Guide", "Food, customs, phrases, safety tips, and hidden gems — all AI generated.", "#FF832B"),
-      ] %}
-      {% for icon, title, desc, color in features %}
-      <div class="col-md-6 col-lg-3">
-        <div class="feature-card h-100">
-          <div class="feature-icon" style="background: {{ color }}22; color: {{ color }}">
-            <i class="bi {{ icon }}"></i>
-          </div>
-          <h5 class="feature-title mt-3">{{ title }}</h5>
-          <p class="feature-desc text-muted small mb-0">{{ desc }}</p>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-
-<!-- ── Smart Wizard Showcase ─────────────────────────────────────── -->
-<section class="section-padding bg-surface">
-  <div class="container">
-    <div class="section-header text-center mb-5">
-      <span class="section-tag">Smart Travel Wizard</span>
-      <h2 class="section-title">10-Step Interactive<br>Planning Experience</h2>
-      <p class="section-sub text-muted">From destination selection to full trip overview — all in one seamless wizard.</p>
-    </div>
-    <div class="row g-4 justify-content-center">
-      {% for step, icon, title, desc in [
-        ("01", "bi-geo-alt", "Journey Details", "Set source, destination, dates, travelers, transport mode, and travel style."),
-        ("02", "bi-binoculars", "Destination Explorer", "Browse richly detailed attraction cards with ratings, fees, and categories."),
-        ("03", "bi-check2-square", "Select Attractions", "Pick your favorite places. Live sidebar tracks time, distance, and budget."),
-        ("04", "bi-signpost-split", "Route Planner", "Visualize your route with travel time, distance, road type, and cost estimates."),
-        ("05", "bi-clock", "Smart Timeline", "AI-generated hour-by-hour schedule for each day of your trip."),
-        ("06", "bi-card-text", "Attraction Details", "Deep-dive drawer with gallery, tips, reviews, and nearby restaurants."),
-        ("07", "bi-map", "Interactive Map", "Full-page map with pins, route lines, nearby hotels, fuel, hospitals."),
-        ("08", "bi-calendar3", "Day Planner", "Drag-and-drop activities across Morning, Afternoon, Evening, and Night."),
-        ("09", "bi-bar-chart", "Travel Analytics", "Animated stats: distance, costs, time distribution with live charts."),
-        ("10", "bi-flag", "Trip Overview", "Premium summary with hotels, expense breakdown, packing list, and emergency contacts."),
-      ] %}
-      <div class="col-md-6 col-lg-3">
-        <div class="step-card text-center">
-          <div class="step-number" style="background:linear-gradient(135deg,#0062FF,#6929C4);color:#fff">{{ step }}</div>
-          <div class="step-icon"><i class="bi {{ icon }}"></i></div>
-          <h5 class="mt-3 fw-semibold">{{ title }}</h5>
-          <p class="text-muted small">{{ desc }}</p>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-    <div class="text-center mt-5">
-      <a href="{{ url_for('planner.wizard') if user_id else url_for('auth.register') }}" class="btn btn-ibm btn-lg px-5" style="background:linear-gradient(135deg,#0062FF,#6929C4);border:none">
-        <i class="bi bi-magic me-2"></i>Try the Smart Wizard Now
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- ── IBM Tech Section ────────────────────────────────────── -->
-<section class="section-padding">
-  <div class="container">
-    <div class="ibm-tech-banner">
-      <div class="row align-items-center g-4">
-        <div class="col-lg-6">
-          <h2 class="fw-bold">Built on IBM Technology</h2>
-          <p class="text-muted mt-2">
-            This project uses <strong>IBM Granite</strong> — IBM's enterprise-grade foundation model —
-            accessed through <strong>IBM watsonx.ai</strong> on <strong>IBM Cloud Lite</strong>.
-          </p>
-          <div class="tech-badges d-flex flex-wrap gap-2 mt-3">
-            <span class="tech-badge"><i class="bi bi-cpu me-1"></i>IBM Granite 13B</span>
-            <span class="tech-badge"><i class="bi bi-cloud me-1"></i>IBM watsonx.ai</span>
-            <span class="tech-badge"><i class="bi bi-shield-check me-1"></i>IBM Cloud Lite</span>
-          </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="code-preview">
-            <div class="code-header">
-              <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
-              <span class="ms-2 text-muted small">granite_service.py</span>
+      <!-- Step 1: Stay Anchor (Cyan-Emerald Neon Glow) -->
+      <div class="col-md-4">
+        <div class="neon-gradient-card neon-glow-cyan h-100">
+          <div class="neon-card-border-wrap">
+            <div class="neon-card-inner d-flex flex-column justify-content-between">
+              <div>
+                <div class="step-icon-circle" style="background: rgba(34, 211, 238, 0.15); color: #22d3ee; border: 1px solid rgba(34, 211, 238, 0.3);">
+                  <i class="bi bi-houses-fill"></i>
+                </div>
+                <span class="text-turquoise fw-bold extra-small text-uppercase tracking-wider">Step 1 · Stay Anchor</span>
+                <h4 class="mt-2 mb-2 text-white fw-bold">Base Camp Priority</h4>
+                <p class="small text-white-50 mb-0 d-none d-md-block">
+                  We scan 150,000+ verified Indian accommodations and homestays. Your chosen stay becomes the door-to-door anchor.
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+                <span class="extra-small text-turquoise fw-bold">Agent 1: Stay Specialist</span>
+                <i class="bi bi-check-circle-fill text-turquoise"></i>
+              </div>
             </div>
-            <pre class="code-body"><code><span class="c"># IBM Granite via watsonx.ai</span>
-<span class="k">def</span> <span class="fn">call_granite</span>(prompt):
-    token = <span class="fn">get_ibm_iam_token</span>()
-    payload = {
-        <span class="s">"model_id"</span>: <span class="s">"ibm/granite-13b-instruct-v2"</span>,
-        <span class="s">"input"</span>: prompt,
-        <span class="s">"parameters"</span>: {<span class="s">"max_new_tokens"</span>: <span class="n">2000</span>}
-    }
-    response = requests.<span class="fn">post</span>(
-        watsonx_url, headers=auth_headers, json=payload
-    )
-    <span class="k">return</span> response[<span class="s">"results"</span>][<span class="n">0</span>][<span class="s">"generated_text"</span>]</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Multimodal Transit (Sunset-Coral Neon Glow) -->
+      <div class="col-md-4">
+        <div class="neon-gradient-card neon-glow-coral h-100">
+          <div class="neon-card-border-wrap">
+            <div class="neon-card-inner d-flex flex-column justify-content-between">
+              <div>
+                <div class="step-icon-circle" style="background: rgba(255, 107, 90, 0.15); color: #FF6B5A; border: 1px solid rgba(255, 107, 90, 0.3);">
+                  <i class="bi bi-signpost-2-fill"></i>
+                </div>
+                <span class="text-coral fw-bold extra-small text-uppercase tracking-wider">Step 2 · Multimodal Transit</span>
+                <h4 class="mt-2 mb-2 text-white fw-bold">Door-to-Door Routing</h4>
+                <p class="small text-white-50 mb-0 d-none d-md-block">
+                  Authentic IRCTC train schedules, KSRTC bus routes, and driving fuel &amp; tolls calculated directly to the stay entrance.
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+                <span class="extra-small text-coral fw-bold">Agent 2: Transit Router</span>
+                <i class="bi bi-check-circle-fill text-coral"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Cooperative ML (Cyber-Violet Neon Glow) -->
+      <div class="col-md-4">
+        <div class="neon-gradient-card neon-glow-violet h-100">
+          <div class="neon-card-border-wrap">
+            <div class="neon-card-inner d-flex flex-column justify-content-between">
+              <div>
+                <div class="step-icon-circle" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);">
+                  <i class="bi bi-cpu-fill"></i>
+                </div>
+                <span style="color: #c084fc;" class="fw-bold extra-small text-uppercase tracking-wider">Step 3 · Cooperative ML</span>
+                <h4 class="mt-2 mb-2 text-white fw-bold">Geometric Daily Loops</h4>
+                <p class="small text-white-50 mb-0 d-none d-md-block">
+                  Attractions loop cleanly from your stay and return at night, backed by our 90.9% accurate ₹ INR budget prediction model.
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+                <span class="extra-small fw-bold" style="color: #c084fc;">Agent 3: ML Budget Predictor</span>
+                <i class="bi bi-check-circle-fill" style="color: #c084fc;"></i>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -200,15 +776,434 @@
   </div>
 </section>
 
-<!-- ── CTA Section ─────────────────────────────────────────── -->
-<section class="section-padding cta-section text-white text-center">
-  <div class="container">
-    <h2 class="fw-bold mb-3">Ready to Plan Your Next Adventure?</h2>
-    <p class="lead mb-4 opacity-75">Let IBM Granite AI build your perfect itinerary in seconds.</p>
-    <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg px-5">
-      <i class="bi bi-rocket-takeoff me-2"></i>Start for Free
-    </a>
+<!-- ── Featured Indian Destinations ───────────────────────────── -->
+<section class="py-5" style="background: var(--c-soft-bg);">
+  <div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-2">
+      <div>
+        <span class="badge-tag badge-tag-turquoise mb-2">Top Hand-Picked Hubs</span>
+        <h2 class="text-navy fw-extrabold mb-0">Trending Indian Destinations</h2>
+      </div>
+    </div>
+
+    <!-- Liquid Glass WebGL Carousel Mount -->
+    <div id="liquidGlassCarousel" class="liquid-glass-carousel-container" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Trending Indian Destinations Liquid Glass Carousel">
+      
+      <!-- Top Dynamic HUD: Title, Location & Plan CTA -->
+      <div class="lgc-hud-top">
+        <h3 id="lgcActiveTitle" class="lgc-active-title">Coorg</h3>
+        <p id="lgcActiveSubtitle" class="lgc-active-subtitle">Karnataka · Coffee &amp; Waterfalls · From ₹8,500 / person</p>
+        <a id="lgcActivePlanBtn" href="{{ url_for('planner.new_trip', destination='Coorg', source='Bengaluru') }}" class="lgc-plan-cta-btn">
+          <i class="bi bi-compass me-1"></i>Plan Trip to Coorg →
+        </a>
+      </div>
+
+      <!-- Close Focus Button -->
+      <button id="lgcCloseFocusBtn" type="button" class="lgc-close-btn" aria-label="Close focused destination">
+        <i class="bi bi-x-lg"></i>
+        <span>Close</span>
+      </button>
+
+      <!-- WebGL Canvas Mount -->
+      <div id="lgcMount" class="lgc-mount"></div>
+
+      <!-- Floating Follower Cursor Badge ("View") -->
+      <div id="lgcCursor" class="lgc-cursor">
+        <span id="lgcCursorText">View</span>
+      </div>
+
+      <!-- Bottom Dynamic HUD: Controls without numbers -->
+      <div class="lgc-hud-bottom">
+        <div class="lgc-nav-controls">
+          <button id="lgcPrevBtn" type="button" class="lgc-nav-btn" aria-label="Previous destination">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button id="lgcNextBtn" type="button" class="lgc-nav-btn" aria-label="Next destination">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
+<!-- ── Call to Action Banner (With Neural Flow Field Background) ───────────────── -->
+<section class="py-5" style="background: var(--c-navy); color: #ffffff; position: relative; overflow: hidden;" id="homeCtaSection">
+  <!-- Neural Flow Field Canvas Mount -->
+  <div id="ctaFlowFieldMount" style="position: absolute; inset: 0; pointer-events: none; z-index: 1;"></div>
+  
+  <div class="container py-4 text-center" style="position: relative; z-index: 2;">
+    <div class="max-w-700 mx-auto">
+      <span class="badge-tag badge-tag-turquoise mb-3">Instant Itinerary</span>
+      <h2 class="display-6 fw-extrabold text-white mb-3">Ready to Plan Your Next Indian Adventure?</h2>
+      <p class="lead small opacity-75 mb-4">
+        Generate complete day-by-day sightseeing schedules, verified Base Camp homestays, and multimodal transit in seconds.
+      </p>
+      <div class="d-flex flex-wrap justify-content-center gap-3">
+        <a href="{{ url_for('planner.new_trip') }}" class="btn-turquoise px-4 py-3">
+          <i class="bi bi-sparkles me-1"></i>Launch AI Travel Planner
+        </a>
+        <a href="{{ url_for('planner.wizard') }}" class="btn-outline-navy text-white border-light px-4 py-3">
+          <i class="bi bi-list-check me-1"></i>Try Step-by-Step Planner
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  const scene = document.getElementById('heroSplitScene');
+  const toggleBtn = document.getElementById('splitToggleBtn');
+  const toggleText = document.getElementById('toggleBtnText');
+  if (!scene) return;
+
+  let isFlipped = false;
+  let isHovered = false;
+
+  function setSplit(state) {
+    if (state) {
+      scene.classList.add('is-split');
+      if (toggleText) toggleText.textContent = 'View Photo';
+    } else {
+      scene.classList.remove('is-split');
+      if (toggleText) toggleText.textContent = 'Flip Cards';
+    }
+  }
+
+  // Click toggle
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      isFlipped = !isFlipped;
+      setSplit(isFlipped);
+    });
+  }
+
+  // Hover on card scene
+  scene.addEventListener('mouseenter', () => {
+    isHovered = true;
+    setSplit(true);
+  });
+  scene.addEventListener('mouseleave', () => {
+    isHovered = false;
+    if (!isFlipped && window.scrollY < 120) {
+      setSplit(false);
+    }
+  });
+
+  // Click card scene to toggle
+  scene.addEventListener('click', () => {
+    isFlipped = !isFlipped;
+    setSplit(isFlipped);
+  });
+
+  // Responsive scroll sync: When user scrolls down past 100px, split cards (desktop only)
+  window.addEventListener('scroll', () => {
+    if (window.innerWidth <= 768) return;
+    if (isHovered) return;
+    if (window.scrollY > 100) {
+      setSplit(true);
+    } else if (!isFlipped) {
+      setSplit(false);
+    }
+  }, { passive: true });
+
+  /* ── Interactive Text Repel Engine ─────────────────────────── */
+  (function initTextRepel() {
+    const repelContainers = document.querySelectorAll('[data-text-repel]');
+    if (!repelContainers.length) return;
+
+    const letters = [];
+    const radius = 120;
+    const strength = 45;
+    const stiffness = 180;
+    const damping = 14;
+    const mass = 0.4;
+    const mode = 'repel';
+
+    let mouseX = -9999;
+    let mouseY = -9999;
+    let isMouseInside = false;
+    let rafId = null;
+
+    repelContainers.forEach(container => {
+      const text = container.textContent.trim();
+      container.setAttribute('aria-label', text);
+      container.innerHTML = '';
+
+      const tokens = text.split(/(\s+)/);
+      tokens.forEach(token => {
+        if (!token) return;
+        if (/^\s+$/.test(token)) {
+          const spaceSpan = document.createElement('span');
+          spaceSpan.className = 'repel-space';
+          spaceSpan.innerHTML = '&nbsp;';
+          container.appendChild(spaceSpan);
+        } else {
+          const wordSpan = document.createElement('span');
+          wordSpan.className = 'repel-word';
+
+          for (let i = 0; i < token.length; i++) {
+            const char = token[i];
+            const charSpan = document.createElement('span');
+            charSpan.className = 'repel-char';
+            charSpan.setAttribute('aria-hidden', 'true');
+            charSpan.textContent = char;
+            wordSpan.appendChild(charSpan);
+
+            letters.push({
+              el: charSpan,
+              centerX: 0,
+              centerY: 0,
+              x: 0,
+              y: 0,
+              vx: 0,
+              vy: 0,
+              targetX: 0,
+              targetY: 0
+            });
+          }
+          container.appendChild(wordSpan);
+        }
+      });
+    });
+
+    function measureOrigins() {
+      letters.forEach(item => {
+        const rect = item.el.getBoundingClientRect();
+        item.centerX = rect.left + window.scrollX + rect.width / 2;
+        item.centerY = rect.top + window.scrollY + rect.height / 2;
+      });
+    }
+
+    measureOrigins();
+    window.addEventListener('resize', measureOrigins);
+    window.addEventListener('scroll', measureOrigins, { passive: true });
+
+    function tick() {
+      let isMoving = false;
+      const dt = 0.016;
+
+      for (let i = 0; i < letters.length; i++) {
+        const item = letters[i];
+
+        if (isMouseInside) {
+          const dx = item.centerX - mouseX;
+          const dy = item.centerY - mouseY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < radius && dist > 0) {
+            const force = Math.pow(1 - dist / radius, 2) * strength;
+            const angle = Math.atan2(dy, dx);
+            const dir = mode === 'attract' ? -1 : 1;
+            item.targetX = Math.cos(angle) * force * dir;
+            item.targetY = Math.sin(angle) * force * dir;
+          } else {
+            item.targetX = 0;
+            item.targetY = 0;
+          }
+        } else {
+          item.targetX = 0;
+          item.targetY = 0;
+        }
+
+        const forceX = -stiffness * (item.x - item.targetX) - damping * item.vx;
+        const forceY = -stiffness * (item.y - item.targetY) - damping * item.vy;
+
+        item.vx += (forceX / mass) * dt;
+        item.vy += (forceY / mass) * dt;
+        item.x += item.vx * dt;
+        item.y += item.vy * dt;
+
+        if (Math.abs(item.x) > 0.05 || Math.abs(item.y) > 0.05 || Math.abs(item.vx) > 0.05 || Math.abs(item.vy) > 0.05) {
+          isMoving = true;
+        }
+
+        const rotate = (item.x * 0.3).toFixed(2);
+        item.el.style.transform = `translate3d(${item.x.toFixed(2)}px, ${item.y.toFixed(2)}px, 0) rotate(${rotate}deg)`;
+      }
+
+      if (isMoving || isMouseInside) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        rafId = null;
+      }
+    }
+
+    function onMouseMove(e) {
+      mouseX = e.pageX;
+      mouseY = e.pageY;
+      isMouseInside = true;
+      if (!rafId) {
+        rafId = requestAnimationFrame(tick);
+      }
+    }
+
+    function onMouseLeave() {
+      isMouseInside = false;
+      if (!rafId) {
+        rafId = requestAnimationFrame(tick);
+      }
+    }
+
+    const titleEl = document.getElementById('heroRepelTitle');
+    if (titleEl) {
+      titleEl.addEventListener('mousemove', onMouseMove);
+      titleEl.addEventListener('mouseleave', onMouseLeave);
+      const heroWrapper = document.querySelector('.hero-wrapper');
+      if (heroWrapper) {
+        heroWrapper.addEventListener('mousemove', onMouseMove);
+        heroWrapper.addEventListener('mouseleave', onMouseLeave);
+      }
+    }
+  })();
+})();
+</script>
+
+<!-- ── CDN Libraries: Three.js & GSAP ────────────────────────── -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<!-- 52 Curated Indian Destinations Dataset -->
+<script src="{{ url_for('static', filename='js/indian_destinations_50.js') }}"></script>
+<!-- Liquid Glass WebGL Carousel Engine -->
+<script src="{{ url_for('static', filename='js/liquid_glass_carousel.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const container = document.getElementById('liquidGlassCarousel');
+  if (!container || !window.createLiquidGlassCarousel) return;
+
+  const destinations = (window.INDIAN_DESTINATIONS_50 && window.INDIAN_DESTINATIONS_50.length > 0)
+    ? window.INDIAN_DESTINATIONS_50
+    : [
+        {
+          title: "Coorg",
+          subtitle: "Karnataka · Coffee & Waterfalls",
+          price: "From ₹8,500 / person",
+          rating: "⭐ 4.8",
+          src: "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=900&h=1200&q=85&auto=format&fit=crop",
+          aspect: 0.75,
+          planUrl: "{{ url_for('planner.new_trip', destination='Coorg', source='Bengaluru') }}"
+        },
+        {
+          title: "Srinagar & Dal Lake",
+          subtitle: "Jammu & Kashmir · Shikara Rides & Snow Peaks",
+          price: "From ₹14,800 / person",
+          rating: "⭐ 4.9",
+          src: "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=900&h=1200&q=85&auto=format&fit=crop",
+          aspect: 0.75,
+          planUrl: "{{ url_for('planner.new_trip', destination='Srinagar', source='Delhi') }}"
+        },
+        {
+          title: "Agra (Taj Mahal)",
+          subtitle: "Uttar Pradesh · Wonder of the World",
+          price: "From ₹5,400 / person",
+          rating: "⭐ 4.9",
+          src: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=900&h=1200&q=85&auto=format&fit=crop",
+          aspect: 0.75,
+          planUrl: "{{ url_for('planner.new_trip', destination='Agra', source='Delhi') }}"
+        },
+        {
+          title: "Jaipur",
+          subtitle: "Rajasthan · The Pink City & Hawa Mahal",
+          price: "From ₹8,400 / person",
+          rating: "⭐ 4.8",
+          src: "https://images.unsplash.com/photo-1599661046289-e31897846e41?w=900&h=1200&q=85&auto=format&fit=crop",
+          aspect: 0.75,
+          planUrl: "{{ url_for('planner.new_trip', destination='Jaipur', source='Delhi') }}"
+        },
+        {
+          title: "Chikmagalur",
+          subtitle: "Karnataka · Mountain Peaks & Estates",
+          price: "From ₹7,200 / person",
+          rating: "⭐ 4.7",
+          src: "https://images.unsplash.com/photo-1588714477688-cf28a50e94f7?w=900&h=1200&q=85&auto=format&fit=crop",
+          aspect: 0.75,
+          planUrl: "{{ url_for('planner.new_trip', destination='Chikmagalur', source='Bengaluru') }}"
+        },
+        {
+          title: "Hampi",
+          subtitle: "Karnataka · UNESCO World Heritage",
+          price: "From ₹6,500 / person",
+          rating: "⭐ 4.9",
+          src: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?w=900&h=1200&q=85&auto=format&fit=crop",
+          aspect: 0.75,
+          planUrl: "{{ url_for('planner.new_trip', destination='Hampi', source='Bengaluru') }}"
+        },
+        {
+          title: "South Goa",
+          subtitle: "Goa · Coastal Sunsets & Forts",
+          price: "From ₹9,800 / person",
+          rating: "⭐ 4.8",
+          src: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=900&h=1200&q=85&auto=format&fit=crop",
+          aspect: 0.75,
+          planUrl: "{{ url_for('planner.new_trip', destination='Goa', source='Mumbai') }}"
+        }
+      ];
+
+  window.liquidGlassCarouselInstance = window.createLiquidGlassCarousel(container, {
+    items: destinations,
+    panelHeight: 460,
+    gap: 20,
+    background: "#EEF4F7",
+    entry: true,
+    autoScroll: true,
+    autoScrollSpeed: 0.38
+  });
+});
+</script>
+<!-- Neural Flow Field Background JS Engine -->
+<script src="{{ url_for('static', filename='js/flow_field_background.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const ctaMount = document.getElementById("ctaFlowFieldMount");
+  if (ctaMount && window.NeuralBackground) {
+    window.NeuralBackground.mount(ctaMount, {
+      color: "#00A896", // Vibrant turquoise
+      trailOpacity: 0.16,
+      particleCount: 500,
+      speed: 1.0,
+      zIndex: 1
+    });
+  }
+});
+</script>
+<!-- Interactive Dot Grid Radar Canvas Background JS Engine -->
+<script src="{{ url_for('static', filename='js/dot_grid_radar.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const heroCanvas = document.getElementById("heroDotGridCanvas");
+  const heroWrapper = document.getElementById("homeHeroWrapper");
+  if (heroCanvas && heroWrapper && window.DotGridRadar) {
+    window.DotGridRadar.mount(heroCanvas, heroWrapper, {
+      spacing: 30,
+      baseR: 1.5,
+      hoverR: 110,
+      activeColor: "#ea580c", // Quordix burnt orange radar
+      particleColor: "rgba(234, 88, 12, 0.16)"
+    });
+  }
+});
+</script>
+<script>
+// Global click interceptor: Ensure any link to planner/new or planner/wizard checks login
+(function() {
+  const IS_LOGGED_IN = {{ 'true' if (session.get('user_id') and not session.get('is_guest')) else 'false' }};
+  document.addEventListener('click', function(e) {
+    const link = e.target.closest('a');
+    if (!link) return;
+    const href = link.getAttribute('href');
+    if (!href) return;
+    if (href.includes('/planner/new') || href.includes('/planner/wizard')) {
+      if (!IS_LOGGED_IN) {
+        e.preventDefault();
+        window.location.href = "{{ url_for('auth.login') }}?next=" + encodeURIComponent(href);
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}
+

@@ -1,0 +1,74 @@
+corporation_name,operator_type,bus_service_tier,service_category,rate_per_km_inr,booking_platforms,typical_route_coverage
+KSRTC_Karnataka,Government (State RTC),Karnataka Sarige Express,Ordinary / Express Non-AC,1.45,"KSRTC Portal, RedBus, AbhiBus",Karnataka Intra-State & Inter-State
+KSRTC_Karnataka,Government (State RTC),Rajahamsa Executive Non-AC,Semi-Deluxe Non-AC,1.85,"KSRTC Portal, RedBus, AbhiBus",Bengaluru to District Headquarters
+KSRTC_Karnataka,Government (State RTC),Airavat Club Class (Volvo Multi-Axle),Luxury AC Semi-Sleeper,2.65,"KSRTC Portal, RedBus, AbhiBus","Bengaluru to Chennai, Hyderabad, Goa, Pune"
+KSRTC_Karnataka,Government (State RTC),Ambaari Dream Class (Volvo AC Multi-Axle Sleeper),Ultra Luxury AC Sleeper,3.4,"KSRTC Portal, RedBus, AbhiBus","Bengaluru to Mumbai, Ernakulam, Hyderabad"
+NWKRTC_KKRTC_Karnataka,Government (State RTC),Kalyana Ratha AC Sleeper,Premium AC Sleeper,2.85,"NWKRTC Portal, RedBus",North Karnataka to Bengaluru & Pune
+MSRTC_Maharashtra,Government (State RTC),Parivartan Express (Lal Dabba),Ordinary / Express Non-AC,1.5,"MSRTC Portal, RedBus, AbhiBus",All Maharashtra Districts
+MSRTC_Maharashtra,Government (State RTC),Hirkani Semi-Luxury,Semi-Deluxe Non-AC,1.8,"MSRTC Portal, RedBus","Mumbai, Pune, Nashik, Kolhapur"
+MSRTC_Maharashtra,Government (State RTC),Shivshahi AC Seater,Executive AC Seater,2.3,"MSRTC Portal, RedBus, AbhiBus",Major City Corridors in Maharashtra
+MSRTC_Maharashtra,Government (State RTC),Shivneri AC (Volvo / Scania Multi-Axle),Luxury AC Semi-Sleeper,2.8,"MSRTC Portal, RedBus, AbhiBus","Mumbai to Pune, Nashik, Kolhapur, Aurangabad"
+MSRTC_Maharashtra,Government (State RTC),Ashwamedh Multi-Axle Super Luxury,Ultra Luxury AC Sleeper,3.25,"MSRTC Portal, RedBus","Mumbai to Goa, Nagpur, Solapur"
+APSRTC_AndhraPradesh,Government (State RTC),Palle Velugu / Express,Ordinary / Express Non-AC,1.4,"APSRTC Portal, RedBus, AbhiBus",Andhra Pradesh State & Border Hubs
+APSRTC_AndhraPradesh,Government (State RTC),Super Luxury Non-AC,Semi-Deluxe Non-AC,1.75,"APSRTC Portal, RedBus, AbhiBus","Vijayawada, Tirupati, Visakhapatnam"
+APSRTC_AndhraPradesh,Government (State RTC),Garuda Plus (Volvo Multi-Axle AC),Luxury AC Semi-Sleeper,2.7,"APSRTC Portal, RedBus, AbhiBus","Vijayawada to Hyderabad, Chennai, Bengaluru"
+APSRTC_AndhraPradesh,Government (State RTC),Amaravathi / Vennela AC Sleeper,Premium AC Sleeper,3.1,"APSRTC Portal, RedBus, AbhiBus","Visakhapatnam, Tirupati to Metros"
+TGSRTC_Telangana,Government (State RTC),Express / Deluxe Non-AC,Ordinary / Express Non-AC,1.4,"TGSRTC Portal, RedBus, AbhiBus",Telangana State & Neighboring States
+TGSRTC_Telangana,Government (State RTC),Rajdhani AC Seater,Executive AC Seater,2.2,"TGSRTC Portal, RedBus, AbhiBus","Hyderabad to Warangal, Nizamabad, Karimnagar"
+TGSRTC_Telangana,Government (State RTC),Garuda Plus Multi-Axle AC,Luxury AC Semi-Sleeper,2.7,"TGSRTC Portal, RedBus, AbhiBus","Hyderabad to Bengaluru, Mumbai, Tirupati"
+TGSRTC_Telangana,Government (State RTC),Lahari AC Sleeper cum Seater,Premium AC Sleeper,2.95,"TGSRTC Portal, RedBus, AbhiBus","Hyderabad to Shirdi, Pune, Vijayawada"
+TNSTC_TamilNadu,Government (State RTC),TNSTC Ultra Deluxe Non-AC,Express Non-AC,1.35,"TNSTC Portal, RedBus, AbhiBus",Tamil Nadu Districts
+SETC_TamilNadu,Government (State RTC),SETC Air Conditioned Sleeper,Premium AC Sleeper,2.6,"TNSTC Portal, RedBus, AbhiBus","Chennai to Madurai, Coimbatore, Kanyakumari"
+KSRTC_Kerala,Government (State RTC),Fast Passenger / Super Fast,Ordinary / Express Non-AC,1.45,"Kerala RTC Portal, RedBus",Kerala State Intercity
+KSRTC_Kerala,Government (State RTC),SWIFT Deluxe Air Suspension,Semi-Deluxe Non-AC,1.75,"Kerala RTC Portal, RedBus","Trivandrum to Kochi, Kozhikode, Kannur"
+KSRTC_Kerala,Government (State RTC),Gajaraj (Volvo Multi-Axle AC Sleeper),Luxury AC Sleeper,2.9,"Kerala RTC Portal, RedBus, AbhiBus","Kerala to Bengaluru, Chennai, Mangalore"
+RSRTC_Rajasthan,Government (State RTC),Express / Star Line,Ordinary / Express Non-AC,1.4,"RSRTC Portal, RedBus, AbhiBus",Rajasthan State Routes
+RSRTC_Rajasthan,Government (State RTC),Goldline Volvo (AC Multi-Axle),Luxury AC Semi-Sleeper,2.5,"RSRTC Portal, RedBus, AbhiBus","Jaipur to Delhi, Udaipur, Jodhpur, Ahmedabad"
+RSRTC_Rajasthan,Government (State RTC),Gandhi Rath AC Sleeper,Premium AC Sleeper,2.85,"RSRTC Portal, RedBus","Jaipur to Agra, Indore, Haridwar"
+GSRTC_Gujarat,Government (State RTC),Gurjarnagri Express,Ordinary / Express Non-AC,1.38,"GSRTC Portal, RedBus, AbhiBus",Gujarat State Intercity
+GSRTC_Gujarat,Government (State RTC),Volvo / Scania AC Bus,Luxury AC Semi-Sleeper,2.45,"GSRTC Portal, RedBus, AbhiBus","Ahmedabad to Surat, Rajkot, Vadodara, Mumbai"
+UPSRTC_UttarPradesh,Government (State RTC),Ordinary / Express Service,Ordinary / Express Non-AC,1.35,"UPSRTC Portal, RedBus, AbhiBus",Uttar Pradesh State & NCR
+UPSRTC_UttarPradesh,Government (State RTC),Janrath (Low-cost AC Seater),Executive AC Seater,1.9,"UPSRTC Portal, RedBus, AbhiBus","Lucknow, Agra, Varanasi, Prayagraj, Noida"
+UPSRTC_UttarPradesh,Government (State RTC),Scania / Volvo Platinum Line,Luxury AC Semi-Sleeper,2.8,"UPSRTC Portal, RedBus, AbhiBus","Lucknow to Delhi, Varanasi, Gorakhpur"
+HRTC_Himachal,Government (State RTC),Ordinary Hill Route Express,Ordinary Hill Non-AC,1.6,"HRTC Portal, RedBus, AbhiBus",Himachal Hill Routes & Inter-State
+HRTC_Himachal,Government (State RTC),Himgauri (Volvo AC Super Luxury),Luxury AC Semi-Sleeper,2.9,"HRTC Portal, RedBus, AbhiBus","Delhi/Chandigarh to Shimla, Manali, Dharamshala"
+HRTC_Himachal,Government (State RTC),Himsuta (Scania AC Multi-Axle),Ultra Luxury AC Semi-Sleeper,3.05,"HRTC Portal, RedBus, AbhiBus","Delhi to Manali, Dalhousie, Kullu"
+UTC_Uttarakhand,Government (State RTC),Hill Route Ordinary Express,Ordinary Hill Non-AC,1.55,"UTC Portal, RedBus, AbhiBus","Dehradun, Haridwar, Nainital, Rishikesh"
+UTC_Uttarakhand,Government (State RTC),Volvo AC Platinum Line,Luxury AC Semi-Sleeper,2.85,"UTC Portal, RedBus, AbhiBus","Delhi to Dehradun, Rishikesh, Nainital, Kathgodam"
+PUNBUS_PRTC_Punjab,Government (State RTC),PUNBUS Ordinary Express,Ordinary / Express Non-AC,1.35,"PRTC Portal, RedBus",Punjab State & Inter-State to Delhi
+PUNBUS_PRTC_Punjab,Government (State RTC),PRTC Volvo AC Service,Luxury AC Semi-Sleeper,2.65,"PRTC Portal, RedBus","Amritsar, Jalandhar, Ludhiana to Delhi"
+Haryana_Roadways,Government (State RTC),Haryana Shakti Express,Express Non-AC,1.4,"Haryana Roadways, RedBus",Haryana Intercity & Chandigarh - Delhi
+Haryana_Roadways,Government (State RTC),Saarthi Volvo AC Service,Luxury AC Semi-Sleeper,2.6,"Haryana Roadways, RedBus","Chandigarh to Delhi, Gurugram, Jaipur"
+WBTC_SBSTC_WestBengal,Government (State RTC),WBTC Deluxe Non-AC Express,Express Non-AC,1.4,"WBTC Portal, RedBus","Kolkata to Durgapur, Asansol, Siliguri"
+WBTC_SBSTC_WestBengal,Government (State RTC),Volvo AC Royal Service,Luxury AC Semi-Sleeper,2.75,"WBTC Portal, RedBus, AbhiBus","Kolkata to Siliguri, Digha, Puri"
+OSRTC_Odisha,Government (State RTC),Rajdhani Volvo AC,Luxury AC Semi-Sleeper,2.65,"OSRTC Portal, RedBus","Bhubaneswar to Puri, Cuttack, Rourkela, Visakhapatnam"
+Kadamba_KTCL_Goa,Government (State RTC),Volvo AC Intercity Service,Luxury AC Semi-Sleeper,2.7,"KTCL Portal, RedBus","Goa to Mumbai, Pune, Bengaluru, Belagavi"
+JKSRTC_JammuKashmir,Government (State RTC),Super Deluxe Volvo AC Coach,Luxury Hill AC Coach,2.8,"JKSRTC Portal, RedBus","Jammu to Srinagar, Katra, Delhi"
+VRL_Travels_Private,Private Operator (RedBus/AbhiBus),Non-AC Sleeper (2+1),Budget Non-AC Sleeper,2.1,"RedBus, AbhiBus, MakeMyTrip, VRL Portal","Pan-India: Karnataka, Maharashtra, Goa, AP, Telangana, Gujarat"
+VRL_Travels_Private,Private Operator (RedBus/AbhiBus),I-Shift Volvo Multi-Axle AC Semi-Sleeper,Luxury AC Semi-Sleeper,3.1,"RedBus, AbhiBus, MakeMyTrip, VRL Portal","Bengaluru, Mumbai, Pune, Hyderabad, Hubli, Mangaluru"
+VRL_Travels_Private,Private Operator (RedBus/AbhiBus),Multi-Axle Volvo AC Sleeper (2+1),Ultra Luxury AC Sleeper,3.6,"RedBus, AbhiBus, MakeMyTrip, VRL Portal",High-Density Long-Haul Inter-State Corridors
+SRS_Travels_Private,Private Operator (RedBus/AbhiBus),Non-AC Sleeper / Seater,Budget Non-AC Sleeper,1.95,"RedBus, AbhiBus, MakeMyTrip, SRS Portal","Karnataka, Tamil Nadu, Kerala, Maharashtra, Goa"
+SRS_Travels_Private,Private Operator (RedBus/AbhiBus),Scania / Volvo Multi-Axle AC Sleeper,Ultra Luxury AC Sleeper,3.4,"RedBus, AbhiBus, MakeMyTrip, SRS Portal","Bengaluru to Mumbai, Chennai, Madurai, Coimbatore"
+Orange_Tours_Private,Private Operator (RedBus/AbhiBus),BharatBenz AC Sleeper (2+1),Premium AC Sleeper,3.2,"RedBus, AbhiBus, MakeMyTrip, Orange Portal","Telangana, Andhra Pradesh, Karnataka, Maharashtra"
+Orange_Tours_Private,Private Operator (RedBus/AbhiBus),Multi-Axle Volvo B11R AC Sleeper,Ultra Luxury AC Sleeper,3.75,"RedBus, AbhiBus, MakeMyTrip, Orange Portal","Hyderabad to Bengaluru, Mumbai, Pune, Visakhapatnam, Tirupati"
+Zingbus_Private,Private Operator (RedBus/AbhiBus),Premium AC Seater,Executive AC Seater,2.25,"RedBus, AbhiBus, Zingbus App","Delhi, Punjab, Haryana, Himachal, UP, Rajasthan, Maharashtra"
+Zingbus_Private,Private Operator (RedBus/AbhiBus),Luxury AC Sleeper (2+1),Premium AC Sleeper,3.15,"RedBus, AbhiBus, Zingbus App","Delhi to Manali, Shimla, Jaipur, Amritsar, Lucknow"
+Zingbus_Private,Private Operator (RedBus/AbhiBus),Zingbus Electric Intercity AC Coach,Eco Electric AC Coach,2.6,"RedBus, AbhiBus, Zingbus App","Delhi to Agra, Chandigarh, Dehradun, Jaipur"
+NueGo_Electric_Private,Private Operator (RedBus/AbhiBus),Intercity Electric AC Coach,Eco Electric AC Coach,2.4,"RedBus, AbhiBus, NueGo Portal","Delhi-Agra, Delhi-Jaipur, Bengaluru-Tirupati, Hyderabad-Vijayawada"
+NueGo_Electric_Private,Private Operator (RedBus/AbhiBus),Electric Luxury Express,Eco Luxury Electric Coach,2.75,"RedBus, AbhiBus, NueGo Portal","Chennai-Bengaluru, Mumbai-Pune, Bhopal-Indore"
+IntrCity_SmartBus_Private,Private Operator (RedBus/AbhiBus),SmartBus AC Sleeper (2+1),Premium AC Sleeper,3.3,"RedBus, AbhiBus, IntrCity App",Pan-India Intercity Corridors with Smart Lounges
+IntrCity_SmartBus_Private,Private Operator (RedBus/AbhiBus),SmartBus Executive AC Seater,Executive AC Seater,2.45,"RedBus, AbhiBus, IntrCity App","Bengaluru, Hyderabad, Chennai, Mumbai, Delhi routes"
+Seabird_Tourist_Private,Private Operator (RedBus/AbhiBus),Volvo Multi-Axle AC Sleeper,Ultra Luxury AC Sleeper,3.4,"RedBus, AbhiBus, Seabird Portal","Bengaluru to Goa, Belagavi, Mumbai, Pune"
+Sugama_Tourist_Private,Private Operator (RedBus/AbhiBus),BharatBenz AC Sleeper (2+1),Premium AC Sleeper,3.25,"RedBus, AbhiBus, Sugama Portal","Coastal Karnataka (Mangalore, Udupi, Karwar) to Bengaluru & Mumbai"
+KPN_Travels_Private,Private Operator (RedBus/AbhiBus),Multi-Axle AC Sleeper / Semi-Sleeper,Luxury AC Sleeper,3.2,"RedBus, AbhiBus, KPN Portal","Tamil Nadu, Kerala, Karnataka, Andhra Pradesh"
+Parveen_Travels_Private,Private Operator (RedBus/AbhiBus),Mercedes-Benz / Scania Multi-Axle AC,Ultra Luxury AC Sleeper,3.5,"RedBus, AbhiBus, Parveen Portal","Chennai to Bengaluru, Madurai, Coimbatore, Ernakulam"
+Shrinath_Travels_Private,Private Operator (RedBus/AbhiBus),2+1 AC Sleeper,Premium AC Sleeper,3.1,"RedBus, AbhiBus, Shrinath Portal","Rajasthan, Gujarat, Maharashtra, Delhi NCR"
+Patel_Tours_Private,Private Operator (RedBus/AbhiBus),BharatBenz AC Sleeper,Premium AC Sleeper,3.25,"RedBus, AbhiBus, Patel Portal","Gujarat to Mumbai, Pune, Rajasthan, MP"
+Hans_Travels_Private,Private Operator (RedBus/AbhiBus),BharatBenz AC Sleeper (2+1),Premium AC Sleeper,3.2,"RedBus, AbhiBus, Hans Portal","Madhya Pradesh (Indore, Bhopal) to Mumbai, Pune, UP"
+Chartered_Bus_Private,Private Operator (RedBus/AbhiBus),Volvo AC Multi-Axle,Luxury AC Semi-Sleeper,2.8,"RedBus, AbhiBus, Chartered Portal","Bhopal, Indore, Ahmedabad, Jaipur, Pune"
+Laxmi_Holidays_Private,Private Operator (RedBus/AbhiBus),Volvo 9600 Multi-Axle AC Sleeper,Ultra Luxury AC Sleeper,3.65,"RedBus, AbhiBus, Laxmi Portal","Delhi to Manali, Shimla, Dharamshala, Kasol, Rishikesh"
+Northern_Travels_Private,Private Operator (RedBus/AbhiBus),Volvo Multi-Axle AC Semi-Sleeper,Luxury AC Semi-Sleeper,3.25,"RedBus, AbhiBus, Northern Portal","Delhi to Manali, Jammu, Katra, Srinagar, Dehradun"
+City_Land_Travels_Private,Private Operator (RedBus/AbhiBus),AC Semi-Sleeper (2+2),Executive AC Seater,2.5,"RedBus, AbhiBus",Delhi to Himachal Pradesh & Uttarakhand Hill Stations
+Kallada_Travels_Private,Private Operator (RedBus/AbhiBus),Scania Multi-Axle AC Sleeper,Ultra Luxury AC Sleeper,3.55,"RedBus, AbhiBus, Kallada Portal","Kerala to Bengaluru, Chennai, Coimbatore"
+Morning_Star_Travels_Private,Private Operator (RedBus/AbhiBus),BharatBenz AC Sleeper (2+1),Premium AC Sleeper,3.3,"RedBus, AbhiBus, MorningStar Portal","Andhra Pradesh & Telangana to Bengaluru, Chennai"
+Shyamoli_Paribahan_Private,Private Operator (RedBus/AbhiBus),Volvo B11R Multi-Axle AC,Luxury AC Semi-Sleeper,3.3,"RedBus, AbhiBus, Shyamoli Portal","Kolkata to Siliguri, Digha, Puri, Bhubaneswar, Guwahati"
