@@ -240,7 +240,7 @@ def _parse_itinerary(text: str, dest: str, days: int, day_dates: list) -> dict:
                 "meal":        "Lunch",
                 "restaurant":  lunch_parts[0] if lunch_parts and lunch_parts[0] else "Local restaurant",
                 "cuisine":     lunch_parts[1] if len(lunch_parts) > 1 else "Local",
-                "price_range": lunch_parts[2] if len(lunch_parts) > 2 else "$$"
+                "price_range": lunch_parts[2] if len(lunch_parts) > 2 else "₹₹"
             }],
             "daily_budget": int(budget_val),
             "local_tips":   dextract("tip", f"Explore {dest} like a local."),
@@ -257,24 +257,24 @@ def _parse_itinerary(text: str, dest: str, days: int, day_dates: list) -> dict:
 def _call2_budget_hotels(dest, days, travelers, budget, style, transport):
     prompt = (
         f"Travel planning data for {dest}, {days} days, {travelers} people, "
-        f"{budget} USD total, {style} style, {transport} transport.\n\n"
+        f"{budget} INR total, {style} style, {transport} transport.\n\n"
         f"Budget breakdown (give amounts adding to {budget}):\n"
-        f"Accommodation: [USD amount]\n"
-        f"Food: [USD amount]\n"
-        f"Transportation: [USD amount]\n"
-        f"Activities: [USD amount]\n"
-        f"Shopping: [USD amount]\n"
-        f"Emergency: [USD amount]\n"
-        f"Misc: [USD amount]\n"
+        f"Accommodation: [INR amount]\n"
+        f"Food: [INR amount]\n"
+        f"Transportation: [INR amount]\n"
+        f"Activities: [INR amount]\n"
+        f"Shopping: [INR amount]\n"
+        f"Emergency: [INR amount]\n"
+        f"Misc: [INR amount]\n"
         f"Saving tip 1: [tip]\n"
         f"Saving tip 2: [tip]\n"
         f"Saving tip 3: [tip]\n\n"
         f"Hotel recommendations for {dest}:\n"
-        f"Budget hotel 1: [name] | [price per night USD] | [rating/5] | [distance from center]\n"
-        f"Budget hotel 2: [name] | [price per night USD] | [rating/5] | [distance from center]\n"
-        f"Midrange hotel 1: [name] | [price per night USD] | [rating/5] | [distance from center]\n"
-        f"Midrange hotel 2: [name] | [price per night USD] | [rating/5] | [distance from center]\n"
-        f"Luxury hotel 1: [name] | [price per night USD] | [rating/5] | [distance from center]\n"
+        f"Budget hotel 1: [name] | [price per night INR] | [rating/5] | [distance from center]\n"
+        f"Budget hotel 2: [name] | [price per night INR] | [rating/5] | [distance from center]\n"
+        f"Midrange hotel 1: [name] | [price per night INR] | [rating/5] | [distance from center]\n"
+        f"Midrange hotel 2: [name] | [price per night INR] | [rating/5] | [distance from center]\n"
+        f"Luxury hotel 1: [name] | [price per night INR] | [rating/5] | [distance from center]\n"
     )
     return call_granite(prompt, max_tokens=700)
 
@@ -314,11 +314,11 @@ def _parse_budget_hotels(text: str, dest: str, days: int,
 
     budget_data = {
         "total_budget":     total,
-        "currency":         "USD",
+        "currency":         "INR",
         "breakdown":        breakdown,
         "daily_average":    round(total / days),
         "per_person_total": round(total / travelers),
-        "budget_status":    "comfortable" if total > days * 60 else "tight",
+        "budget_status":    "comfortable" if total > days * 2500 else "tight",
         "saving_tips":      tips,
         "free_attractions": [f"Public parks and heritage walks in {dest}"],
         "best_value_tips":  [f"Visit {dest} during shoulder season for lower prices"]
@@ -376,10 +376,10 @@ def _parse_budget_hotels(text: str, dest: str, days: int,
             }
         ],
         "local_transport": [
-            {"mode": "Auto Rickshaw / Taxi", "cost_range": "$2–10/trip",
+            {"mode": "Auto Rickshaw / Taxi", "cost_range": "₹100–350/trip",
              "availability": "6am–11pm", "recommended_for": "Sightseeing",
              "app_or_service": "Ola / Uber"},
-            {"mode": "City Bus", "cost_range": "$0.20–1/trip",
+            {"mode": "City Bus", "cost_range": "₹15–50/trip",
              "availability": "5am–10pm", "recommended_for": "Budget travel",
              "app_or_service": "Google Maps"}
         ],

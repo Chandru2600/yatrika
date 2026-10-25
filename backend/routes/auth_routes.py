@@ -18,23 +18,16 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 # ── Decorators ────────────────────────────────────────────────
 
 def login_required(f):
-    """Ensure authenticated or seamless guest session so planning is never blocked."""
+    """Ensure authenticated or isolated guest session so planning is never blocked."""
     @wraps(f)
     def decorated(*args, **kwargs):
         if "user_id" not in session:
-            from backend.models.user import get_user_by_email, create_user
-            guest = get_user_by_email("guest@yatrika.ai")
-            if not guest:
-                try:
-                    user_id = create_user("Guest Traveler", "guest@yatrika.ai", "GuestTraveler123!")
-                except Exception:
-                    user_id = 1
-            else:
-                user_id = guest["id"]
+            from backend.models.user import create_isolated_guest_user
+            user_id = create_isolated_guest_user()
             session.permanent = True
             session["user_id"]   = user_id
             session["user_name"] = "Traveler"
-            session["user_role"] = "user"
+            session["user_role"] = "guest"
             session["is_guest"]  = True
         return f(*args, **kwargs)
     return decorated
@@ -85,7 +78,11 @@ def register():
             return redirect(url_for("auth.login", next=next_page))
 
         try:
+            old_guest_id = session.get("user_id") if session.get("is_guest") else None
             user_id = create_user(name, email, password)
+            if old_guest_id:
+                from backend.models.user import migrate_guest_trips_to_user
+                migrate_guest_trips_to_user(old_guest_id, user_id)
             session.permanent = True
             session["user_id"]   = user_id
             session["user_name"] = name
@@ -113,6 +110,10 @@ def login():
 
         user = get_user_by_email(email)
         if user and verify_password(password, user["password"]):
+            old_guest_id = session.get("user_id") if session.get("is_guest") else None
+            if old_guest_id and old_guest_id != user["id"]:
+                from backend.models.user import migrate_guest_trips_to_user
+                migrate_guest_trips_to_user(old_guest_id, user["id"])
             session.permanent = True
             session["user_id"]   = user["id"]
             session["user_name"] = user["name"]

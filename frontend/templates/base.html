@@ -28,9 +28,12 @@
   <link href="{{ url_for('static', filename='css/sticky_reveal_footer.css') }}" rel="stylesheet" />
   <!-- 3D Orbit Planet Runner & Scout Animation CSS -->
   <link href="{{ url_for('static', filename='css/planet_runner.css') }}" rel="stylesheet" />
+  <!-- Mobile-First Responsive Polish & Touch Optimization -->
+  <link href="{{ url_for('static', filename='css/mobile.css') }}" rel="stylesheet" />
 
   {% block extra_css %}{% endblock %}
 </head>
+
 <body>
 
 <!-- ── Navigation Bar ─────────────────────────────────────────── -->
@@ -256,7 +259,26 @@ document.addEventListener('show.bs.modal', function (e) {
     document.body.appendChild(e.target);
   }
 });
+
+// Auto-collapse mobile navigation menu when a navigation item is clicked
+document.addEventListener('click', function (e) {
+  const navCollapse = document.getElementById('mainNav');
+  const navToggler = document.querySelector('.navbar-toggler');
+  if (!navCollapse || !navToggler) return;
+
+  if (navCollapse.classList.contains('show')) {
+    const isClickInside = navCollapse.contains(e.target) || navToggler.contains(e.target);
+    const isDropdownToggle = e.target.closest('.dropdown-toggle');
+    if (!isClickInside || (e.target.closest('.nav-link') && !isDropdownToggle)) {
+      if (window.bootstrap && bootstrap.Collapse) {
+        const bsCollapse = bootstrap.Collapse.getInstance(navCollapse) || new bootstrap.Collapse(navCollapse, { toggle: false });
+        bsCollapse.hide();
+      }
+    }
+  }
+});
 </script>
+
 
 {% block modals %}{% endblock %}
 {% block extra_js %}{% endblock %}

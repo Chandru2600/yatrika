@@ -18,6 +18,11 @@ build/
 # Database
 *.db
 *.sqlite3
+*.bak
+*.db.bak
+*.db.*
+scratch/
+test_*.pdf
 
 # IDE & Agents
 .vscode/

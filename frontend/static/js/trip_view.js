@@ -261,8 +261,18 @@ window.renderDayPlanner = function() {
     if (!dz) return;
     const items = currentDayPlan[zone] || [];
     const isShared = typeof IS_SHARED !== 'undefined' && IS_SHARED;
-    dz.innerHTML = items.length ? items.map((act, idx) => `
-      <div class="activity-card-planned" draggable="true" data-id="${act.id}" data-type="${act.type || 'attraction'}" data-zone="${zone}" data-index="${idx}">
+    dz.innerHTML = items.length ? items.map((act, idx) => {
+      const attMatch = State.selectedAttractions.find(a => String(a.id) === String(act.id) || a.name === act.name);
+      const lat = (act.lat !== undefined && act.lat !== null) ? act.lat : (attMatch ? attMatch.lat : null);
+      const lon = (act.lon !== undefined && act.lon !== null) ? act.lon : (attMatch ? attMatch.lon : null);
+      const latAttr = (lat !== null && isFinite(lat)) ? lat : '';
+      const lonAttr = (lon !== null && isFinite(lon)) ? lon : '';
+
+      return `
+      <div class="activity-card-planned activity-card-interactive" draggable="true"
+           data-id="${act.id}" data-type="${act.type || 'attraction'}" data-zone="${zone}" data-index="${idx}"
+           data-name="${act.name.replace(/"/g, '&quot;')}" data-lat="${latAttr}" data-lon="${lonAttr}"
+           onclick="window.focusCardElementOnMap(this)" title="Click to view on Map">
         <div class="d-flex align-items-center gap-2 flex-grow-1">
           <span class="act-icon fs-5">${act.icon || '📍'}</span>
           <div class="flex-grow-1">
@@ -272,12 +282,21 @@ window.renderDayPlanner = function() {
           <span class="badge bg-light text-muted border extra-small">${act.dur || '1.5h'}</span>
         </div>
         ${isShared ? '' : `
-        <div class="d-flex align-items-center gap-1 ms-2">
-          <button type="button" class="btn btn-sm btn-light border py-0 px-2 extra-small" onclick="movePlannedActivity(${State.currentPlannerDay}, '${zone}', ${idx}); event.stopPropagation();" title="Shift to next slot">➔</button>
+        <div class="d-flex align-items-center gap-1 ms-2" onclick="event.stopPropagation();">
+          <div class="reorder-btn-group">
+            <button type="button" class="btn btn-sm btn-reorder-move ${idx === 0 && zone === 'morning' ? 'disabled' : ''}"
+                    onclick="window.reorderPlannedActivity(${State.currentPlannerDay}, '${zone}', ${idx}, -1); event.stopPropagation();"
+                    title="Move Earlier in itinerary" aria-label="Move Earlier">▲ Earlier</button>
+            <button type="button" class="btn btn-sm btn-reorder-move ${idx === items.length - 1 && zone === 'evening' ? 'disabled' : ''}"
+                    onclick="window.reorderPlannedActivity(${State.currentPlannerDay}, '${zone}', ${idx}, 1); event.stopPropagation();"
+                    title="Move Later in itinerary" aria-label="Move Later">▼ Later</button>
+          </div>
+          <button type="button" class="btn btn-sm btn-light border py-0 px-2 extra-small" onclick="movePlannedActivity(${State.currentPlannerDay}, '${zone}', ${idx}); event.stopPropagation();" title="Shift to next time slot">➔</button>
           <button type="button" class="btn btn-sm btn-outline-danger border-0 py-0 px-1" onclick="removePlannedActivity(${State.currentPlannerDay}, '${zone}', ${idx}); event.stopPropagation();" title="Remove activity">×</button>
         </div>`}
       </div>
-    `).join('') : `<div class="text-center text-muted py-4 small"><i class="bi bi-calendar-plus me-1"></i> No activities yet. Click any item below to add!</div>`;
+      `;
+    }).join('') : `<div class="text-center text-muted py-4 small"><i class="bi bi-calendar-plus me-1"></i> No activities yet. Click any item below to add!</div>`;
     dz.querySelectorAll('.activity-card-planned').forEach(initCardDrag);
   });
 
@@ -312,6 +331,79 @@ window.renderDayPlanner = function() {
   }
 };
 
+/* ── Toast Helper ─────────────────────────────────────────────────── */
+function showToast(message, type = 'info') {
+  let toastEl = document.getElementById('plannerToast');
+  if (!toastEl) {
+    toastEl = document.createElement('div');
+    toastEl.id = 'plannerToast';
+    toastEl.className = 'reorder-save-toast';
+    document.body.appendChild(toastEl);
+  }
+  const icons = {
+    success: '✓',
+    danger: '⚠️',
+    warning: '📍',
+    info: 'ℹ️'
+  };
+  toastEl.innerHTML = `<span>${icons[type] || 'ℹ️'}</span> <span>${message}</span>`;
+  toastEl.classList.add('show');
+  clearTimeout(toastEl._timer);
+  toastEl._timer = setTimeout(() => {
+    toastEl.classList.remove('show');
+  }, 2800);
+}
+window.showMapToast = showToast;
+
+function escapeJs(str) {
+  if (!str) return '';
+  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+/* ── Mobile Itinerary Reordering ──────────────────────────────────── */
+window.reorderPlannedActivity = function(day, currentZone, idx, direction) {
+  if (!State.dayPlanner[day] || !State.dayPlanner[day][currentZone]) return;
+  const list = State.dayPlanner[day][currentZone];
+  if (idx < 0 || idx >= list.length) return;
+
+  const zones = ['morning', 'afternoon', 'evening'];
+  const zoneIdx = zones.indexOf(currentZone);
+
+  if (direction === -1) {
+    // Move earlier
+    if (idx > 0) {
+      const temp = list[idx];
+      list[idx] = list[idx - 1];
+      list[idx - 1] = temp;
+    } else if (zoneIdx > 0) {
+      const prevZone = zones[zoneIdx - 1];
+      if (!State.dayPlanner[day][prevZone]) State.dayPlanner[day][prevZone] = [];
+      const item = list.splice(idx, 1)[0];
+      State.dayPlanner[day][prevZone].push(item);
+    }
+  } else if (direction === 1) {
+    // Move later
+    if (idx < list.length - 1) {
+      const temp = list[idx];
+      list[idx] = list[idx + 1];
+      list[idx + 1] = temp;
+    } else if (zoneIdx < zones.length - 1) {
+      const nextZone = zones[zoneIdx + 1];
+      if (!State.dayPlanner[day][nextZone]) State.dayPlanner[day][nextZone] = [];
+      const item = list.splice(idx, 1)[0];
+      State.dayPlanner[day][nextZone].unshift(item);
+    }
+  }
+
+  renderDayPlanner();
+  if (typeof window.renderTimeline === 'function') {
+    window.renderTimeline();
+  }
+
+  // Persist seamlessly to server
+  savePlannerChangesToServer(true);
+};
+
 window.quickAddActivity = function(idStr, targetZone) {
   let actObject = null;
   const attraction = State.selectedAttractions.find(a => String(a.id) === String(idStr));
@@ -322,7 +414,9 @@ window.quickAddActivity = function(idStr, targetZone) {
       name: attraction.name,
       dur: typeof attraction.dur === 'number' ? fmtHrs(attraction.dur) : (attraction.dur || '1.5h'),
       type: 'attraction',
-      category: attraction.cat || 'Sightseeing'
+      category: attraction.cat || 'Sightseeing',
+      lat: attraction.lat || attraction.latitude,
+      lon: attraction.lon || attraction.longitude
     };
   } else if (String(idStr).startsWith('custom_')) {
     const customAct = State.customPoolActivities.find(c => String(c.id) === String(idStr));
@@ -350,6 +444,7 @@ window.quickAddActivity = function(idStr, targetZone) {
   const zone = targetZone || 'morning';
   State.dayPlanner[currentDay][zone].push(actObject);
   renderDayPlanner();
+  savePlannerChangesToServer(true);
 };
 
 window.movePlannedActivity = function(day, currentZone, idx) {
@@ -360,6 +455,7 @@ window.movePlannedActivity = function(day, currentZone, idx) {
   if (!State.dayPlanner[day][nextZone]) State.dayPlanner[day][nextZone] = [];
   State.dayPlanner[day][nextZone].push(act);
   renderDayPlanner();
+  savePlannerChangesToServer(true);
 };
 
 window.switchPlannerDay = function(dNum, btn) {
@@ -418,6 +514,7 @@ window.dropActivity = function(e, zone) {
     State.dayPlanner[State.currentPlannerDay][zone].push(actObject);
 
     renderDayPlanner();
+    savePlannerChangesToServer(true);
   } catch (err) {
     console.error(err);
   }
@@ -443,6 +540,7 @@ window.removePlannedActivity = function(day, zone, idx) {
   if (State.dayPlanner[day] && State.dayPlanner[day][zone]) {
     State.dayPlanner[day][zone].splice(idx, 1);
     renderDayPlanner();
+    savePlannerChangesToServer(true);
   }
 };
 
@@ -467,7 +565,7 @@ window.addCustomActivityPool = function() {
   renderDayPlanner();
 };
 
-window.savePlannerChangesToServer = async function() {
+window.savePlannerChangesToServer = async function(silent = false) {
   const payload = { day_planner: State.dayPlanner };
 
   try {
@@ -478,14 +576,113 @@ window.savePlannerChangesToServer = async function() {
     });
     const result = await response.json();
     if (result.success) {
-      alert('🎉 Planner layout updated successfully!');
-      location.reload();
+      showToast('✓ Itinerary schedule saved', 'success');
     } else {
-      alert(`❌ Update failed: ${result.error}`);
+      showToast(`❌ Update failed: ${result.error || 'Server error'}`, 'danger');
     }
   } catch (err) {
     console.error(err);
-    alert('❌ Error connecting to server');
+    if (!silent) {
+      showToast('❌ Error connecting to server', 'danger');
+    }
+  }
+};
+
+/* ── Bidirectional Map & Card Synchronization ────────────────────── */
+window.focusCardElementOnMap = function(cardEl) {
+  if (!cardEl) return;
+  const id = cardEl.dataset.id || '';
+  const name = cardEl.dataset.name || cardEl.querySelector('.act-name, strong, .rs-name')?.textContent || '';
+  const lat = cardEl.dataset.lat ? Number(cardEl.dataset.lat) : null;
+  const lon = cardEl.dataset.lon ? Number(cardEl.dataset.lon) : null;
+  window.focusActivityOnMap(id, name, lat, lon);
+};
+
+window.focusActivityOnMap = function(actId, actName, lat, lon) {
+  // If coordinates weren't supplied directly, attempt lookup
+  if ((lat === null || lat === undefined || !isFinite(lat)) && State.selectedAttractions) {
+    const match = State.selectedAttractions.find(a => String(a.id) === String(actId) || a.name === actName);
+    if (match && isFinite(match.lat) && isFinite(match.lon)) {
+      lat = Number(match.lat);
+      lon = Number(match.lon);
+    }
+  }
+
+  // Handle missing coordinates gracefully
+  if (lat === null || lat === undefined || !isFinite(lat) || lon === null || lon === undefined || !isFinite(lon)) {
+    showToast(`📍 Location coordinates unavailable for "${actName || 'this activity'}"`, 'warning');
+    return;
+  }
+
+  // Ensure map tab is active if on another tab
+  const mapTabBtn = document.querySelector('#itineraryTabs a[href="#tab-map"]');
+  if (mapTabBtn && !mapTabBtn.classList.contains('active')) {
+    if (window.bootstrap && bootstrap.Tab) {
+      bootstrap.Tab.getOrCreateInstance(mapTabBtn).show();
+    } else {
+      mapTabBtn.click();
+    }
+  }
+
+  // Ensure map renders and resizes if tab was hidden
+  setTimeout(() => {
+    if (State.mapInstance) {
+      State.mapInstance.resize();
+      State.mapInstance.flyTo({
+        center: [Number(lon), Number(lat)],
+        zoom: 15,
+        speed: 1.3,
+        essential: true
+      });
+
+      // Find marker and open popup
+      let marker = null;
+      if (State.mapMarkers) {
+        if (actId && State.mapMarkers.has(String(actId))) {
+          marker = State.mapMarkers.get(String(actId));
+        } else if (actName && State.mapMarkers.has(String(actName).toLowerCase().trim())) {
+          marker = State.mapMarkers.get(String(actName).toLowerCase().trim());
+        }
+      }
+
+      if (marker) {
+        const popup = marker.getPopup();
+        if (popup && !popup.isOpen()) {
+          marker.togglePopup();
+        }
+        const pinEl = marker.getElement();
+        if (pinEl) {
+          pinEl.classList.add('map-pin-pulse');
+          setTimeout(() => pinEl.classList.remove('map-pin-pulse'), 2500);
+        }
+      }
+    }
+  }, 120);
+};
+
+window.highlightAndScrollToActivity = function(actId, actName) {
+  const normName = String(actName || '').toLowerCase().trim();
+  const allCards = document.querySelectorAll('.activity-card-planned, .slot-row-item, .route-stop, .tourist-sight-card');
+  let target = null;
+
+  for (const card of allCards) {
+    if (actId && card.dataset.id === String(actId)) {
+      target = card;
+      break;
+    }
+    const cardName = String(card.dataset.name || card.querySelector('.act-name, strong, .rs-name')?.textContent || '').toLowerCase().trim();
+    if (normName && (cardName === normName || cardName.includes(normName) || normName.includes(cardName))) {
+      target = card;
+      break;
+    }
+  }
+
+  if (target) {
+    target.classList.add('activity-card-highlighted');
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => {
+      target.classList.remove('activity-card-highlighted');
+    }, 2500);
   }
 };
 
@@ -672,7 +869,7 @@ window.renderRoute = async function() {
 
   const stops = [
     { type:'hotel', icon:'🏨', name:'Your Base Camp Hotel', lat:null, lon:null },
-    ...sel.map(a=>({ type:'attraction', icon:a.icon, name:a.name, lat:a.lat || a.latitude, lon:a.lon || a.longitude, dur:a.dur, fee:a.fee, cat:a.cat })),
+    ...sel.map(a=>({ id:a.id, type:'attraction', icon:a.icon, name:a.name, lat:a.lat || a.latitude, lon:a.lon || a.longitude, dur:a.dur, fee:a.fee, cat:a.cat })),
     { type:'hotel', icon:'🏨', name:'Return to Base Camp', lat:null, lon:null }
   ];
 
@@ -684,7 +881,13 @@ window.renderRoute = async function() {
 
   for (let i = 0; i < stops.length; i++) {
     const s = stops[i];
-    html += `<div class="route-stop">
+    html += `<div class="route-stop activity-card-interactive"
+                  data-id="${s.id || ''}"
+                  data-name="${(s.name || '').replace(/"/g, '&quot;')}"
+                  data-lat="${s.lat || ''}"
+                  data-lon="${s.lon || ''}"
+                  onclick="window.focusCardElementOnMap(this)"
+                  title="Click to view on Map">
       <div class="rs-pin ${s.type}">${s.icon}</div>
       <div class="rs-info">
         <div class="rs-name">${s.name}</div>
@@ -738,9 +941,22 @@ window.renderMap = function() {
   const sel = State.selectedAttractions;
   if (typeof maplibregl === 'undefined') return;
 
-  if (State.mapInstance) { State.mapInstance.remove(); State.mapInstance = null; }
+  if (State.mapInstance) {
+    try { State.mapInstance.remove(); } catch (e) {}
+    State.mapInstance = null;
+  }
+  State.mapMarkers = new Map();
 
-  const center = sel.length ? [sel[0].lon, sel[0].lat] : [77.5946, 12.9716];
+  // Find center coordinate from first attraction with valid coords, fallback to Bangalore
+  let defaultCenter = [77.5946, 12.9716];
+  for (const a of sel) {
+    const lat = Number(a.lat || a.latitude);
+    const lon = Number(a.lon || a.longitude);
+    if (isFinite(lat) && isFinite(lon) && (lat !== 0 || lon !== 0)) {
+      defaultCenter = [lon, lat];
+      break;
+    }
+  }
 
   const map = new maplibregl.Map({
     container: 'tripMap',
@@ -760,31 +976,105 @@ window.renderMap = function() {
         source: "osm"
       }]
     },
-    center,
+    center: defaultCenter,
     zoom: sel.length ? 11 : 9
   });
   State.mapInstance = map;
 
   map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
+  // Handle map resizing when Map tab is shown on desktop or mobile
+  const mapTabTrigger = document.querySelector('a[data-bs-toggle="tab"][href="#tab-map"]');
+  if (mapTabTrigger && !mapTabTrigger._resizeBound) {
+    mapTabTrigger._resizeBound = true;
+    mapTabTrigger.addEventListener('shown.bs.tab', () => {
+      setTimeout(() => {
+        if (State.mapInstance) {
+          State.mapInstance.resize();
+        }
+      }, 100);
+    });
+  }
+
   map.on('load', () => {
     const bounds = new maplibregl.LngLatBounds();
-    sel.forEach((a) => {
-      if (!a.lat || !a.lon) return;
-      const el = document.createElement('div');
-      el.style.cssText = `width:30px;height:30px;background:#10b981;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:0.9rem;box-shadow:0 2px 5px rgba(0,0,0,0.3);`;
-      el.textContent = a.icon;
+    const coordCounts = {};
+    let validCount = 0;
 
-      new maplibregl.Marker({ element: el })
-        .setLngLat([a.lon, a.lat])
-        .setPopup(new maplibregl.Popup({ offset: 15 }).setHTML(`<strong>${a.icon} ${a.name}</strong><br><small>${a.cat}</small>`))
+    sel.forEach((a) => {
+      const origLat = Number(a.lat || a.latitude);
+      const origLon = Number(a.lon || a.longitude);
+
+      // Handle missing coordinates safely
+      if (!isFinite(origLat) || !isFinite(origLon) || (origLat === 0 && origLon === 0)) {
+        return;
+      }
+
+      // Handle duplicate coordinates by applying a slight offset spiral
+      const coordKey = `${origLat.toFixed(4)},${origLon.toFixed(4)}`;
+      const seenCount = coordCounts[coordKey] || 0;
+      coordCounts[coordKey] = seenCount + 1;
+
+      let plotLat = origLat;
+      let plotLon = origLon;
+      if (seenCount > 0) {
+        const angle = seenCount * 1.25;
+        const radius = 0.00035 * seenCount;
+        plotLat += Math.sin(angle) * radius;
+        plotLon += Math.cos(angle) * radius;
+      }
+
+      validCount++;
+
+      // Create interactive DOM element for marker
+      const el = document.createElement('div');
+      el.className = 'custom-map-marker';
+      el.style.cssText = `width:34px;height:34px;background:#10b981;border-radius:50%;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:1.05rem;box-shadow:0 3px 8px rgba(0,0,0,0.3);cursor:pointer;transition:transform 0.2s ease;user-select:none;`;
+      el.textContent = a.icon || '📍';
+      el.title = `${a.name} (Click to locate in schedule)`;
+
+      // Bidirectional marker click: highlight and scroll to activity card in timeline/schedule
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.highlightAndScrollToActivity(a.id, a.name);
+      });
+
+      // Escape quotes for safe inline JS
+      const safeName = (a.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      const safeCat = (a.cat || 'Sightseeing').replace(/"/g, '&quot;');
+
+      const popupHtml = `
+        <div style="font-family:inherit;min-width:180px;padding:4px 0;">
+          <div style="font-weight:700;font-size:0.95rem;color:#0F172A;line-height:1.2;margin-bottom:3px;">
+            ${a.icon || '📍'} ${a.name}
+          </div>
+          <div style="font-size:0.8rem;color:#64748B;margin-bottom:8px;">${safeCat}</div>
+          <button type="button" class="btn btn-sm btn-outline-primary w-100 py-1" style="font-size:0.75rem;font-weight:600;border-radius:6px;"
+                  onclick="window.highlightAndScrollToActivity('${a.id || ''}', '${safeName}')">
+            🔍 View in Schedule
+          </button>
+        </div>
+      `;
+
+      const marker = new maplibregl.Marker({ element: el })
+        .setLngLat([plotLon, plotLat])
+        .setPopup(new maplibregl.Popup({ offset: 18, closeButton: true }).setHTML(popupHtml))
         .addTo(map);
 
-      bounds.extend([a.lon, a.lat]);
+      // Register marker in State.mapMarkers for bidirectional lookup
+      if (a.id) {
+        State.mapMarkers.set(String(a.id), marker);
+      }
+      if (a.name) {
+        State.mapMarkers.set(String(a.name).toLowerCase().trim(), marker);
+      }
+
+      bounds.extend([plotLon, plotLat]);
     });
 
-    if (sel.length && !bounds.isEmpty()) {
-      map.fitBounds(bounds, { padding: 50, maxZoom: 13 });
+    if (validCount > 0 && !bounds.isEmpty()) {
+      map.fitBounds(bounds, { padding: 60, maxZoom: 14 });
     }
   });
 };
+

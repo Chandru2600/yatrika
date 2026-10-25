@@ -51,6 +51,90 @@
     background: #DC2626;
     color: #ffffff;
   }
+
+  /* Activity Card Map Interaction & Bidirectional Highlighting */
+  .activity-card-interactive {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .activity-card-interactive:hover {
+    border-color: #0284C7 !important;
+    background: #F0F9FF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
+  }
+  .activity-card-highlighted {
+    box-shadow: 0 0 0 3px #0284C7, 0 8px 24px rgba(2, 132, 199, 0.35) !important;
+    background: #E0F2FE !important;
+    transform: scale(1.02);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .map-pin-pulse {
+    animation: markerPulse 1.5s infinite;
+  }
+  @keyframes markerPulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7); }
+    70% { transform: scale(1.25); box-shadow: 0 0 0 12px rgba(2, 132, 199, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+  }
+
+  /* Accessible Touch-Friendly Move Earlier/Later Buttons */
+  .btn-reorder-move {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    color: #334155;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    touch-action: manipulation;
+  }
+  .btn-reorder-move:hover:not(.disabled) {
+    background: #0284C7;
+    border-color: #0284C7;
+    color: #FFFFFF;
+    transform: translateY(-1px);
+  }
+  .btn-reorder-move.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  .reorder-btn-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .reorder-save-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    padding: 10px 18px;
+    background: #0F172A;
+    color: #F8FAFC;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: all 0.25s ease;
+    pointer-events: none;
+  }
+  .reorder-save-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
 </style>
 {% endblock %}
 
@@ -232,6 +316,11 @@
               <i class="bi bi-share-fill"></i> Share
             </button>
           </div>
+          {% if not is_shared %}
+          <button type="button" class="btn-stub btn-outline-stub w-100 mt-2" onclick="window.location.href='{{ url_for('planner.export_ics', trip_id=trip.id) }}'" title="Export to Apple Calendar, Google Calendar, Outlook (.ics)">
+            <i class="bi bi-calendar-event me-1 text-turquoise"></i> Export Calendar (.ics)
+          </button>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -411,7 +500,12 @@
 
                   <!-- Morning -->
                   {% if d.morning %}
-                  <div class="slot-row-item">
+                  <div class="slot-row-item activity-card-interactive"
+                       data-name="{{ (d.morning.name or d.morning.place)|e }}"
+                       data-lat="{{ d.morning.lat or '' }}"
+                       data-lon="{{ d.morning.lon or '' }}"
+                       onclick="window.focusCardElementOnMap(this)"
+                       title="Click to view on Map">
                     <span class="slot-time-badge">🌅 Morning</span>
                     <div class="flex-grow-1">
                       <div class="d-flex justify-content-between align-items-center">
@@ -428,7 +522,12 @@
 
                   <!-- Afternoon -->
                   {% if d.afternoon %}
-                  <div class="slot-row-item">
+                  <div class="slot-row-item activity-card-interactive"
+                       data-name="{{ (d.afternoon.name or d.afternoon.place)|e }}"
+                       data-lat="{{ d.afternoon.lat or '' }}"
+                       data-lon="{{ d.afternoon.lon or '' }}"
+                       onclick="window.focusCardElementOnMap(this)"
+                       title="Click to view on Map">
                     <span class="slot-time-badge" style="color: #B45309; background: #FEF3C7; border-color: #FDE68A;">☀️ Afternoon</span>
                     <div class="flex-grow-1">
                       <div class="d-flex justify-content-between align-items-center">
@@ -445,7 +544,12 @@
 
                   <!-- Evening -->
                   {% if d.evening %}
-                  <div class="slot-row-item">
+                  <div class="slot-row-item activity-card-interactive"
+                       data-name="{{ (d.evening.name or d.evening.place)|e }}"
+                       data-lat="{{ d.evening.lat or '' }}"
+                       data-lon="{{ d.evening.lon or '' }}"
+                       onclick="window.focusCardElementOnMap(this)"
+                       title="Click to view on Map">
                     <span class="slot-time-badge" style="color: #6D28D9; background: #EDE9FE; border-color: #DDD6FE;">🌆 Evening</span>
                     <div class="flex-grow-1">
                       <div class="d-flex justify-content-between align-items-center">
@@ -473,7 +577,14 @@
                 {% if attractions %}
                   {% for a in attractions[:10] %}
                   <div class="col-sm-6">
-                    <div class="p-3 rounded-4 d-flex align-items-center gap-3" style="background: #F8FAFC; border: 1.5px solid #E2E8F0;">
+                    <div class="p-3 rounded-4 d-flex align-items-center gap-3 activity-card-interactive tourist-sight-card"
+                         data-id="{{ a.id }}"
+                         data-name="{{ a.name|e }}"
+                         data-lat="{{ a.lat or a.latitude or '' }}"
+                         data-lon="{{ a.lon or a.longitude or '' }}"
+                         onclick="window.focusCardElementOnMap(this)"
+                         title="Click to focus on Map"
+                         style="background: #F8FAFC; border: 1.5px solid #E2E8F0;">
                       <span style="font-size: 1.8rem;">{{ a.icon or '📍' }}</span>
                       <div class="overflow-hidden">
                         <div class="fw-bold text-truncate" style="color: #0F172A;" title="{{ a.name }}">{{ loop.index }}. {{ a.name }}</div>
@@ -512,6 +623,54 @@
                 </div>
                 {% endfor %}
               </div>
+            </div>
+
+            <!-- Expedition Weather & Climate Transparency Card -->
+            <div class="dossier-section-card mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-1">
+                <h4 class="dossier-section-title mb-0" style="font-size: 1.05rem;">
+                  <i class="bi bi-cloud-sun text-turquoise"></i> Destination Climate &amp; Weather
+                </h4>
+                {% if weather_horizon %}
+                <span class="badge {{ weather_horizon.badge_class }} small">
+                  <i class="bi {{ weather_horizon.icon }} me-1"></i>{{ weather_horizon.label }}
+                </span>
+                {% endif %}
+              </div>
+              {% if weather_horizon %}
+              <p class="extra-small mb-3" style="color: #64748B; line-height: 1.45;">
+                {{ weather_horizon.explanation }}
+              </p>
+              {% endif %}
+
+              {% if weather and weather.get("current") and not weather.current.get("error") %}
+              {% set cur_w = weather.current %}
+              <div class="p-3 rounded-4 mb-3" style="background: #F8FAFC; border: 1.5px solid #E2E8F0;">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="d-flex align-items-baseline gap-2">
+                      <span class="fw-bold" style="font-size: 1.8rem; color: #0F172A;">{{ cur_w.temperature }}°C</span>
+                      <span class="small" style="color: #64748B;">Feels {{ cur_w.feels_like }}°C</span>
+                    </div>
+                    <div class="small fw-semibold text-capitalize" style="color: #0284C7;">{{ cur_w.description }}</div>
+                  </div>
+                  <div class="text-end small" style="color: #64748B;">
+                    <div>💧 Humidity: <strong>{{ cur_w.humidity }}%</strong></div>
+                    <div>💨 Wind: <strong>{{ cur_w.wind_speed }} m/s</strong></div>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+
+              {% if weather and weather.get("alerts") %}
+              <div class="d-flex flex-column gap-1">
+                {% for alert in weather.alerts[:2] %}
+                <div class="extra-small p-2 rounded-2" style="background: #F1F5F9; color: #334155; line-height: 1.4;">
+                  {{ alert }}
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
             </div>
 
             <!-- 24/7 Helplines -->
@@ -869,44 +1028,61 @@
            ╚══════════════════════════════════════════════════════════╝ -->
       <div class="tab-pane fade" id="tab-packing">
         <div class="dossier-section-card">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="dossier-section-title mb-0">
-              <i class="bi bi-backpack text-turquoise"></i> Climate-Smart Packing Checklist
-            </h3>
-            <span class="badge fw-medium" style="background: #F1F5F9; color: #475569; border: 1px solid #CBD5E1;">Tailored for {{ trip.destination }}</span>
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+              <h3 class="dossier-section-title mb-1">
+                <i class="bi bi-backpack text-turquoise"></i> Destination-Aware Packing Checklist
+              </h3>
+              <p class="small mb-0" style="color: #64748B;">
+                Contextual gear tailored for {{ trip.destination }} · <span class="badge bg-light text-dark border">{{ packing_checklist.weather_context if packing_checklist else 'Standard Climate' }}</span>
+              </p>
+            </div>
+            <!-- Progress Counter Badge -->
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge px-3 py-2 fw-bold" id="checklistProgressBadge" style="background: #ECFDF5; color: #047857; border: 1.5px solid #A7F3D0; font-size: 0.85rem;">
+                <i class="bi bi-check2-circle me-1"></i><span id="packedCountVal">{{ packing_checklist.packed_count if packing_checklist else 0 }}</span> of <span id="totalCountVal">{{ packing_checklist.total_count if packing_checklist else 0 }}</span> Packed (<span id="progressPctVal">{{ packing_checklist.progress_pct if packing_checklist else 0 }}</span>%)
+              </span>
+            </div>
           </div>
 
-          {% set packing = itinerary.get("packing_checklist", {}) %}
-          {% if packing %}
-          <div class="row g-4">
-            {% for category, items in packing.items() %}
-            {% if items %}
+          <!-- Progress Bar -->
+          <div class="progress mb-4" style="height: 8px; border-radius: 999px; background: #E2E8F0;">
+            <div class="progress-bar bg-turquoise" id="checklistProgressBar" role="progressbar" style="width: {{ packing_checklist.progress_pct if packing_checklist else 0 }}%; transition: width 0.3s ease;"></div>
+          </div>
+
+          {% if packing_checklist and packing_checklist.categories %}
+          <div class="row g-4" id="packingCategoriesContainer">
+            {% for cat_key, cat_data in packing_checklist.categories.items() %}
             <div class="col-md-6 col-lg-4">
               <div class="p-3 rounded-4 h-100" style="background: #F8FAFC; border: 1.5px solid #E2E8F0;">
-                <h6 class="fw-bold mb-3" style="color: #0F172A;">
-                  {% if category == 'clothes' %}👔
-                  {% elif category == 'electronics' %}📱
-                  {% elif category == 'medicines' %}💊
-                  {% elif category == 'documents' %}📄
-                  {% elif category == 'accessories' %}🎒
-                  {% else %}📦{% endif %}
-                  {{ category.replace('_', ' ')|title }}
-                </h6>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="fw-bold mb-0" style="color: #0F172A;">
+                    <span class="me-1">{{ cat_data.icon }}</span> {{ cat_data.title }}
+                  </h6>
+                  <span class="badge bg-white text-muted border extra-small px-2 py-1">{{ cat_data['items']|length }} items</span>
+                </div>
                 <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
-                  {% for item in items %}
-                  <li class="d-flex align-items-center gap-2 small" style="color: #1E293B; font-weight: 500;">
-                    <input type="checkbox" class="form-check-input border" id="pack_{{ loop.index }}_{{ category }}" />
-                    <label for="pack_{{ loop.index }}_{{ category }}" class="cursor-pointer mb-0">{{ item }}</label>
+                  {% for item in cat_data['items'] %}
+                  <li class="d-flex align-items-start gap-2 small" style="color: #1E293B; font-weight: 500;">
+                    <input type="checkbox"
+                           class="form-check-input border mt-1 checklist-item-checkbox cursor-pointer"
+                           id="{{ item.id }}"
+                           data-item-text="{{ item.text|e }}"
+                           {% if item.packed %}checked{% endif %}
+                           {% if is_shared %}disabled{% endif %}
+                           onchange="onChecklistItemToggle(this, {{ trip.id }})" />
+                    <label for="{{ item.id }}" class="cursor-pointer mb-0 flex-grow-1 {% if item.packed %}text-decoration-line-through text-muted{% endif %}" style="line-height: 1.45;">
+                      {{ item.text }}
+                    </label>
                   </li>
                   {% endfor %}
                 </ul>
               </div>
             </div>
-            {% endif %}
             {% endfor %}
           </div>
           {% else %}
-            <p class="small mb-0" style="color: #64748B;">Packing suggestions automatically generated for regional climate.</p>
+            <p class="small mb-0" style="color: #64748B;">Packing suggestions automatically tailored for regional climate.</p>
           {% endif %}
         </div>
       </div>
@@ -951,15 +1127,85 @@ const TRIP_ID = {{ trip.id }};
 const TRIP_DEST = "{{ trip.destination|e }}";
 const IS_SHARED = {% if is_shared %}true{% else %}false{% endif %};
 
-window.shareTrip = function(tripId) {
-  const shareUrl = window.location.origin + '/planner/share/' + tripId;
-  navigator.clipboard.writeText(shareUrl).then(() => {
-    alert("Public share link copied to clipboard!\nShare it with friends: " + shareUrl);
-  }).catch(err => {
-    console.error("Copy failed: ", err);
-    alert("Share Link:\n" + shareUrl);
+const INITIAL_SHARE_URL = "{{ share_url|default('', true) }}";
+let isPublic = {% if is_public %}true{% else %}false{% endif %};
+
+function copyShareLink(url) {
+  navigator.clipboard.writeText(url).then(() => {
+    alert("🔒 Secure trip link copied to clipboard!\n\nAnyone with this link can view this itinerary:\n" + url);
+  }).catch(() => {
+    prompt("Copy your secure trip share link:", url);
   });
+}
+
+window.shareTrip = async function(tripId) {
+  if (isPublic && INITIAL_SHARE_URL) {
+    copyShareLink(INITIAL_SHARE_URL);
+    return;
+  }
+  try {
+    const res = await fetch(`/planner/${tripId}/share/toggle`, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    const data = await res.json();
+    if (data.success && data.share_url) {
+      isPublic = true;
+      copyShareLink(data.share_url);
+    } else {
+      alert("Unable to generate sharing link: " + (data.error || "Permission denied"));
+    }
+  } catch (err) {
+    console.error("Share error:", err);
+    if (INITIAL_SHARE_URL) {
+      copyShareLink(INITIAL_SHARE_URL);
+    }
+  }
 };
+
+window.onChecklistItemToggle = async function(checkbox, tripId) {
+  const label = checkbox.nextElementSibling;
+  if (label) {
+    if (checkbox.checked) {
+      label.classList.add('text-decoration-line-through', 'text-muted');
+    } else {
+      label.classList.remove('text-decoration-line-through', 'text-muted');
+    }
+  }
+
+  const checkedBoxes = document.querySelectorAll('.checklist-item-checkbox:checked');
+  const checkedTexts = Array.from(checkedBoxes).map(cb => cb.dataset.itemText);
+
+  const totalBoxes = document.querySelectorAll('.checklist-item-checkbox');
+  const packedCount = checkedBoxes.length;
+  const totalCount = totalBoxes.length;
+  const pct = totalCount > 0 ? Math.round((packedCount / totalCount) * 100) : 0;
+
+  const packedCountVal = document.getElementById('packedCountVal');
+  const progressPctVal = document.getElementById('progressPctVal');
+  const progressBar = document.getElementById('checklistProgressBar');
+  if (packedCountVal) packedCountVal.textContent = packedCount;
+  if (progressPctVal) progressPctVal.textContent = pct;
+  if (progressBar) progressBar.style.width = pct + '%';
+
+  try {
+    const res = await fetch(`/planner/${tripId}/checklist`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ checked_items: checkedTexts })
+    });
+    const data = await res.json();
+    if (!data.success) {
+      console.warn("Checklist persistence warning:", data.error);
+    }
+  } catch (err) {
+    console.error("Checklist persistence error:", err);
+  }
+};
+
 
 const ITINERARY_DATA = {{ itinerary|tojson }};
 const WEATHER_DATA = {{ weather|tojson }};

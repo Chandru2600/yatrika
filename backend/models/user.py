@@ -82,3 +82,22 @@ def count_users() -> int:
     """Return total user count."""
     row = execute_query("SELECT COUNT(*) as cnt FROM users", fetchone=True)
     return row["cnt"] if row else 0
+
+
+def create_isolated_guest_user() -> int:
+    """Create a unique, isolated guest traveler account for an anonymous visitor."""
+    import secrets
+    guest_token = secrets.token_hex(6)
+    name = f"Guest Traveler {guest_token.upper()}"
+    email = f"guest_{guest_token}@guest.yatrika.local"
+    pw = secrets.token_urlsafe(16)
+    return create_user(name, email, pw, role="guest")
+
+
+def migrate_guest_trips_to_user(guest_user_id: int, target_user_id: int) -> int:
+    """Transfer trips and saved_trips created during an anonymous session to a newly registered user."""
+    if not guest_user_id or not target_user_id or guest_user_id == target_user_id:
+        return 0
+    execute_query("UPDATE trips SET user_id = ? WHERE user_id = ?", (target_user_id, guest_user_id))
+    execute_query("UPDATE saved_trips SET user_id = ? WHERE user_id = ?", (target_user_id, guest_user_id))
+    return 1

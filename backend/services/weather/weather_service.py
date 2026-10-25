@@ -218,3 +218,63 @@ def get_travel_weather_advice(weather: dict) -> list:
         alerts.append("✅ Weather looks great for travel! Enjoy your trip.")
 
     return alerts
+
+
+def evaluate_weather_horizon(trip: dict, weather: dict = None) -> dict:
+    """
+    Evaluate weather status, horizon coverage, and labeling transparency.
+    Categorizes data into 'live_forecast', 'seasonal_guidance', or 'unavailable'
+    based on departure proximity and provider forecast window limits.
+    """
+    from datetime import datetime, date
+    if weather is None:
+        weather = {}
+
+    start_date_str = trip.get("start_date") or ""
+    dest = (trip.get("destination") or "Destination").split(",")[0].strip()
+
+    try:
+        start_date = datetime.strptime(start_date_str.strip(), "%Y-%m-%d").date()
+    except Exception:
+        start_date = date.today()
+
+    today = date.today()
+    days_away = (start_date - today).days
+    num_days = int(trip.get("num_days", 1) or 1)
+
+    has_error = bool(weather.get("error"))
+    has_current = bool(weather.get("current") and not weather["current"].get("error"))
+
+    if has_error or (not has_current and not weather.get("forecast")):
+        return {
+            "status": "unavailable",
+            "label": "Forecast Not Yet Available",
+            "badge_class": "bg-secondary-subtle text-secondary border border-secondary-subtle",
+            "icon": "bi-cloud-slash",
+            "explanation": f"Live forecasts and climate data are temporarily unavailable for {dest}. Check local weather reports prior to departure.",
+            "days_away": days_away,
+            "is_live": False
+        }
+
+    # OpenWeatherMap standard forecasts cover 5 to 7 days
+    if -num_days <= days_away <= 7:
+        return {
+            "status": "live_forecast",
+            "label": "Live Forecast",
+            "badge_class": "bg-success-subtle text-success border border-success-subtle",
+            "icon": "bi-broadcast-pin",
+            "explanation": f"Live multi-day forecast provided for your travel window ({trip.get('start_date')} → {trip.get('end_date')}).",
+            "days_away": days_away,
+            "is_live": True
+        }
+    else:
+        return {
+            "status": "seasonal_guidance",
+            "label": "Typical Seasonal Guidance",
+            "badge_class": "bg-info-subtle text-info border border-info-subtle",
+            "icon": "bi-calendar3",
+            "explanation": f"Departure is {days_away} days away. Live day-specific forecasts become available 5–7 days prior to travel. Showing typical seasonal climate norms for {dest}.",
+            "days_away": days_away,
+            "is_live": False
+        }
+

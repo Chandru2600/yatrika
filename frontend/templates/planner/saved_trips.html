@@ -38,8 +38,9 @@
           </div>
           {% endif %}
 
-          <div class="d-flex gap-2 mt-auto pt-3 border-top">
+          <div class="d-flex gap-2 mt-auto pt-3 border-top saved-trip-actions-row">
             <a href="{{ url_for('planner.view_trip', trip_id=t.trip_id) }}" class="btn btn-turquoise btn-sm flex-grow-1">
+
               View Itinerary
             </a>
             <button class="btn btn-outline-navy btn-sm" onclick="shareTrip({{ t.trip_id }})" title="Share Link">
@@ -71,14 +72,25 @@
 
 {% block extra_js %}
 <script>
-function shareTrip(tripId) {
-  const shareUrl = window.location.origin + '/planner/share/' + tripId;
-  navigator.clipboard.writeText(shareUrl).then(() => {
-    alert("Public share link copied to clipboard!\n" + shareUrl);
-  }).catch(err => {
-    console.error("Copy failed: ", err);
-    alert("Share Link:\n" + shareUrl);
-  });
+async function shareTrip(tripId) {
+  try {
+    const res = await fetch(`/planner/${tripId}/share/toggle`, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    const data = await res.json();
+    if (data.success && data.share_url) {
+      navigator.clipboard.writeText(data.share_url).then(() => {
+        alert("🔒 Secure trip share link copied to clipboard!\n\n" + data.share_url);
+      }).catch(() => {
+        prompt("Copy your secure trip share link:", data.share_url);
+      });
+    } else {
+      alert("Sharing error: " + (data.error || "Could not generate link"));
+    }
+  } catch (e) {
+    alert("Could not enable sharing for this trip.");
+  }
 }
 </script>
 {% endblock %}

@@ -3,6 +3,7 @@ TravelPlannerAgent - Trip Model
 """
 
 import json
+import secrets
 from backend.database.db import execute_query, execute_insert
 
 
@@ -10,14 +11,16 @@ def create_trip(user_id: int, data: dict) -> int:
     """Insert a new trip and return its ID."""
     transit_details = data.get("transit_details", {})
     transit_details_str = json.dumps(transit_details) if isinstance(transit_details, (dict, list)) else str(transit_details or "")
+    share_token = data.get("share_token") or secrets.token_urlsafe(16)
+    is_public = 1 if data.get("is_public") else 0
 
     return execute_insert("""
         INSERT INTO trips
             (user_id, destination, start_date, end_date, num_days, budget,
              num_travelers, travel_style, transport, transit_mode, transit_cost,
              arrival_time, transit_details_json, interests,
-             special_requirements, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')
+             special_requirements, status, share_token, is_public)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)
     """, (
         user_id,
         data.get("destination"),
@@ -33,7 +36,9 @@ def create_trip(user_id: int, data: dict) -> int:
         data.get("arrival_time", "10:00"),
         transit_details_str,
         json.dumps(data.get("interests", [])),
-        json.dumps(data.get("special_requirements", []))
+        json.dumps(data.get("special_requirements", [])),
+        share_token,
+        is_public
     ))
 
 
@@ -154,3 +159,77 @@ def get_expenses(trip_id: int):
         "SELECT * FROM expenses WHERE trip_id = ? ORDER BY date",
         (trip_id,)
     )
+
+
+def delete_expense(expense_id: int, trip_id: int) -> None:
+    """Delete an expense record from a trip."""
+    execute_query(
+        "DELETE FROM expenses WHERE id = ? AND trip_id = ?",
+        (expense_id, trip_id)
+    )
+
+
+def get_trip_by_share_token(token: str):
+    """Fetch an actively shared trip by its cryptographic token."""
+    if not token or not isinstance(token, str) or len(token.strip()) < 10:
+        return None
+    return execute_query(
+        "SELECT * FROM trips WHERE share_token = ? AND is_public = 1",
+        (token.strip(),),
+        fetchone=True
+    )
+
+
+def enable_trip_sharing(trip_id: int, user_id: int) -> str:
+    """Make trip publicly accessible via a secure cryptographic token and return token."""
+    trip = get_trip_by_id(trip_id)
+    if not trip or trip["user_id"] != user_id:
+        return None
+    token = trip["share_token"]
+    if not token:
+        token = secrets.token_urlsafe(16)
+    execute_query(
+        "UPDATE trips SET is_public = 1, share_token = ? WHERE id = ? AND user_id = ?",
+        (token, trip_id, user_id)
+    )
+    return token
+
+
+def disable_trip_sharing(trip_id: int, user_id: int) -> bool:
+    """Revoke public access for a trip."""
+    trip = get_trip_by_id(trip_id)
+    if not trip or trip["user_id"] != user_id:
+        return False
+    execute_query(
+        "UPDATE trips SET is_public = 0 WHERE id = ? AND user_id = ?",
+        (trip_id, user_id)
+    )
+    return True
+
+
+def get_trip_checklist(trip_id: int, user_id: int):
+    """Retrieve saved packing checklist for a trip with user ownership verification."""
+    trip = get_trip_by_id(trip_id)
+    if not trip or trip["user_id"] != user_id:
+        return None
+    try:
+        raw = trip["checklist_json"] if "checklist_json" in trip.keys() else None
+        if not raw:
+            return None
+        return json.loads(raw)
+    except Exception:
+        return None
+
+
+def update_trip_checklist(trip_id: int, user_id: int, checklist: dict) -> bool:
+    """Persist packing checklist state with strict trip ownership validation."""
+    trip = get_trip_by_id(trip_id)
+    if not trip or trip["user_id"] != user_id:
+        return False
+    checklist_str = json.dumps(checklist) if checklist is not None else None
+    execute_query(
+        "UPDATE trips SET checklist_json = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?",
+        (checklist_str, trip_id, user_id)
+    )
+    return True
+

@@ -25,20 +25,12 @@ def launchpad():
     """Interactive creator launchpad — choose between Express AI and Custom Studio."""
     user_id = session.get("user_id")
     if not user_id:
-        # Seamless guest session initialization so planning is never blocked
-        from backend.models.user import get_user_by_email, create_user
-        guest = get_user_by_email("guest@yatrika.ai")
-        if not guest:
-            try:
-                user_id = create_user("Guest Traveler", "guest@yatrika.ai", "GuestTraveler123!")
-            except Exception:
-                user_id = 1
-        else:
-            user_id = guest["id"]
+        from backend.models.user import create_isolated_guest_user
+        user_id = create_isolated_guest_user()
         session.permanent = True
         session["user_id"] = user_id
         session["user_name"] = "Traveler"
-        session["user_role"] = "user"
+        session["user_role"] = "guest"
         session["is_guest"] = True
 
     user_name = session.get("user_name", "Traveler")
@@ -91,6 +83,24 @@ def dashboard():
         stats=stats,
         weather=weather_summary
     )
+
+
+@main_bp.route("/destinations")
+def destinations_redirect():
+    """Redirect root /destinations to planner destinations catalog."""
+    return redirect(url_for("planner.destinations"), code=302)
+
+
+@main_bp.route("/wizard")
+def wizard_redirect():
+    """Redirect root /wizard to planner wizard."""
+    return redirect(url_for("planner.wizard"), code=302)
+
+
+@main_bp.route("/new")
+def new_trip_redirect():
+    """Redirect root /new to planner new trip."""
+    return redirect(url_for("planner.new_trip"), code=302)
 
 
 @main_bp.route("/datasets")

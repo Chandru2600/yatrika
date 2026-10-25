@@ -4,16 +4,19 @@ TravelPlannerAgent - Database Initialization & Helper
 
 import sqlite3
 import os
+import secrets
 from backend.config import get_config
 
 cfg = get_config()
-DATABASE_PATH = cfg.DATABASE_PATH
+DATABASE_PATH = os.environ.get("DATABASE_PATH") or cfg.DATABASE_PATH
 
 
 def get_database_path() -> str:
     """Return active database path from Flask config or default."""
     from flask import current_app, has_app_context
-    return current_app.config.get("DATABASE_PATH", DATABASE_PATH) if has_app_context() else DATABASE_PATH
+    if has_app_context():
+        return current_app.config.get("DATABASE_PATH") or os.environ.get("DATABASE_PATH") or DATABASE_PATH
+    return os.environ.get("DATABASE_PATH") or DATABASE_PATH
 
 
 def get_db_connection() -> sqlite3.Connection:
@@ -72,6 +75,7 @@ def init_db() -> None:
             weather_json         TEXT    DEFAULT NULL,
             budget_json          TEXT    DEFAULT NULL,
             hotels_json          TEXT    DEFAULT NULL,
+            checklist_json       TEXT    DEFAULT NULL,
             status               TEXT    DEFAULT 'draft',
             created_at           TEXT    DEFAULT (datetime('now')),
             updated_at           TEXT    DEFAULT (datetime('now')),
@@ -90,6 +94,18 @@ def init_db() -> None:
         cursor.execute("ALTER TABLE trips ADD COLUMN arrival_time TEXT DEFAULT '10:00'")
     if "transit_details_json" not in cols:
         cursor.execute("ALTER TABLE trips ADD COLUMN transit_details_json TEXT DEFAULT NULL")
+    if "share_token" not in cols:
+        cursor.execute("ALTER TABLE trips ADD COLUMN share_token TEXT DEFAULT NULL")
+    if "is_public" not in cols:
+        cursor.execute("ALTER TABLE trips ADD COLUMN is_public INTEGER DEFAULT 0")
+    if "checklist_json" not in cols:
+        cursor.execute("ALTER TABLE trips ADD COLUMN checklist_json TEXT DEFAULT NULL")
+    cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_trips_share_token ON trips(share_token) WHERE share_token IS NOT NULL")
+
+    # Securely backfill missing share tokens for any existing trips (defaulting to private is_public=0)
+    cursor.execute("SELECT id FROM trips WHERE share_token IS NULL")
+    for row in cursor.fetchall():
+        cursor.execute("UPDATE trips SET share_token = ?, is_public = 0 WHERE id = ?", (secrets.token_urlsafe(16), row[0]))
 
 
     # ── SavedTrips ────────────────────────────────────────────

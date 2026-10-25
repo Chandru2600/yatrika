@@ -20,7 +20,7 @@ class Config:
 
     # ── Database ─────────────────────────────────────────────
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    DATABASE_PATH = os.path.join(BASE_DIR, "database", "travel_planner.db")
+    DATABASE_PATH = os.environ.get("DATABASE_PATH") or os.path.join(BASE_DIR, "database", "travel_planner.db")
 
     # ── IBM watsonx.ai / Granite ──────────────────────────────
     # Read at access time so .env changes take effect without restart

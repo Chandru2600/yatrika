@@ -8,18 +8,22 @@ import re
 from pathlib import Path
 from flask import (
     Blueprint, request, render_template, redirect,
-    url_for, session, flash, jsonify, send_file
+    url_for, session, flash, jsonify, send_file, Response
 )
 from backend.routes.auth_routes import login_required
 from backend.models.trip import (
     get_trip_by_id, get_trips_by_user,
     delete_trip, save_trip,
-    get_saved_trips, unsave_trip, add_expense, get_expenses
+    get_saved_trips, unsave_trip, add_expense, get_expenses,
+    get_trip_by_share_token, enable_trip_sharing, disable_trip_sharing, delete_expense,
+    get_trip_checklist, update_trip_checklist
 )
 from backend.services.weather.weather_service import (
-    get_current_weather, get_forecast, get_travel_weather_advice
+    get_current_weather, get_forecast, get_travel_weather_advice, evaluate_weather_horizon
 )
 from backend.services.pdf.pdf_service import generate_trip_pdf
+from backend.services.calendar.calendar_service import generate_trip_ics
+from backend.services.packing.packing_service import generate_smart_packing_checklist
 from backend.agents_models.coord_resolver import resolve_destination_coords
 
 planner_bp = Blueprint("planner", __name__, url_prefix="/planner")
@@ -1002,12 +1006,22 @@ def update_planner(trip_id: int):
         budget = json.loads(trip["budget_json"] or "{}")
         budget["total_budget"] = total_spend
         budget["daily_average"] = total_spend / num_days if num_days > 0 else total_spend
-        if "breakdown" in budget:
-            budget["breakdown"]["entry_fees"]["amount"] = entry_fees
-            budget["breakdown"]["fuel"]["amount"] = fuel_cost
+        if "breakdown" in budget and isinstance(budget["breakdown"], dict):
+            if "entry_fees" in budget["breakdown"] and isinstance(budget["breakdown"]["entry_fees"], dict):
+                budget["breakdown"]["entry_fees"]["amount"] = entry_fees
+            elif "activities_tickets" in budget["breakdown"] and isinstance(budget["breakdown"]["activities_tickets"], dict):
+                budget["breakdown"]["activities_tickets"]["amount"] = entry_fees
+
+            if "fuel" in budget["breakdown"] and isinstance(budget["breakdown"]["fuel"], dict):
+                budget["breakdown"]["fuel"]["amount"] = fuel_cost
+            elif "transportation" in budget["breakdown"] and isinstance(budget["breakdown"]["transportation"], dict):
+                budget["breakdown"]["transportation"]["amount"] = fuel_cost
+
             budget_pct_denom = total_spend if total_spend > 0 else 1
             for k in budget["breakdown"]:
-                budget["breakdown"][k]["percentage"] = (budget["breakdown"][k]["amount"] / budget_pct_denom) * 100
+                if isinstance(budget["breakdown"][k], dict) and "amount" in budget["breakdown"][k]:
+                    budget["breakdown"][k]["percentage"] = (budget["breakdown"][k]["amount"] / budget_pct_denom) * 100
+
 
         execute_query("""
             UPDATE trips
@@ -1021,29 +1035,84 @@ def update_planner(trip_id: int):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@planner_bp.route("/share/<int:trip_id>")
-def share_trip(trip_id: int):
-    """Public shareable view of a trip itinerary."""
-    trip = get_trip_by_id(trip_id)
+@planner_bp.route("/share/<string:token>")
+def share_trip_by_token(token: str):
+    """Public shareable view of an actively shared trip via secure token."""
+    trip = get_trip_by_share_token(token)
     if not trip:
-        flash("Trip not found.", "warning")
-        return redirect(url_for("main.dashboard"))
+        flash("This shared itinerary link is invalid, expired, or has been made private by the owner.", "warning")
+        return redirect(url_for("main.home"))
 
-    itinerary  = json.loads(trip["itinerary_json"] or "{}")
-    weather    = json.loads(trip["weather_json"]   or "{}")
-    budget     = json.loads(trip["budget_json"]    or "{}")
-    hotels     = json.loads(trip["hotels_json"]    or "{}")
-    expenses   = get_expenses(trip_id)
+    trip = dict(trip)
+    itinerary  = json.loads(trip.get("itinerary_json") or "{}")
+    weather    = json.loads(trip.get("weather_json")   or "{}")
+    budget     = json.loads(trip.get("budget_json")    or "{}")
+    hotels     = json.loads(trip.get("hotels_json")    or "{}")
+    expenses   = get_expenses(trip["id"])
+
+    share_url = url_for("planner.share_trip_by_token", token=trip["share_token"], _external=True)
+    weather_horizon = evaluate_weather_horizon(trip, weather)
+    saved_checklist = get_trip_checklist(trip["id"], trip["user_id"])
+    packing_checklist = generate_smart_packing_checklist(trip, weather, saved_checklist)
 
     return render_template("planner/view_trip.html",
         trip=trip,
         itinerary=itinerary,
         weather=weather,
+        weather_horizon=weather_horizon,
+        packing_checklist=packing_checklist,
         budget=budget,
         hotels=hotels,
         expenses=expenses,
-        is_shared=True
+        is_shared=True,
+        share_url=share_url
     )
+
+
+@planner_bp.route("/share/<int:trip_id>")
+def legacy_share_trip(trip_id: int):
+    """Safe handling for deprecated sequential numeric share links."""
+    trip = get_trip_by_id(trip_id)
+    user_id = session.get("user_id")
+
+    # If the owner themselves clicked a legacy link, redirect them safely
+    if trip and user_id and trip["user_id"] == user_id:
+        if trip["is_public"] and trip["share_token"]:
+            return redirect(url_for("planner.share_trip_by_token", token=trip["share_token"]))
+        return redirect(url_for("planner.view_trip", trip_id=trip_id))
+
+    flash("Sequential share links have been deprecated for traveler privacy. Please use the secure share link provided by the trip owner.", "warning")
+    return redirect(url_for("main.home"))
+
+
+@planner_bp.route("/<int:trip_id>/share/toggle", methods=["POST"])
+@login_required
+def toggle_trip_share(trip_id: int):
+    """Toggle public sharing on/off for a trip owned by current user."""
+    trip = get_trip_by_id(trip_id)
+    if not trip or trip["user_id"] != session["user_id"]:
+        return jsonify({"success": False, "error": "Trip not found or access denied."}), 404
+
+    current_public = bool(trip["is_public"])
+    new_public = not current_public
+
+    if new_public:
+        token = enable_trip_sharing(trip_id, session["user_id"])
+        share_url = url_for("planner.share_trip_by_token", token=token, _external=True)
+        return jsonify({
+            "success": True,
+            "is_public": True,
+            "share_token": token,
+            "share_url": share_url,
+            "message": "Trip is now publicly viewable via secure link."
+        })
+    else:
+        disable_trip_sharing(trip_id, session["user_id"])
+        return jsonify({
+            "success": True,
+            "is_public": False,
+            "message": "Trip sharing revoked. Link is now private."
+        })
 
 
 @planner_bp.route("/<int:trip_id>")
@@ -1055,19 +1124,29 @@ def view_trip(trip_id: int):
         flash("Trip not found.", "warning")
         return redirect(url_for("main.dashboard"))
 
-    itinerary  = json.loads(trip["itinerary_json"] or "{}")
-    weather    = json.loads(trip["weather_json"]   or "{}")
-    budget     = json.loads(trip["budget_json"]    or "{}")
-    hotels     = json.loads(trip["hotels_json"]    or "{}")
+    trip = dict(trip)
+    itinerary  = json.loads(trip.get("itinerary_json") or "{}")
+    weather    = json.loads(trip.get("weather_json")   or "{}")
+    budget     = json.loads(trip.get("budget_json")    or "{}")
+    hotels     = json.loads(trip.get("hotels_json")    or "{}")
     expenses   = get_expenses(trip_id)
+
+    share_url = url_for("planner.share_trip_by_token", token=trip["share_token"], _external=True) if trip.get("share_token") else ""
+    weather_horizon = evaluate_weather_horizon(trip, weather)
+    saved_checklist = get_trip_checklist(trip_id, session["user_id"])
+    packing_checklist = generate_smart_packing_checklist(trip, weather, saved_checklist)
 
     return render_template("planner/view_trip.html",
         trip=trip,
         itinerary=itinerary,
         weather=weather,
+        weather_horizon=weather_horizon,
+        packing_checklist=packing_checklist,
         budget=budget,
         hotels=hotels,
-        expenses=expenses
+        expenses=expenses,
+        share_url=share_url,
+        is_public=bool(trip.get("is_public", 0))
     )
 
 
@@ -1134,15 +1213,107 @@ def download_pdf(trip_id: int):
         return redirect(url_for("planner.view_trip", trip_id=trip_id))
 
 
+@planner_bp.route("/<int:trip_id>/ics")
+@login_required
+def export_ics(trip_id: int):
+    """Generate and serve a standard RFC 5545 iCalendar (.ics) file for the trip."""
+    trip = get_trip_by_id(trip_id)
+    if not trip or trip["user_id"] != session["user_id"]:
+        flash("Trip not found or access denied.", "warning")
+        return redirect(url_for("main.dashboard"))
+
+    trip = dict(trip)
+    try:
+        itinerary = json.loads(trip.get("itinerary_json") or "{}")
+    except Exception:
+        itinerary = {}
+
+    try:
+        ics_content = generate_trip_ics(trip, itinerary)
+        dest_raw = trip.get("destination", "itinerary")
+        dest_slug = re.sub(r'[^a-zA-Z0-9_\-]+', '_', dest_raw).strip('_') or "itinerary"
+        download_filename = f"yatrika-{dest_slug.lower()}-itinerary.ics"
+
+        return Response(
+            ics_content,
+            mimetype="text/calendar; charset=utf-8",
+            headers={
+                "Content-Disposition": f'attachment; filename="{download_filename}"',
+                "Content-Type": "text/calendar; charset=utf-8"
+            }
+        )
+    except Exception as e:
+        flash(f"Calendar export failed: {e}", "danger")
+        return redirect(url_for("planner.view_trip", trip_id=trip_id))
+
+
+@planner_bp.route("/<int:trip_id>/checklist", methods=["POST"])
+@login_required
+def update_checklist_route(trip_id: int):
+    """Update checklist packed state with strict trip ownership validation."""
+    trip = get_trip_by_id(trip_id)
+    if not trip or trip["user_id"] != session["user_id"]:
+        return jsonify({"success": False, "error": "Trip not found or access denied."}), 404
+
+    trip = dict(trip)
+    data = request.get_json(silent=True) or {}
+    checked_items = data.get("checked_items", [])
+    if not isinstance(checked_items, list):
+        return jsonify({"success": False, "error": "Invalid checked_items format."}), 400
+
+    weather = json.loads(trip.get("weather_json") or "{}")
+    updated_checklist = generate_smart_packing_checklist(
+        trip,
+        weather,
+        {"checked_items": checked_items}
+    )
+
+    update_trip_checklist(trip_id, session["user_id"], updated_checklist)
+
+    return jsonify({
+        "success": True,
+        "packed_count": updated_checklist["packed_count"],
+        "total_count": updated_checklist["total_count"],
+        "progress_pct": updated_checklist["progress_pct"]
+    })
+
+
 @planner_bp.route("/<int:trip_id>/expense", methods=["POST"])
 @login_required
 def add_expense_route(trip_id: int):
-    """Add a manual expense entry."""
-    category    = request.form.get("category", "miscellaneous")
-    amount      = float(request.form.get("amount", 0))
-    description = request.form.get("description", "")
+    """Add a manual expense entry with strict trip ownership validation."""
+    trip = get_trip_by_id(trip_id)
+    if not trip or trip["user_id"] != session["user_id"]:
+        flash("Trip not found or access denied.", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    category = request.form.get("category", "miscellaneous").strip()
+    try:
+        amount = float(request.form.get("amount", 0))
+    except (ValueError, TypeError):
+        amount = 0.0
+
+    if amount <= 0:
+        flash("Expense amount must be greater than zero.", "warning")
+        return redirect(url_for("planner.view_trip", trip_id=trip_id))
+
+    description = request.form.get("description", "").strip()
     add_expense(trip_id, category, amount, description)
     flash("Expense added.", "success")
+    return redirect(url_for("planner.view_trip", trip_id=trip_id))
+
+
+@planner_bp.route("/<int:trip_id>/expense/<int:expense_id>/delete", methods=["POST"])
+@login_required
+def delete_expense_route(trip_id: int, expense_id: int):
+    """Delete a manual expense entry with strict trip ownership validation."""
+    trip = get_trip_by_id(trip_id)
+    if not trip or trip["user_id"] != session["user_id"]:
+        flash("Trip not found or access denied.", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    delete_expense(expense_id, trip_id)
+    flash("Expense removed.", "info")
     return redirect(url_for("planner.view_trip", trip_id=trip_id))
 
 
