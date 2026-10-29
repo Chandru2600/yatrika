@@ -52,22 +52,44 @@ def create_app(env: str = "development") -> Flask:
     app.register_blueprint(admin_bp)
     app.register_blueprint(api_bp)
 
-    # ── CORS Middleware ──────────────────────────────────────
+    # ── CORS Middleware (Configurable Allowed Origins) ────────
     from flask import request
+    raw_origins = getattr(cfg, "CORS_ALLOWED_ORIGINS", "") or ""
+    allowed_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
+
+    def _resolve_cors_origin(req_origin):
+        if not req_origin:
+            return None
+        if "*" in allowed_origins:
+            return "*"
+        if req_origin in allowed_origins:
+            return req_origin
+        return None
+
     @app.after_request
     def handle_cors(response):
-        response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
-        response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
+        origin = request.headers.get("Origin")
+        allowed = _resolve_cors_origin(origin)
+        if allowed:
+            response.headers["Access-Control-Allow-Origin"] = allowed
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+            response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
+            if allowed != "*":
+                response.headers["Access-Control-Allow-Credentials"] = "true"
         return response
 
     @app.before_request
     def handle_preflight():
         if request.method == "OPTIONS":
             response = app.make_default_options_response()
-            response.headers["Access-Control-Allow-Origin"] = "*"
-            response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
-            response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
+            origin = request.headers.get("Origin")
+            allowed = _resolve_cors_origin(origin)
+            if allowed:
+                response.headers["Access-Control-Allow-Origin"] = allowed
+                response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+                response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
+                if allowed != "*":
+                    response.headers["Access-Control-Allow-Credentials"] = "true"
             return response
 
     # ── Jinja2 Globals ──────────────────────────────────────

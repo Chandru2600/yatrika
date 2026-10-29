@@ -14,6 +14,18 @@ python-dotenv==1.0.1
 # ── Production WSGI Server ───────────────────────────────────────
 gunicorn==22.0.0
 
-# ── Testing & Browser Automation (Phase 4) ────────────────────────
+# ── Data Science & Machine Learning ──────────────────────────────
+numpy==2.2.6
+pandas==2.3.3
+scipy==1.15.3
+scikit-learn==1.7.2
+joblib==1.6.0
+matplotlib==3.10.9
+
+# ── Security & Validation ────────────────────────────────────────
+bcrypt==5.0.0
+jsonschema==4.26.0
+
+# ── Testing & Browser Automation ─────────────────────────────────
 playwright>=1.49.0
 pytest>=8.0.0

@@ -153,13 +153,16 @@ cp .env.example .env
 Edit `.env` and fill in your credentials:
 
 ```env
+SECRET_KEY=your-secure-random-secret-key-32-chars-minimum
+CORS_ALLOWED_ORIGINS=http://localhost:5000,http://127.0.0.1:5000,http://localhost:5001,http://127.0.0.1:5001
 IBM_API_KEY=your_ibm_cloud_api_key
 IBM_PROJECT_ID=your_watsonx_project_id
 IBM_WATSONX_URL=https://us-south.ml.cloud.ibm.com
-GRANITE_MODEL_ID=ibm/granite-13b-instruct-v2
+GRANITE_MODEL_ID=ibm/granite-4-h-small
 WEATHER_API_KEY=your_openweathermap_key
-SECRET_KEY=your-secure-random-secret-key
 ```
+
+> **Note on Security:** `SECRET_KEY` is mandatory in development and production (fails fast if unset). User passwords are encrypted using `bcrypt` (12 rounds) with backward compatibility for legacy hashes. CORS is restricted to configurable origins via `CORS_ALLOWED_ORIGINS`.
 
 ### 3. Run the Application
 

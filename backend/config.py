@@ -9,7 +9,7 @@ class Config:
     """Base configuration class."""
 
     # ── Flask ────────────────────────────────────────────────
-    SECRET_KEY = os.environ.get("SECRET_KEY", "ibm-travel-planner-secret-2024")
+    SECRET_KEY = ""
     DEBUG = False
     TESTING = False
 
@@ -17,6 +17,9 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
     SESSION_COOKIE_SECURE = False
     SESSION_COOKIE_HTTPONLY = True
+
+    # ── CORS ─────────────────────────────────────────────────
+    CORS_ALLOWED_ORIGINS = "http://localhost:5000,http://127.0.0.1:5000,http://localhost:5001,http://127.0.0.1:5001"
 
     # ── Database ─────────────────────────────────────────────
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -39,6 +42,20 @@ class Config:
 
     def __init__(self):
         """Read all env vars at instantiation time (after load_dotenv)."""
+        secret = os.environ.get("SECRET_KEY", "").strip()
+        if not secret:
+            if getattr(self, "TESTING", False) or os.environ.get("FLASK_ENV") == "testing":
+                secret = "test-secret-key-for-testing-only"
+            else:
+                raise ValueError(
+                    "FATAL: SECRET_KEY environment variable is not set. "
+                    "A secure random SECRET_KEY must be provided in .env or system environment."
+                )
+        self.SECRET_KEY = secret
+        self.CORS_ALLOWED_ORIGINS = os.environ.get(
+            "CORS_ALLOWED_ORIGINS",
+            "http://localhost:5000,http://127.0.0.1:5000,http://localhost:5001,http://127.0.0.1:5001"
+        ).strip()
         self.IBM_API_KEY      = os.environ.get("IBM_API_KEY", "").strip()
         self.IBM_PROJECT_ID   = (os.environ.get("IBM_PROJECT_ID") or os.environ.get("WATSONX_PROJECT_ID", "")).strip()
         self.IBM_WATSONX_URL  = (os.environ.get("IBM_WATSONX_URL") or os.environ.get("WATSONX_URL", "https://us-south.ml.cloud.ibm.com")).strip()

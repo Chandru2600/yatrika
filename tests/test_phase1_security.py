@@ -331,6 +331,63 @@ class Phase1SecurityTestCase(unittest.TestCase):
         self.assertEqual(resp_new.status_code, 302)
         self.assertIn("/planner/new", resp_new.headers.get("Location", ""))
 
+    # ─────────────────────────────────────────────────────────────
+    # 7. Hygiene & Cryptographic Security
+    # ─────────────────────────────────────────────────────────────
+
+    def test_bcrypt_password_hashing_and_legacy_sha256_compat(self):
+        """Verify new passwords use bcrypt ($2b$) and legacy salt:hash (SHA-256) still verifies cleanly."""
+        from backend.models.user import hash_password, verify_password
+        import hashlib
+
+        # 1. New password must generate bcrypt hash starting with $2b$
+        pw = "SuperSecurePassword123!"
+        hashed = hash_password(pw)
+        self.assertTrue(hashed.startswith("$2b$") or hashed.startswith("$2a$"), f"Expected bcrypt prefix, got {hashed}")
+        self.assertTrue(verify_password(pw, hashed))
+        self.assertFalse(verify_password("WrongPassword!", hashed))
+
+        # 2. Legacy SHA-256 salt:hash compatibility
+        legacy_salt = "abcdef1234567890"
+        legacy_sha = hashlib.sha256((pw + legacy_salt).encode("utf-8")).hexdigest()
+        legacy_stored = f"{legacy_salt}:{legacy_sha}"
+        self.assertTrue(verify_password(pw, legacy_stored), "Legacy SHA-256 password must verify cleanly")
+        self.assertFalse(verify_password("WrongPassword!", legacy_stored))
+
+    def test_secret_key_fail_fast_when_unset(self):
+        """Config must raise ValueError if SECRET_KEY is missing in non-testing environment."""
+        import os
+        from backend.config import DevelopmentConfig
+
+        old_secret = os.environ.get("SECRET_KEY")
+        old_env = os.environ.get("FLASK_ENV")
+        try:
+            if "SECRET_KEY" in os.environ:
+                del os.environ["SECRET_KEY"]
+            os.environ["FLASK_ENV"] = "development"
+
+            with self.assertRaises(ValueError) as ctx:
+                DevelopmentConfig()
+            self.assertIn("SECRET_KEY environment variable is not set", str(ctx.exception))
+        finally:
+            if old_secret is not None:
+                os.environ["SECRET_KEY"] = old_secret
+            if old_env is not None:
+                os.environ["FLASK_ENV"] = old_env
+
+    def test_cors_allowed_origins_enforcement(self):
+        """CORS must only reflect allowed origins and ignore unauthorized external origins."""
+        client = self.app.test_client()
+
+        # Authorized origin
+        resp_allowed = client.get("/api/destinations", headers={"Origin": "http://localhost:5000"})
+        self.assertEqual(resp_allowed.headers.get("Access-Control-Allow-Origin"), "http://localhost:5000")
+
+        # Unauthorized origin
+        resp_blocked = client.get("/api/destinations", headers={"Origin": "https://malicious-site.example.com"})
+        self.assertIsNone(resp_blocked.headers.get("Access-Control-Allow-Origin"))
+
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -2,23 +2,35 @@
 TravelPlannerAgent - User Model
 """
 
+import bcrypt
 import hashlib
 import os
 from backend.database.db import execute_query, execute_insert
 
 
 def hash_password(password: str) -> str:
-    """SHA-256 hash with random salt."""
-    salt = os.urandom(16).hex()
-    hashed = hashlib.sha256((password + salt).encode()).hexdigest()
-    return f"{salt}:{hashed}"
+    """Hash password using bcrypt with random salt."""
+    salt = bcrypt.gensalt(rounds=12)
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
 
 
 def verify_password(password: str, stored: str) -> bool:
-    """Verify password against stored salt:hash."""
+    """
+    Verify password against stored hash.
+    Supports bcrypt ($2b$, $2a$, $2y$) as well as legacy SHA-256 (salt:hash)
+    for seamless backward compatibility.
+    """
+    if not stored:
+        return False
+    # Legacy SHA-256 format: salt:hash
+    if ":" in stored and not stored.startswith("$2"):
+        try:
+            salt, hashed = stored.split(":", 1)
+            return hashlib.sha256((password + salt).encode("utf-8")).hexdigest() == hashed
+        except Exception:
+            return False
     try:
-        salt, hashed = stored.split(":")
-        return hashlib.sha256((password + salt).encode()).hexdigest() == hashed
+        return bcrypt.checkpw(password.encode("utf-8"), stored.encode("utf-8"))
     except Exception:
         return False
 
