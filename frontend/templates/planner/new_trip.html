@@ -254,9 +254,9 @@
     <!-- Page Header -->
     <div class="text-center mb-4">
       <span class="badge-tag badge-tag-turquoise mb-2">
-        <i class="bi bi-robot me-1"></i>4-Agent Cooperative Travel AI
+        <i class="bi bi-stars me-1"></i>Intelligent Travel Planner
       </span>
-      <h1 class="display-6 fw-extrabold text-navy mb-2">Plan Your Dream Indian Journey</h1>
+      <h1 class="display-6 fw-extrabold text-navy mb-2">Plan Your Perfect Indian Journey</h1>
       <p class="text-muted small mx-auto" style="max-width: 600px;">
         Instant, data-driven travel itineraries anchored around verified Base Camp stays, real IRCTC rail schedules, and ₹ INR budgeting.
       </p>
@@ -265,20 +265,169 @@
     <form method="POST" action="{{ url_for('planner.new_trip') }}" id="plannerForm">
       <div class="row g-4">
 
-        <!-- ── Left Column: Planning Parameters ─────────────────── -->
+        <!-- ── Left Column: Planning Parameters (Feature 6: 6 Essential Fields + Collapsible Advanced) ── -->
         <div class="col-lg-8">
 
-          <!-- 1. Origin & Destination -->
-          <div class="card-panel-clean">
-            <div class="panel-header-clean">
-              <i class="bi bi-geo-alt-fill text-turquoise"></i> 1. Route &amp; Base Camp Destination
+          <!-- ── 6 ESSENTIAL FIELDS CARD (<60s to Plan) ── -->
+          <div class="card-panel-clean mb-4 shadow-sm" id="essentialFieldsCard">
+            <div class="panel-header-clean d-flex justify-content-between align-items-center mb-3">
+              <span class="d-flex align-items-center gap-2">
+                <i class="bi bi-lightning-charge-fill text-warning fs-5"></i>
+                <span class="fw-bold">Essential Trip Details</span>
+                <span class="badge bg-success-subtle text-success border border-success-subtle small fw-semibold">6 Quick Fields · Plan in &lt;60s</span>
+              </span>
             </div>
 
-            <div class="row g-3">
+            <!-- Field 1: Destination City / Region -->
+            <div class="mb-4">
+              <label class="form-label-modern d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-pin-map-fill text-turquoise me-1"></i> 1. Destination City / Region <span class="text-danger">*</span></span>
+                <span class="extra-small text-turquoise fw-bold">Live Suggestions &amp; Categories</span>
+              </label>
+              <div class="place-autocomplete-container" data-type="destination" id="destContainer">
+                <div class="place-input-box">
+                  <div class="place-input-icon">
+                    <i class="bi bi-pin-map-fill"></i>
+                  </div>
+                  <div class="place-input-content">
+                    <input type="text" name="destination" id="destinationInput" class="place-text-input fw-bold"
+                      placeholder="Type destination, e.g. Coorg, Chikmagalur, Goa, Manali, Jaipur..."
+                      value="{{ values.get('destination', 'Coorg') }}" autocomplete="off" spellcheck="false" required />
+                  </div>
+                  <button type="button" class="place-clear-btn d-none" title="Clear destination" aria-label="Clear">
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                  <div class="place-indicator-chip d-none">
+                    <span class="place-chip-badge"></span>
+                  </div>
+                </div>
+                <div class="place-rec-dropdown d-none"></div>
+              </div>
+
+              <!-- Destination Quick Chips -->
+              <div class="d-flex flex-wrap gap-1 mt-2">
+                <span class="extra-small text-muted align-self-center me-1">Trending:</span>
+                <span class="chip-selectable" onclick="setDest('Coorg')">🌿 Coorg</span>
+                <span class="chip-selectable" onclick="setDest('Chikmagalur')">☕ Chikmagalur</span>
+                <span class="chip-selectable" onclick="setDest('Goa')">🏖️ Goa</span>
+                <span class="chip-selectable" onclick="setDest('Manali')">🏔️ Manali</span>
+                <span class="chip-selectable" onclick="setDest('Jaipur')">🏰 Jaipur</span>
+                <span class="chip-selectable" onclick="setDest('Munnar')">🍃 Munnar</span>
+                <span class="chip-selectable" onclick="setDest('Ooty')">🚂 Ooty</span>
+              </div>
+
+              <!-- Weather preview badge -->
+              <div id="weatherPreview" class="mt-2 p-2 px-3 rounded-3 small bg-light d-none border"></div>
+            </div>
+
+            <!-- Fields 2 & 3: Start Date & Duration in Days -->
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="form-label-modern"><i class="bi bi-calendar-event text-coral me-1"></i> 2. Start Date <span class="text-danger">*</span></label>
+                <input type="date" name="start_date" id="startDate" class="input-modern fw-bold" value="{{ values.get('start_date', '') }}" required />
+                <!-- Hidden end date kept in sync for backend compatibility -->
+                <input type="hidden" name="end_date" id="endDate" value="{{ values.get('end_date', '') }}" />
+              </div>
               <div class="col-md-6">
                 <label class="form-label-modern d-flex justify-content-between align-items-center">
+                  <span><i class="bi bi-clock-history text-turquoise me-1"></i> 3. Duration (Days)</span>
+                  <span class="extra-small text-muted" id="durationBadge">3 Days / 2 Nights</span>
+                </label>
+                <div class="d-flex align-items-center gap-2">
+                  <button type="button" class="counter-circle-btn" onclick="adjustDays(-1)">−</button>
+                  <input type="number" name="num_days" id="numDays" class="input-modern text-center fw-bold text-navy" min="1" max="15" value="{{ values.get('num_days', 3) }}" onchange="syncDays(this.value)" style="height: 48px;" required />
+                  <button type="button" class="counter-circle-btn" onclick="adjustDays(1)">+</button>
+                  <div class="d-none d-sm-flex gap-1 ms-1">
+                    <span class="chip-selectable" onclick="syncDays(2)">2D</span>
+                    <span class="chip-selectable active" onclick="syncDays(3)">3D</span>
+                    <span class="chip-selectable" onclick="syncDays(5)">5D</span>
+                    <span class="chip-selectable" onclick="syncDays(7)">7D</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Field 4: Number of Travelers -->
+            <div class="row g-3 align-items-center mb-4">
+              <div class="col-md-5">
+                <label class="form-label-modern mb-1"><i class="bi bi-people-fill text-turquoise me-1"></i> 4. Travelers</label>
+                <div class="d-flex align-items-center gap-3">
+                  <button type="button" class="counter-circle-btn" onclick="adjustTravelers(-1)">−</button>
+                  <span class="fw-bold fs-5 text-navy" id="travelerLabel" style="min-width: 100px; text-align: center;">2 Travelers</span>
+                  <button type="button" class="counter-circle-btn" onclick="adjustTravelers(1)">+</button>
+                  <input type="hidden" name="num_travelers" id="numTravelers" value="{{ values.get('num_travelers', 2) }}" />
+                </div>
+              </div>
+              <div class="col-md-7">
+                <div class="d-flex gap-2 justify-content-md-end flex-wrap mt-2 mt-md-0">
+                  <span class="chip-selectable" onclick="setTravelers(1)">Solo (1)</span>
+                  <span class="chip-selectable active" onclick="setTravelers(2)">Couple (2)</span>
+                  <span class="chip-selectable" onclick="setTravelers(4)">Family (4)</span>
+                  <span class="chip-selectable" onclick="setTravelers(6)">Group (6)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Field 5: Trip Budget -->
+            <div class="mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label-modern mb-0"><i class="bi bi-wallet2 text-success me-1"></i> 5. Total Trip Budget (₹ INR)</label>
+                <span class="badge-tag badge-tag-turquoise" id="perPersonBudgetBadge">₹12,500 / person</span>
+              </div>
+              <div class="input-group mb-2">
+                <span class="input-group-text bg-white fw-bold text-navy">₹</span>
+                <input type="number" name="budget" id="budgetInput" class="input-modern fw-bold text-navy"
+                  min="5000" max="250000" step="500" value="{{ values.get('budget', 25000) }}" oninput="syncBudgetFromInput(this.value)" required />
+              </div>
+              <input type="range" class="form-range" id="budgetRange" min="5000" max="150000" step="1000"
+                value="{{ values.get('budget', 25000) }}" oninput="syncBudgetFromRange(this.value)" />
+              <div class="d-flex justify-content-between text-muted extra-small">
+                <span>₹5,000 (Backpacker)</span>
+                <span>₹50,000 (Comfort)</span>
+                <span>₹1,50,000+ (Luxury)</span>
+              </div>
+            </div>
+
+            <!-- Field 6: Travel Style -->
+            <div>
+              <label class="form-label-modern mb-2"><i class="bi bi-compass-fill text-turquoise me-1"></i> 6. Travel Style</label>
+              <div class="row g-2">
+                {% for style, icon, title in [
+                  ("adventure", "🏔️", "Adventure"),
+                  ("nature", "🌿", "Nature & Calm"),
+                  ("family", "👨‍👩‍👧", "Family Trip"),
+                  ("heritage", "🏛️", "Heritage"),
+                  ("budget", "💰", "Backpacker"),
+                  ("luxury", "💎", "Luxury")
+                ] %}
+                <div class="col-4 col-md-2">
+                  <label class="style-card-select d-block {% if style == values.get('travel_style', 'adventure') %}selected{% endif %}">
+                    <input type="radio" name="travel_style" value="{{ style }}" {% if style == values.get('travel_style', 'adventure') %}checked{% endif %} hidden />
+                    <div style="font-size: 1.5rem;">{{ icon }}</div>
+                    <div class="fw-bold mt-1 text-navy" style="font-size: 0.78rem;">{{ title }}</div>
+                  </label>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <!-- ── COLLAPSIBLE ADVANCED OPTIONS (Optional) ── -->
+          <details class="card-panel-clean mb-4 shadow-sm" id="advancedOptionsCollapsible" style="cursor: default;">
+            <summary class="panel-header-clean cursor-pointer user-select-none d-flex justify-content-between align-items-center mb-0" style="cursor: pointer; list-style: none;">
+              <span class="d-flex align-items-center gap-2">
+                <i class="bi bi-sliders text-turquoise"></i>
+                <span>⚙️ Advanced Options (Optional)</span>
+              </span>
+              <span class="badge bg-light text-muted border small">Origin, Transit Mode &amp; Interests <i class="bi bi-chevron-down ms-1"></i></span>
+            </summary>
+
+            <div class="pt-3 border-top mt-3">
+              <!-- Advanced: Starting City / Origin -->
+              <div class="mb-4">
+                <label class="form-label-modern d-flex justify-content-between align-items-center">
                   <span><i class="bi bi-geo-alt me-1 text-muted"></i> Starting City (Origin)</span>
-                  <span class="extra-small text-muted fw-normal">Type or pick from recommendations</span>
+                  <span class="extra-small text-muted fw-normal">Smart Default: Bengaluru</span>
                 </label>
                 <div class="place-autocomplete-container" data-type="origin" id="originContainer">
                   <div class="place-input-box origin-box">
@@ -288,7 +437,7 @@
                     <div class="place-input-content">
                       <input type="text" name="source" id="sourceInput" class="place-text-input"
                         placeholder="Type starting city, e.g. Bengaluru, Mumbai, Delhi..."
-                        value="{{ values.get('source', 'Bengaluru') }}" autocomplete="off" spellcheck="false" required />
+                        value="{{ values.get('source', 'Bengaluru') }}" autocomplete="off" spellcheck="false" />
                     </div>
                     <button type="button" class="place-clear-btn d-none" title="Clear city" aria-label="Clear">
                       <i class="bi bi-x-lg"></i>
@@ -309,189 +458,55 @@
                 </div>
               </div>
 
-              <div class="col-md-6">
-                <label class="form-label-modern d-flex justify-content-between align-items-center">
-                  <span><i class="bi bi-pin-map text-turquoise me-1"></i> Destination City / Region</span>
-                  <span class="extra-small text-turquoise fw-bold">Live Suggestions &amp; Categories</span>
-                </label>
-                <div class="place-autocomplete-container" data-type="destination" id="destContainer">
-                  <div class="place-input-box">
-                    <div class="place-input-icon">
-                      <i class="bi bi-pin-map-fill"></i>
-                    </div>
-                    <div class="place-input-content">
-                      <input type="text" name="destination" id="destinationInput" class="place-text-input"
-                        placeholder="Type destination, e.g. Coorg, Chikmagalur, Goa..."
-                        value="{{ values.get('destination', 'Coorg') }}" autocomplete="off" spellcheck="false" required />
-                    </div>
-                    <button type="button" class="place-clear-btn d-none" title="Clear destination" aria-label="Clear">
-                      <i class="bi bi-x-lg"></i>
-                    </button>
-                    <div class="place-indicator-chip d-none">
-                      <span class="place-chip-badge"></span>
-                    </div>
+              <!-- Advanced: Preferred Inter-City Transit -->
+              <div class="mb-4">
+                <label class="form-label-modern mb-2">Preferred Inter-City Transit Mode</label>
+                <div class="row g-2">
+                  {% for mode, icon, label in [
+                    ("train", "bi-train-front text-turquoise", "Train (IRCTC Rail)"),
+                    ("bus", "bi-bus-front text-primary", "Bus (KSRTC / Private)"),
+                    ("car", "bi-car-front text-success", "Car / Outstation Cab"),
+                    ("flight", "bi-airplane text-coral", "Flight + Airport Taxi")
+                  ] %}
+                  <div class="col-6 col-md-3">
+                    <label class="transit-card-select d-block {% if mode == values.get('transport', 'train') %}selected{% endif %}">
+                      <input type="radio" name="transport" value="{{ mode }}" {% if mode == values.get('transport', 'train') %}checked{% endif %} hidden />
+                      <i class="bi {{ icon }} d-block fs-4 mb-1"></i>
+                      <span class="text-navy fw-semibold small">{{ label }}</span>
+                    </label>
                   </div>
-                  <div class="place-rec-dropdown d-none"></div>
-                </div>
-
-                <!-- Destination Quick Chips -->
-                <div class="d-flex flex-wrap gap-1 mt-2">
-                  <span class="extra-small text-muted align-self-center me-1">Trending:</span>
-                  <span class="chip-selectable" onclick="setDest('Coorg')">🌿 Coorg</span>
-                  <span class="chip-selectable" onclick="setDest('Chikmagalur')">☕ Chikmagalur</span>
-                  <span class="chip-selectable" onclick="setDest('Samse')">🍃 Samse</span>
-                  <span class="chip-selectable" onclick="setDest('Hampi')">🛕 Hampi</span>
-                  <span class="chip-selectable" onclick="setDest('Goa')">🏖️ Goa</span>
-                  <span class="chip-selectable" onclick="setDest('Manali')">🏔️ Manali</span>
+                  {% endfor %}
                 </div>
               </div>
-            </div>
 
-            <!-- Weather preview badge -->
-            <div id="weatherPreview" class="mt-3 p-2 px-3 rounded-3 small bg-light d-none border"></div>
-          </div>
-
-          <!-- 2. Dates, Travelers & Budget -->
-          <div class="card-panel-clean">
-            <div class="panel-header-clean">
-              <i class="bi bi-calendar-range text-coral"></i> 2. Travel Dates &amp; Budget in ₹ INR
-            </div>
-
-            <div class="row g-3 mb-4">
-              <div class="col-md-4">
-                <label class="form-label-modern">Start Date</label>
-                <input type="date" name="start_date" id="startDate" class="input-modern" value="{{ values.get('start_date', '') }}" required />
-              </div>
-              <div class="col-md-4">
-                <label class="form-label-modern">End Date</label>
-                <input type="date" name="end_date" id="endDate" class="input-modern" value="{{ values.get('end_date', '') }}" required />
-              </div>
-              <div class="col-md-4">
-                <label class="form-label-modern">Duration</label>
-                <input type="hidden" name="num_days" id="numDays" value="{{ values.get('num_days', 3) }}" />
-                <div class="p-2 px-3 rounded-3 bg-light border text-navy fw-bold text-center" id="durationBadge" style="height: 48px; line-height: 32px;">
-                  3 Days / 2 Nights
+              <!-- Advanced: Sightseeing Interests -->
+              <div>
+                <label class="form-label-modern mb-2">Sightseeing Interests &amp; Themes</label>
+                <div class="d-flex flex-wrap gap-2">
+                  {% for interest, icon in [
+                    ("Waterfalls & Lakes", "🌊"),
+                    ("Coffee & Tea Estates", "☕"),
+                    ("Forts & Heritage Palaces", "🏰"),
+                    ("Temples & Ancient Architecture", "🛕"),
+                    ("Wildlife & Safari", "🐘"),
+                    ("Authentic Regional Food", "🍛"),
+                    ("Scenic Mountain Viewpoints", "📸"),
+                    ("Shopping at Local Bazaars", "🛍️")
+                  ] %}
+                  <label class="interest-chip-pill">
+                    <input type="checkbox" name="interests" value="{{ interest }}" hidden />
+                    <span>{{ icon }} {{ interest }}</span>
+                  </label>
+                  {% endfor %}
                 </div>
               </div>
             </div>
-
-            <!-- Travelers Counter -->
-            <div class="row g-3 align-items-center mb-4">
-              <div class="col-md-6">
-                <label class="form-label-modern mb-1">Number of Travelers</label>
-                <div class="d-flex align-items-center gap-3">
-                  <button type="button" class="counter-circle-btn" onclick="adjustTravelers(-1)">−</button>
-                  <span class="fw-bold fs-5 text-navy" id="travelerLabel" style="min-width: 100px; text-align: center;">2 Travelers</span>
-                  <button type="button" class="counter-circle-btn" onclick="adjustTravelers(1)">+</button>
-                  <input type="hidden" name="num_travelers" id="numTravelers" value="{{ values.get('num_travelers', 2) }}" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="d-flex gap-2 justify-content-md-end flex-wrap">
-                  <span class="chip-selectable" onclick="setTravelers(1)">Solo (1)</span>
-                  <span class="chip-selectable active" onclick="setTravelers(2)">Couple (2)</span>
-                  <span class="chip-selectable" onclick="setTravelers(4)">Group (4)</span>
-                  <span class="chip-selectable" onclick="setTravelers(6)">Family (6)</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Budget Slider -->
-            <div>
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <label class="form-label-modern mb-0">Total Trip Budget (₹ INR)</label>
-                <span class="badge-tag badge-tag-turquoise" id="perPersonBudgetBadge">₹12,500 / person</span>
-              </div>
-              <div class="input-group mb-2">
-                <span class="input-group-text bg-white fw-bold text-navy">₹</span>
-                <input type="number" name="budget" id="budgetInput" class="input-modern fw-bold text-navy"
-                  min="5000" max="250000" step="500" value="{{ values.get('budget', 25000) }}" oninput="syncBudgetFromInput(this.value)" required />
-              </div>
-              <input type="range" class="form-range" id="budgetRange" min="5000" max="150000" step="1000"
-                value="{{ values.get('budget', 25000) }}" oninput="syncBudgetFromRange(this.value)" />
-              <div class="d-flex justify-content-between text-muted extra-small">
-                <span>₹5,000 (Backpacker)</span>
-                <span>₹50,000 (Comfort)</span>
-                <span>₹1,50,000+ (Luxury)</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 3. Travel Style & Preferred Transit -->
-          <div class="card-panel-clean">
-            <div class="panel-header-clean">
-              <i class="bi bi-compass text-turquoise"></i> 3. Travel Style &amp; Inter-City Transit
-            </div>
-
-            <!-- Style Grid -->
-            <label class="form-label-modern mb-2">Choose Travel Style</label>
-            <div class="row g-2 mb-4">
-              {% for style, icon, title in [
-                ("adventure", "🏔️", "Adventure"),
-                ("nature", "🌿", "Nature & Calm"),
-                ("family", "👨‍👩‍👧", "Family Trip"),
-                ("heritage", "🏛️", "Heritage"),
-                ("budget", "💰", "Backpacker"),
-                ("luxury", "💎", "Luxury")
-              ] %}
-              <div class="col-4 col-md-2">
-                <label class="style-card-select d-block {% if style == values.get('travel_style', 'adventure') %}selected{% endif %}">
-                  <input type="radio" name="travel_style" value="{{ style }}" {% if style == values.get('travel_style', 'adventure') %}checked{% endif %} hidden />
-                  <div style="font-size: 1.5rem;">{{ icon }}</div>
-                  <div class="fw-bold mt-1 text-navy" style="font-size: 0.78rem;">{{ title }}</div>
-                </label>
-              </div>
-              {% endfor %}
-            </div>
-
-            <!-- Transit Grid -->
-            <label class="form-label-modern mb-2">Preferred Inter-City Transit</label>
-            <div class="row g-2">
-              {% for mode, icon, label in [
-                ("train", "bi-train-front text-turquoise", "Train (IRCTC Rail)"),
-                ("bus", "bi-bus-front text-primary", "Bus (KSRTC / Private)"),
-                ("car", "bi-car-front text-success", "Car / Outstation Cab"),
-                ("flight", "bi-airplane text-coral", "Flight + Airport Taxi")
-              ] %}
-              <div class="col-6 col-md-3">
-                <label class="transit-card-select d-block {% if mode == values.get('transport', 'train') %}selected{% endif %}">
-                  <input type="radio" name="transport" value="{{ mode }}" {% if mode == values.get('transport', 'train') %}checked{% endif %} hidden />
-                  <i class="bi {{ icon }} d-block fs-4 mb-1"></i>
-                  <span class="text-navy fw-semibold small">{{ label }}</span>
-                </label>
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-
-          <!-- 4. Sightseeing Interests -->
-          <div class="card-panel-clean">
-            <div class="panel-header-clean">
-              <i class="bi bi-heart text-coral"></i> 4. Sightseeing Interests (Optional)
-            </div>
-            <div class="d-flex flex-wrap gap-2">
-              {% for interest, icon in [
-                ("Waterfalls & Lakes", "🌊"),
-                ("Coffee & Tea Estates", "☕"),
-                ("Forts & Heritage Palaces", "🏰"),
-                ("Temples & Ancient Architecture", "🛕"),
-                ("Wildlife & Safari", "🐘"),
-                ("Authentic Regional Food", "🍛"),
-                ("Scenic Mountain Viewpoints", "📸"),
-                ("Shopping at Local Bazaars", "🛍️")
-              ] %}
-              <label class="interest-chip-pill">
-                <input type="checkbox" name="interests" value="{{ interest }}" hidden />
-                <span>{{ icon }} {{ interest }}</span>
-              </label>
-              {% endfor %}
-            </div>
-          </div>
+          </details>
 
           <!-- Mobile Quick Action CTA -->
           <div class="d-lg-none mt-3 mb-4">
             <button type="submit" class="btn-turquoise btn-lg w-100 py-3 fw-bold shadow-md d-inline-flex align-items-center justify-content-center" style="min-height: 50px; font-size: 1.02rem; border-radius: 14px;">
-              <i class="bi bi-sparkles me-2"></i>Generate AI Itinerary
+              <i class="bi bi-sparkles me-2"></i>Generate Itinerary
             </button>
           </div>
 
@@ -502,8 +517,8 @@
           <div class="sticky-sidebar-command">
             <div class="command-card-dark">
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="badge-tag badge-tag-turquoise">AI Trip Command</span>
-                <span class="extra-small opacity-75">4-Agent ML Ready</span>
+                <span class="badge-tag badge-tag-turquoise">Trip Summary</span>
+                <span class="extra-small opacity-75">Smart Travel Engine</span>
               </div>
 
               <h3 class="fw-extrabold text-white mb-1" id="previewDest">Coorg, Karnataka</h3>
@@ -512,7 +527,7 @@
               <!-- Budget Dial Box -->
               <div class="budget-dial-container mb-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                  <span class="small fw-bold"><i class="bi bi-wallet2 me-1 text-warning"></i>Total Planned Budget</span>
+                  <span class="small fw-bold"><i class="bi bi-wallet2 me-1 text-warning"></i>Budget Estimate</span>
                   <span class="fw-bold fs-5 text-turquoise" id="previewTotalBudget">₹25,000</span>
                 </div>
                 <div class="progress" style="height: 6px; background: rgba(255,255,255,0.2); border-radius: 10px;">
@@ -521,19 +536,19 @@
 
                 <div class="mt-3 d-flex flex-column gap-1" style="font-size: 0.78rem;">
                   <div class="d-flex justify-content-between opacity-90">
-                    <span>🏨 Base Camp Stay (35%):</span>
+                    <span>🏨 Stays &amp; Hotels (35%):</span>
                     <strong id="previewStayCost">₹8,750</strong>
                   </div>
                   <div class="d-flex justify-content-between opacity-90">
-                    <span>🚆 Door-to-Door Transit (25%):</span>
+                    <span>🚆 Transit &amp; Travel (25%):</span>
                     <strong id="previewTransitCost">₹6,250</strong>
                   </div>
                   <div class="d-flex justify-content-between opacity-90">
-                    <span>🍽️ Regional Dining (20%):</span>
+                    <span>🍽️ Local Food &amp; Dining (20%):</span>
                     <strong id="previewFoodCost">₹5,000</strong>
                   </div>
                   <div class="d-flex justify-content-between opacity-90">
-                    <span>🎟️ Sightseeing Tickets (12%):</span>
+                    <span>🎟️ Sightseeing &amp; Tickets (12%):</span>
                     <strong id="previewTicketCost">₹3,000</strong>
                   </div>
                   <div class="d-flex justify-content-between opacity-90">
@@ -552,7 +567,7 @@
 
               <!-- Submit Button -->
               <button type="submit" class="btn-turquoise btn-lg w-100 py-3 fw-bold mb-3" id="generateBtn">
-                <i class="bi bi-sparkles me-2"></i>Generate AI Itinerary
+                <i class="bi bi-sparkles me-2"></i>Generate Itinerary
               </button>
 
               <!-- Link to 10-Step Wizard -->
@@ -574,7 +589,7 @@
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════ -->
-<!-- ── Interactive AI Generating Modal / Waiting Card ──────────────── -->
+<!-- ── Interactive Generating Modal / Waiting Card ──────────────────── -->
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 <div id="generatingOverlay" class="gen-overlay d-none">
   <div class="gen-card animate__animated animate__zoomIn">
@@ -583,7 +598,7 @@
       <div class="d-flex align-items-center gap-2">
         <div class="gen-pulse-dot"></div>
         <span class="fw-bold small text-uppercase tracking-wider text-turquoise" id="genStatusBadge">
-          4-Agent Cooperative Engine Active
+          Smart Planning Engine Active
         </span>
       </div>
       <span class="badge-tag badge-tag-turquoise fw-bold" id="genPercentBadge">15%</span>
@@ -604,12 +619,12 @@
            role="progressbar" style="width: 15%; transition: width 0.4s ease; background-color: var(--c-turquoise) !important;"></div>
     </div>
 
-    <!-- Agent Workflow Stages -->
+    <!-- Optimization Steps -->
     <div class="gen-stages mb-4" id="genStagesList">
       <div class="gen-stage active" id="stage-1">
         <div class="stage-icon-box"><i class="bi bi-geo-alt"></i></div>
         <div class="flex-grow-1">
-          <div class="stage-name-text">1. Geography &amp; Weather Resolver</div>
+          <div class="stage-name-text">1. Weather &amp; Seasonality Check</div>
           <div class="text-muted extra-small">Checking live temperature &amp; monsoons forecast</div>
         </div>
         <div class="stage-status"><span class="spinner-border spinner-border-sm text-turquoise"></span></div>
@@ -618,7 +633,7 @@
       <div class="gen-stage" id="stage-2">
         <div class="stage-icon-box"><i class="bi bi-houses"></i></div>
         <div class="flex-grow-1">
-          <div class="stage-name-text">2. Stays &amp; Base Camp Finder</div>
+          <div class="stage-name-text">2. Verified Stays &amp; Hotels Selection</div>
           <div class="text-muted extra-small">Searching 1,50,000+ verified Indian homestays &amp; hotels</div>
         </div>
         <div class="stage-status"><i class="bi bi-circle text-muted"></i></div>
@@ -627,7 +642,7 @@
       <div class="gen-stage" id="stage-3">
         <div class="stage-icon-box"><i class="bi bi-signpost-split"></i></div>
         <div class="flex-grow-1">
-          <div class="stage-name-text">3. Multimodal Transit Engine</div>
+          <div class="stage-name-text">3. Transit &amp; Route Optimization</div>
           <div class="text-muted extra-small">Querying IRCTC rail, KSRTC buses &amp; outstation routes</div>
         </div>
         <div class="stage-status"><i class="bi bi-circle text-muted"></i></div>
@@ -636,7 +651,7 @@
       <div class="gen-stage" id="stage-4">
         <div class="stage-icon-box"><i class="bi bi-cup-hot"></i></div>
         <div class="flex-grow-1">
-          <div class="stage-name-text">4. Regional Culinary Curation</div>
+          <div class="stage-name-text">4. Regional Food &amp; Dining Guide</div>
           <div class="text-muted extra-small">Hand-picking authentic local dishes &amp; legendary eateries</div>
         </div>
         <div class="stage-status"><i class="bi bi-circle text-muted"></i></div>
@@ -645,7 +660,7 @@
       <div class="gen-stage" id="stage-5">
         <div class="stage-icon-box"><i class="bi bi-bezier2"></i></div>
         <div class="flex-grow-1">
-          <div class="stage-name-text">5. Itinerary Loop Synthesizer</div>
+          <div class="stage-name-text">5. Smart Schedule &amp; Sightseeing Flow</div>
           <div class="text-muted extra-small">Stitching balanced day-wise sightseeing around your stay</div>
         </div>
         <div class="stage-status"><i class="bi bi-circle text-muted"></i></div>
@@ -654,7 +669,7 @@
       <div class="gen-stage" id="stage-6">
         <div class="stage-icon-box"><i class="bi bi-wallet2"></i></div>
         <div class="flex-grow-1">
-          <div class="stage-name-text">6. ₹ INR Budget Optimizer</div>
+          <div class="stage-name-text">6. Budget Estimate &amp; Cost Breakdown</div>
           <div class="text-muted extra-small">Balancing daily spend, permits &amp; emergency buffer</div>
         </div>
         <div class="stage-status"><i class="bi bi-circle text-muted"></i></div>
@@ -754,6 +769,31 @@
       updateTravelerLabels();
       updatePreview();
     }
+  }
+
+  function syncDays(val) {
+    const daysInp = document.getElementById('numDays');
+    const startInp = document.getElementById('startDate');
+    const endInp = document.getElementById('endDate');
+    const badge = document.getElementById('durationBadge');
+
+    let d = Math.max(1, Math.min(30, parseInt(val) || 3));
+    if (daysInp) daysInp.value = d;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const sDate = new Date(startInp?.value || todayStr);
+    if (!isNaN(sDate)) {
+      const eDate = new Date(sDate.getTime() + (d - 1) * 86400000);
+      if (endInp) endInp.value = eDate.toISOString().split('T')[0];
+    }
+    if (badge) badge.textContent = `${d} Day${d > 1 ? 's' : ''} / ${Math.max(1, d - 1)} Night${d > 2 ? 's' : ''}`;
+    updatePreview();
+  }
+
+  function adjustDays(delta) {
+    const daysInp = document.getElementById('numDays');
+    const cur = parseInt(daysInp?.value || 3);
+    syncDays(cur + delta);
   }
 
   function updateTravelerLabels() {

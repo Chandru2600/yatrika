@@ -520,6 +520,13 @@ def new_trip():
                 num_days = max(1, (d2 - d1).days + 1)
             except Exception:
                 pass
+        elif start_date and not end_date:
+            try:
+                from datetime import date, timedelta
+                d1 = date.fromisoformat(start_date)
+                end_date = (d1 + timedelta(days=max(0, num_days - 1))).isoformat()
+            except Exception:
+                pass
 
         is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.is_json
 
