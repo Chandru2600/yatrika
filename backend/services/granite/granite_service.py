@@ -1008,6 +1008,8 @@ def generate_complete_travel_plan(trip_data: dict) -> dict:
 
     from backend.services.constraints.constraint_gate import validate_and_enforce_constraints
 
+    from backend.services.booking.booking_service import build_booking_links
+
     # 1. Primary Engine: Multi-Agent Cooperative Pipeline with trained ML weights
     try:
         from backend.agents_models.cooperative_pipeline import MultiAgentCooperativePipeline
@@ -1018,6 +1020,7 @@ def generate_complete_travel_plan(trip_data: dict) -> dict:
             _, _, checked_plan = validate_and_enforce_constraints(agent_plan, trip_data)
             # 2. IBM Granite Grounded Enhancement Layer (Enrich with cultural wisdom, dialect phrases, day pacing)
             enriched_plan = enrich_plan_with_granite(checked_plan, trip_data)
+            enriched_plan["booking_links"] = build_booking_links(trip_data)
             return enriched_plan
     except Exception as e:
         print(f"[Cooperative Agent Pipeline] Error: {e}")
@@ -1025,6 +1028,7 @@ def generate_complete_travel_plan(trip_data: dict) -> dict:
     # Fallback to authentic Indian destination engine
     fallback_plan = _get_authentic_indian_plan(dest, days, travelers, total_budget, style, transport, start_date)
     _, _, checked_fallback = validate_and_enforce_constraints(fallback_plan, trip_data)
+    checked_fallback["booking_links"] = build_booking_links(trip_data)
     return checked_fallback
 
 

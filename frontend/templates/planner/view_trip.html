@@ -321,6 +321,44 @@
             <i class="bi bi-calendar-event me-1 text-turquoise"></i> Export Calendar (.ics)
           </button>
           {% endif %}
+
+          <!-- Actionable Booking Deep Links (Feature 1) -->
+          <div class="dropdown w-100 mt-2">
+            <button class="btn-stub dropdown-toggle w-100 text-white fw-bold d-flex align-items-center justify-content-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%); border: none; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);">
+              <i class="bi bi-ticket-perforated-fill"></i> Book Stays &amp; Transit
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-lg p-2" style="min-width: 280px; border-radius: 14px; border: 1px solid rgba(226, 232, 240, 0.9);">
+              <li class="dropdown-header text-uppercase fw-bold text-muted small px-3 py-1">Hotels &amp; Stays</li>
+              {% for h_link in (booking_links.hotels if booking_links else []) %}
+              <li>
+                <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 rounded-2" href="{{ h_link.url }}" target="_blank" rel="noopener noreferrer">
+                  <span><i class="bi {{ h_link.icon }} me-2 text-primary"></i>{{ h_link.name }}</span>
+                  <span class="badge bg-light text-dark border extra-small">{{ h_link.badge }}</span>
+                </a>
+              </li>
+              {% endfor %}
+              <li><hr class="dropdown-divider my-1"></li>
+              <li class="dropdown-header text-uppercase fw-bold text-muted small px-3 py-1">Trains</li>
+              {% for t_link in (booking_links.trains if booking_links else []) %}
+              <li>
+                <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 rounded-2" href="{{ t_link.url }}" target="_blank" rel="noopener noreferrer">
+                  <span><i class="bi {{ t_link.icon }} me-2 text-success"></i>{{ t_link.name }}</span>
+                  <span class="badge bg-light text-dark border extra-small">{{ t_link.badge }}</span>
+                </a>
+              </li>
+              {% endfor %}
+              <li><hr class="dropdown-divider my-1"></li>
+              <li class="dropdown-header text-uppercase fw-bold text-muted small px-3 py-1">Buses</li>
+              {% for b_link in (booking_links.buses if booking_links else []) %}
+              <li>
+                <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 rounded-2" href="{{ b_link.url }}" target="_blank" rel="noopener noreferrer">
+                  <span><i class="bi {{ b_link.icon }} me-2 text-danger"></i>{{ b_link.name }}</span>
+                  <span class="badge bg-light text-dark border extra-small">{{ b_link.badge }}</span>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -348,6 +386,13 @@
             ₹{{ stay_price }}<span class="text-muted small">/nt</span>
           </span>
         </div>
+        <div class="mt-2 pt-2 border-top d-flex gap-2 flex-wrap">
+          {% for h_link in (booking_links.hotels if booking_links else [])[:2] %}
+          <a href="{{ h_link.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success py-1 px-2 rounded-pill fw-semibold" style="font-size: 0.75rem;">
+            <i class="bi bi-box-arrow-up-right me-1"></i>{{ h_link.name }}
+          </a>
+          {% endfor %}
+        </div>
       </div>
 
       <!-- 2: Door-to-Door Transit -->
@@ -366,6 +411,18 @@
         <div class="bento-card-footer">
           <span class="badge bg-info-subtle text-info border border-info-subtle small">Direct Corridor</span>
           <span class="fw-bold text-primary">₹{{ transit_info.get("estimated_fare", 1250) if transit_info else 1250 }}<span class="text-muted small"> / seat</span></span>
+        </div>
+        <div class="mt-2 pt-2 border-top d-flex gap-2 flex-wrap">
+          {% for t_link in (booking_links.trains if booking_links else [])[:1] %}
+          <a href="{{ t_link.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary py-1 px-2 rounded-pill fw-semibold" style="font-size: 0.75rem;">
+            <i class="bi bi-box-arrow-up-right me-1"></i>{{ t_link.name }}
+          </a>
+          {% endfor %}
+          {% for b_link in (booking_links.buses if booking_links else [])[:1] %}
+          <a href="{{ b_link.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-danger py-1 px-2 rounded-pill fw-semibold" style="font-size: 0.75rem;">
+            <i class="bi bi-box-arrow-up-right me-1"></i>RedBus
+          </a>
+          {% endfor %}
         </div>
       </div>
 
@@ -874,6 +931,14 @@
             {% endfor %}
           </div>
           {% endif %}
+          <div class="d-flex gap-2 flex-wrap mt-3 pt-2 border-top align-items-center">
+            <span class="small fw-bold text-muted me-1"><i class="bi bi-box-arrow-up-right me-1"></i>Book Direct:</span>
+            {% for h_link in (booking_links.hotels if booking_links else []) %}
+            <a href="{{ h_link.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold">
+              <i class="bi {{ h_link.icon }} me-1"></i>{{ h_link.provider }}
+            </a>
+            {% endfor %}
+          </div>
         </div>
         {% endif %}
 
