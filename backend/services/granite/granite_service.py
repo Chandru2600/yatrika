@@ -1012,6 +1012,7 @@ def generate_complete_travel_plan(trip_data: dict) -> dict:
 
     from backend.services.weather.weather_service import attach_weather_forecast_to_itinerary
     from backend.services.food.food_service import attach_food_layer_to_itinerary
+    from backend.services.emergency.emergency_service import get_emergency_contacts
 
     # 1. Primary Engine: Multi-Agent Cooperative Pipeline with trained ML weights
     try:
@@ -1024,6 +1025,7 @@ def generate_complete_travel_plan(trip_data: dict) -> dict:
             # 2. IBM Granite Grounded Enhancement Layer (Enrich with cultural wisdom, dialect phrases, day pacing)
             enriched_plan = enrich_plan_with_granite(checked_plan, trip_data)
             enriched_plan["booking_links"] = build_booking_links(trip_data)
+            enriched_plan["emergency"] = get_emergency_contacts(dest)
             if enriched_plan.get("itinerary"):
                 enriched_plan["itinerary"] = attach_weather_forecast_to_itinerary(enriched_plan["itinerary"], dest, start_date)
                 enriched_plan["itinerary"] = attach_food_layer_to_itinerary(enriched_plan["itinerary"], dest)
@@ -1035,6 +1037,7 @@ def generate_complete_travel_plan(trip_data: dict) -> dict:
     fallback_plan = _get_authentic_indian_plan(dest, days, travelers, total_budget, style, transport, start_date)
     _, _, checked_fallback = validate_and_enforce_constraints(fallback_plan, trip_data)
     checked_fallback["booking_links"] = build_booking_links(trip_data)
+    checked_fallback["emergency"] = get_emergency_contacts(dest)
     if checked_fallback.get("itinerary"):
         checked_fallback["itinerary"] = attach_weather_forecast_to_itinerary(checked_fallback["itinerary"], dest, start_date)
         checked_fallback["itinerary"] = attach_food_layer_to_itinerary(checked_fallback["itinerary"], dest)

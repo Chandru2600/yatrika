@@ -142,6 +142,58 @@
 <div class="py-4">
   <div class="container-fluid px-lg-5">
 
+    <!-- ══════ 0. PERSISTENT EMERGENCY & SAFETY STRIP (Feature 4) ══════ -->
+    {% if emergency_info %}
+    <div class="emergency-safety-strip mb-4 rounded-4 shadow-sm border border-danger-subtle p-3"
+         id="emergencySafetyStrip"
+         style="background: #0f172a; color: #f8fafc; border-left: 5px solid #ef4444 !important; position: sticky; top: 76px; z-index: 1020; backdrop-filter: blur(10px);">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <!-- Left: Alert Label & Hospital -->
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-danger text-white px-2 py-1 fs-7 fw-bold d-inline-flex align-items-center gap-1 shadow-sm">
+              <i class="bi bi-shield-fill-exclamation"></i> 24x7 EMERGENCY & SAFETY
+            </span>
+            <span class="text-white-50 fs-8 d-none d-md-inline">| Offline Cached Directory</span>
+          </div>
+
+          <div class="d-flex align-items-center gap-2 fs-7 flex-wrap">
+            <span class="text-white fw-bold"><i class="bi bi-hospital text-danger me-1"></i>Nearest Hospital:</span>
+            <span class="text-info fw-semibold">{{ emergency_info.hospital_name }}</span>
+            <a href="tel:{{ emergency_info.hospital_phone_clean }}" class="btn btn-sm btn-outline-info py-0 px-2 rounded-pill fw-bold text-decoration-none" title="Call Emergency Hospital">
+              <i class="bi bi-telephone-fill me-1"></i>{{ emergency_info.hospital_phone }}
+            </a>
+            {% if emergency_info.hospital_landmark %}
+            <span class="text-secondary small d-none d-lg-inline">({{ emergency_info.hospital_landmark }})</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Right: Helplines & Location Share Hint -->
+        <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
+          <div class="d-flex align-items-center gap-1">
+            <span class="text-white-50 fs-8">Police:</span>
+            <a href="tel:{{ emergency_info.police_helpline }}" class="badge bg-danger text-white text-decoration-none fw-bold px-2 py-1 shadow-sm" title="Call Police 112">
+              <i class="bi bi-shield-fill-check me-1"></i>{{ emergency_info.police_helpline }}
+            </a>
+          </div>
+
+          <div class="d-flex align-items-center gap-1">
+            <span class="text-white-50 fs-8">Ambulance:</span>
+            <a href="tel:{{ emergency_info.ambulance_helpline }}" class="badge bg-danger text-white text-decoration-none fw-bold px-2 py-1 shadow-sm" title="Call Ambulance 108">
+              <i class="bi bi-truck me-1"></i>{{ emergency_info.ambulance_helpline }}
+            </a>
+          </div>
+
+          <button type="button" class="btn btn-sm btn-outline-warning py-1 px-2 rounded-pill fw-bold d-inline-flex align-items-center gap-1" id="btnShareLiveLocation" onclick="copyLiveLocationHint()" title="Copy live location coordinates or WhatsApp sharing hint">
+            <i class="bi bi-geo-alt-fill text-warning"></i>
+            <span id="liveLocationBtnText">Share Live Location</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
     <!-- ══════ 1. LUXURY 2-PART BOARDING PASS EXPEDITION TICKET ══════ -->
     {% set dest_city = (trip.destination.split(',')[0]|trim) %}
     {% set src_city = ((trip.source or 'Bengaluru').split(',')[0]|trim) %}
@@ -1331,6 +1383,44 @@ window.onChecklistItemToggle = async function(checkbox, tripId) {
   }
 };
 
+window.copyLiveLocationHint = function() {
+  const dest = "{{ trip.destination }}";
+  const hosp = "{{ emergency_info.hospital_name if emergency_info else 'District Hospital' }}";
+  const hospPhone = "{{ emergency_info.hospital_phone if emergency_info else '108' }}";
+  const btn = document.getElementById('liveLocationBtnText');
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude.toFixed(5);
+        const lon = pos.coords.longitude.toFixed(5);
+        const msg = `🚨 SOS / Travel Location Update:\nI am traveling in ${dest}.\nLive GPS Pin: https://maps.google.com/?q=${lat},${lon}\nNearest Hospital: ${hosp} (${hospPhone})\nPolice: 112 | Ambulance: 108`;
+        navigator.clipboard.writeText(msg).then(() => {
+          if (btn) btn.textContent = '✓ Location Copied!';
+          setTimeout(() => { if (btn) btn.textContent = 'Share Live Location'; }, 3000);
+          alert('GPS location & emergency contacts copied to clipboard! You can paste and send directly to family or emergency contacts.');
+        }).catch(() => {
+          alert(`Live GPS Pin: https://maps.google.com/?q=${lat},${lon}\nEmergency Hospital: ${hosp} (${hospPhone})`);
+        });
+      },
+      (err) => {
+        const msg = `🚨 Emergency Contacts for ${dest}:\nNearest Hospital: ${hosp} (${hospPhone})\nPolice: 112 | Ambulance: 108\n(Open WhatsApp / Maps ➔ (+) ➔ Share Live Location)`;
+        navigator.clipboard.writeText(msg).then(() => {
+          if (btn) btn.textContent = '✓ Info Copied!';
+          setTimeout(() => { if (btn) btn.textContent = 'Share Live Location'; }, 3000);
+          alert('Emergency contacts copied to clipboard.');
+        }).catch(() => {
+          alert(`Hospital: ${hosp} (${hospPhone})\nPolice: 112 | Ambulance: 108`);
+        });
+      },
+      { timeout: 7000 }
+    );
+  } else {
+    const msg = `🚨 Emergency Contacts for ${dest}:\nNearest Hospital: ${hosp} (${hospPhone})\nPolice: 112 | Ambulance: 108`;
+    navigator.clipboard.writeText(msg);
+    alert('Emergency contacts copied to clipboard.');
+  }
+};
 
 const ITINERARY_DATA = {{ itinerary|tojson }};
 const WEATHER_DATA = {{ weather|tojson }};
