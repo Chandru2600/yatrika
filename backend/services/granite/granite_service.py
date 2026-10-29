@@ -3,13 +3,23 @@ TravelPlannerAgent - Travel Planner AI Model Service
 Optimised: 2 API calls only per trip (fast generation).
 """
 
+import json
 import re
 import requests
 import time
 from backend.config import get_config
 
 _token_cache: dict = {"token": None, "expires_at": 0}
+_granite_synthesis_cache: dict = {}
 IAM_TOKEN_URL = "https://iam.cloud.ibm.com/identity/token"
+
+
+def is_ibm_configured() -> bool:
+    """Check if IBM Cloud credentials are set and not placeholder values."""
+    cfg = get_config()
+    api_key = (getattr(cfg, "IBM_API_KEY", "") or "").strip()
+    proj_id = (getattr(cfg, "IBM_PROJECT_ID", "") or "").strip()
+    return bool(api_key and proj_id and "your_" not in api_key.lower() and "your_" not in proj_id.lower())
 
 
 def get_ibm_iam_token() -> str:
@@ -17,6 +27,9 @@ def get_ibm_iam_token() -> str:
     if _token_cache["token"] and now < _token_cache["expires_at"] - 60:
         return _token_cache["token"]
     cfg  = get_config()
+    if not is_ibm_configured():
+        raise ValueError("IBM Cloud credentials not configured or using placeholder keys.")
+
     resp = requests.post(
         IAM_TOKEN_URL,
         headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -30,10 +43,19 @@ def get_ibm_iam_token() -> str:
     return _token_cache["token"]
 
 
-def call_granite(prompt: str, max_tokens: int = 1200) -> str:
-    """Single Granite API call."""
+def call_granite(prompt: str, max_tokens: int = 1200, greedy: bool = False) -> str:
+    """Single Granite API call with optional greedy decoding for factual stability."""
     cfg   = get_config()
     token = get_ibm_iam_token()
+    params = {
+        "max_new_tokens": max_tokens,
+        "min_new_tokens": 10,
+        "stop_sequences": ["<|endoftext|>"]
+    }
+    if greedy:
+        params["decoding_method"] = "greedy"
+        params["repetition_penalty"] = 1.1
+
     resp  = requests.post(
         f"{cfg.IBM_WATSONX_URL}/ml/v1/text/generation?version=2023-05-29",
         headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
@@ -41,13 +63,33 @@ def call_granite(prompt: str, max_tokens: int = 1200) -> str:
             "model_id":   cfg.GRANITE_MODEL_ID,
             "project_id": cfg.IBM_PROJECT_ID,
             "input":      prompt,
-            "parameters": {"max_new_tokens": max_tokens, "min_new_tokens": 10,
-                           "stop_sequences": ["<|endoftext|>"]}
+            "parameters": params
         },
-        timeout=120
+        timeout=25
     )
     resp.raise_for_status()
     return resp.json()["results"][0]["generated_text"].strip()
+
+
+def call_granite_json(prompt: str, max_tokens: int = 800) -> dict | None:
+    """Calls IBM Granite and parses structured JSON response safely with markdown stripping."""
+    if not is_ibm_configured():
+        return None
+    try:
+        raw_text = call_granite(prompt, max_tokens=max_tokens, greedy=True)
+        # Strip potential markdown fences ```json ... ```
+        clean = re.sub(r"^```(?:json)?\s*", "", raw_text.strip(), flags=re.MULTILINE)
+        clean = re.sub(r"\s*```$", "", clean.strip(), flags=re.MULTILINE)
+
+        # Locate outer JSON object { ... }
+        start = clean.find("{")
+        end = clean.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            clean = clean[start:end+1]
+            return json.loads(clean)
+    except Exception as e:
+        print(f"[IBM Granite JSON] Note: watsonx generation skipped or failed ({e})")
+    return None
 
 
 # ── Parser helpers ───────────────────────────────────────────────
@@ -695,11 +737,127 @@ def _get_authentic_indian_plan(dest, days, travelers, total_budget, style, trans
     }
 
 
+def enrich_plan_with_granite(agent_plan: dict, trip_data: dict) -> dict:
+    """
+    IBM watsonx.ai (Granite) Grounded Synthesis Layer:
+    Takes the factual outputs of Agents 1-4 (Base Camp stay, transit route,
+    scheduled POIs, and ML budget) and prompts IBM Granite with a grounded payload
+    to synthesize cultural etiquette, dialect phrases, day pacing, and narrative.
+    """
+    dest = agent_plan.get("destination", trip_data.get("destination", "Coorg")).strip()
+    style = agent_plan.get("travel_style", trip_data.get("travel_style", "adventure"))
+    days = int(agent_plan.get("num_days", trip_data.get("num_days", 3)))
+    itinerary = agent_plan.get("itinerary", {})
+    base_camp = agent_plan.get("base_camp_stay", {})
+    base_camp_name = base_camp.get("name", f"Base Camp in {dest}")
+    days_list = itinerary.get("days", [])
+
+    # Ensure metadata container exists
+    meta = agent_plan.setdefault("pipeline_metadata", {})
+    agents_list = meta.setdefault("agents_used", [])
+
+    # Check in-memory synthesis cache first (token efficiency)
+    cache_key = (dest.lower().strip(), style.lower().strip(), int(days))
+    synthesis = _granite_synthesis_cache.get(cache_key)
+
+    if not synthesis and is_ibm_configured():
+        # Prepare grounded summary of scheduled attractions from Agent 2
+        day_summaries = []
+        for d in days_list:
+            d_no = d.get("day_number", d.get("day", 1))
+            m_name = (d.get("morning") or {}).get("name", (d.get("morning") or {}).get("place", "Sightseeing"))
+            a_name = (d.get("afternoon") or {}).get("name", (d.get("afternoon") or {}).get("place", "Sightseeing"))
+            e_name = (d.get("evening") or {}).get("name", (d.get("evening") or {}).get("place", "Sightseeing"))
+            day_summaries.append({
+                "day": d_no,
+                "morning": m_name,
+                "afternoon": a_name,
+                "evening": e_name
+            })
+
+        prompt = (
+            f"<|system|>\n"
+            f"You are Yatrika's Indian Travel Intelligence Concierge powered by IBM Granite.\n"
+            f"Enrich this grounded travel itinerary with authentic cultural wisdom, dialect phrases, and day pacing tips.\n"
+            f"Strict constraints: Respond ONLY in valid JSON. No markdown codeblocks or conversational filler.\n"
+            f"<|user|>\n"
+            f"Factual Plan Skeleton:\n"
+            f"- Destination: {dest.title()}\n"
+            f"- Base Camp Lodging: {base_camp_name}\n"
+            f"- Travel Style: {style.title()}\n"
+            f"- Duration: {days} Days\n"
+            f"- Scheduled Sightseeing Loops:\n{json.dumps(day_summaries, indent=2)}\n\n"
+            f"Return this exact JSON schema:\n"
+            f"{{\n"
+            f'  "trip_summary": "Two-sentence captivating narrative of this trip anchored at {base_camp_name}.",\n'
+            f'  "cultural_etiquette": ["Dress code/temple custom 1", "Local etiquette rule 2", "Social custom 3"],\n'
+            f'  "useful_phrases": [\n'
+            f'    {{"phrase": "Hello", "local": "Local greeting in regional language", "pronunciation": "Pronunciation"}},\n'
+            f'    {{"phrase": "Thank you", "local": "Local word", "pronunciation": "Pronunciation"}},\n'
+            f'    {{"phrase": "How much?", "local": "Local question", "pronunciation": "Pronunciation"}}\n'
+            f'  ],\n'
+            f'  "weather_advice": "1 concise sentence on packing & clothing for this terrain and season.",\n'
+            f'  "day_pacing_tips": [\n'
+            f'    "Day 1: Timing/crowd management advice for the morning & afternoon spots",\n'
+            f'    "Day 2: Photography light and scenic view tip"\n'
+            f'  ]\n'
+            f"}}\n"
+            f"<|assistant|>\n"
+        )
+        synthesis = call_granite_json(prompt, max_tokens=700)
+        if synthesis:
+            _granite_synthesis_cache[cache_key] = synthesis
+
+    # Apply synthesis if available
+    if synthesis and isinstance(synthesis, dict):
+        if synthesis.get("trip_summary"):
+            itinerary["overview"] = synthesis["trip_summary"]
+            itinerary["trip_summary"] = synthesis["trip_summary"]
+        if synthesis.get("cultural_etiquette"):
+            itinerary["local_customs"] = synthesis["cultural_etiquette"]
+        if synthesis.get("useful_phrases"):
+            itinerary["useful_phrases"] = synthesis["useful_phrases"]
+        if synthesis.get("weather_advice"):
+            itinerary["weather_advice"] = synthesis["weather_advice"]
+
+        pacing_tips = synthesis.get("day_pacing_tips", [])
+        if isinstance(pacing_tips, list):
+            for idx, d in enumerate(days_list):
+                if idx < len(pacing_tips) and pacing_tips[idx]:
+                    d["local_tips"] = pacing_tips[idx]
+
+        meta["granite_enhanced"] = True
+        meta["granite_model"] = getattr(get_config(), "GRANITE_MODEL_ID", "ibm/granite-4-h-small")
+        if "IBM watsonx.ai Granite (Cultural & Narrative Synthesis)" not in agents_list:
+            agents_list.append("IBM watsonx.ai Granite (Cultural & Narrative Synthesis)")
+    else:
+        # Graceful fallback: Enrich using local authentic Indian destination profile if not already present
+        meta["granite_enhanced"] = False
+        meta["granite_fallback_used"] = True
+
+        # Check curated Indian profiles
+        d_lower = dest.lower()
+        matched_profile = None
+        for k, p in INDIAN_DESTINATION_PROFILES.items():
+            if k in d_lower:
+                matched_profile = p
+                break
+
+        if matched_profile:
+            if not itinerary.get("useful_phrases") or itinerary.get("useful_phrases") == [{"phrase": "Hello", "local": "Namaste", "pronunciation": "nah-mas-tay"}]:
+                itinerary["useful_phrases"] = matched_profile.get("phrases", [])
+            if matched_profile.get("language"):
+                itinerary["local_language"] = matched_profile["language"]
+
+    return agent_plan
+
+
 def generate_complete_travel_plan(trip_data: dict) -> dict:
     """
-    Generate complete travel plan using the 4-Agent Cooperative ML Pipeline:
+    Generate complete travel plan using the 4-Agent Cooperative ML Pipeline + IBM Granite Synthesis:
     Agent 4 (Accommodations & Safety) ➔ Agent 1 (Geospatial & Transit) ➔
-    Agent 2 (Itinerary Scheduling) ➔ Agent 3 (Budget & Expense ML Regressor).
+    Agent 2 (Itinerary Scheduling) ➔ Agent 3 (Budget & Expense ML Regressor) ➔
+    IBM watsonx.ai Granite (Cultural Synthesis & Grounded Pacing).
     """
     dest         = trip_data.get("destination", "Coorg").strip()
     days         = int(trip_data.get("num_days", 3))
@@ -715,7 +873,9 @@ def generate_complete_travel_plan(trip_data: dict) -> dict:
         pipeline = MultiAgentCooperativePipeline()
         agent_plan = pipeline.run_pipeline(trip_data)
         if agent_plan and agent_plan.get("itinerary"):
-            return agent_plan
+            # 2. IBM Granite Grounded Enhancement Layer (Enrich with cultural wisdom, dialect phrases, day pacing)
+            enriched_plan = enrich_plan_with_granite(agent_plan, trip_data)
+            return enriched_plan
     except Exception as e:
         print(f"[Cooperative Agent Pipeline] Error: {e}")
 
