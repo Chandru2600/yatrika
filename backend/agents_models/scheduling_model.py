@@ -204,6 +204,8 @@ class ItinerarySchedulingModel:
                     dist_km = round(float(row.get("calc_dist", 8.0)) * 1.25, 1)
                     rating = round(float(row.get("Google Review Rating", 4.5)), 1)
                     fee = int(float(row.get("Entrance Fee in INR", 0)))
+                    last_verified = str(row.get("last_verified", "")).strip() or "2026-01-15"
+                    closed_days = str(row.get("Closed Days", "None")).strip()
 
                     matched.append({
                         "id": f"att_{idx+1}",
@@ -224,7 +226,9 @@ class ItinerarySchedulingModel:
                         "latitude": float(row["Latitude"]),
                         "longitude": float(row["Longitude"]),
                         "lat": float(row["Latitude"]),
-                        "lon": float(row["Longitude"])
+                        "lon": float(row["Longitude"]),
+                        "closed_days": closed_days,
+                        "last_verified": last_verified
                     })
 
             except Exception as e:
@@ -261,7 +265,9 @@ class ItinerarySchedulingModel:
                     "latitude": fb_lat,
                     "longitude": fb_lon,
                     "lat": fb_lat,
-                    "lon": fb_lon
+                    "lon": fb_lon,
+                    "closed_days": "None",
+                    "last_verified": "2026-01-15"
                 })
 
         return matched

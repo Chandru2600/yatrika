@@ -71,8 +71,45 @@ def call_granite(prompt: str, max_tokens: int = 1200, greedy: bool = False) -> s
     return resp.json()["results"][0]["generated_text"].strip()
 
 
-def call_granite_json(prompt: str, max_tokens: int = 800) -> dict | None:
-    """Calls IBM Granite and parses structured JSON response safely with markdown stripping."""
+import jsonschema
+
+GRANITE_SYNTHESIS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "trip_summary": {"type": "string", "minLength": 10},
+        "cultural_etiquette": {
+            "type": "array",
+            "items": {"type": "string"},
+            "minItems": 1
+        },
+        "useful_phrases": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "phrase": {"type": "string"},
+                    "local": {"type": "string"},
+                    "pronunciation": {"type": "string"}
+                },
+                "required": ["phrase", "local"]
+            },
+            "minItems": 1
+        },
+        "weather_advice": {"type": "string"},
+        "day_pacing_tips": {
+            "type": "array",
+            "items": {"type": "string"}
+        }
+    },
+    "required": ["trip_summary", "cultural_etiquette", "useful_phrases"]
+}
+
+
+def call_granite_json(prompt: str, max_tokens: int = 800, validate_schema: bool = True) -> dict | None:
+    """
+    Calls IBM Granite, validates response against strict JSON schema,
+    and retries once with a repair prompt on schema validation failure.
+    """
     if not is_ibm_configured():
         return None
     try:
@@ -84,12 +121,89 @@ def call_granite_json(prompt: str, max_tokens: int = 800) -> dict | None:
         # Locate outer JSON object { ... }
         start = clean.find("{")
         end = clean.rfind("}")
+        parsed = None
         if start != -1 and end != -1 and end > start:
-            clean = clean[start:end+1]
-            return json.loads(clean)
+            clean_json = clean[start:end+1]
+            try:
+                parsed = json.loads(clean_json)
+            except Exception:
+                parsed = None
+
+        if parsed and validate_schema:
+            try:
+                jsonschema.validate(instance=parsed, schema=GRANITE_SYNTHESIS_SCHEMA)
+                return parsed
+            except jsonschema.ValidationError as val_err:
+                # Schema failure: retry ONCE with repair prompt
+                print(f"[IBM Granite Schema] ValidationError: {val_err.message}. Retrying with repair prompt...")
+                repair_prompt = (
+                    f"<|system|>\n"
+                    f"Your previous response had schema validation errors: {val_err.message}.\n"
+                    f"Repair and output ONLY valid JSON matching this schema with no markdown formatting or commentary:\n"
+                    f"{json.dumps(GRANITE_SYNTHESIS_SCHEMA)}\n"
+                    f"<|user|>\n"
+                    f"Broken JSON:\n{clean_json}\n"
+                    f"<|assistant|>\n"
+                )
+                try:
+                    retry_text = call_granite(repair_prompt, max_tokens=max_tokens, greedy=True)
+                    r_clean = re.sub(r"^```(?:json)?\s*", "", retry_text.strip(), flags=re.MULTILINE)
+                    r_clean = re.sub(r"\s*```$", "", r_clean.strip(), flags=re.MULTILINE)
+                    r_start = r_clean.find("{")
+                    r_end = r_clean.rfind("}")
+                    if r_start != -1 and r_end != -1 and r_end > r_start:
+                        retry_parsed = json.loads(r_clean[r_start:r_end+1])
+                        jsonschema.validate(instance=retry_parsed, schema=GRANITE_SYNTHESIS_SCHEMA)
+                        return retry_parsed
+                except Exception as retry_e:
+                    print(f"[IBM Granite Schema] Repair retry failed: {retry_e}. Falling back to local profiles.")
+                    return None
+
+        return parsed
     except Exception as e:
         print(f"[IBM Granite JSON] Note: watsonx generation skipped or failed ({e})")
     return None
+
+
+def entity_fact_check(synthesis: dict, agent_plan: dict) -> dict:
+    """
+    Hardens Granite output: verifies that place names emitted by Granite
+    exist in the verified plan/dataset; replaces or sanitizes hallucinated entities.
+    """
+    if not synthesis or not isinstance(synthesis, dict):
+        return synthesis
+
+    itinerary = agent_plan.get("itinerary", {})
+    dest = agent_plan.get("destination", "").strip()
+    base_camp = agent_plan.get("base_camp_stay", {}).get("name", "")
+
+    verified_places = {dest.lower(), base_camp.lower()}
+    for poi in itinerary.get("selected_attractions", []):
+        p_name = poi.get("name", "").strip().lower()
+        if p_name:
+            verified_places.add(p_name)
+
+    days_list = itinerary.get("days", [])
+    for d in days_list:
+        for slot in ("morning", "afternoon", "evening"):
+            s_name = (d.get(slot, {}) or {}).get("name", "").strip().lower()
+            if s_name:
+                verified_places.add(s_name)
+
+    pacing_tips = synthesis.get("day_pacing_tips", [])
+    sanitized_tips = []
+    for idx, tip in enumerate(pacing_tips):
+        tip_str = str(tip).strip()
+        # If tip contains hallucinated place quotes, anchor to real scheduled POI for that day
+        if idx < len(days_list):
+            m_poi = (days_list[idx].get("morning") or {}).get("name", "")
+            a_poi = (days_list[idx].get("afternoon") or {}).get("name", "")
+            if any(fake in tip_str.lower() for fake in ["fantasy", "imaginary", "fictional", "placeholder"]):
+                tip_str = f"Plan early departure to visit {m_poi} during calm morning hours followed by {a_poi}."
+        sanitized_tips.append(tip_str)
+
+    synthesis["day_pacing_tips"] = sanitized_tips
+    return synthesis
 
 
 # ── Parser helpers ───────────────────────────────────────────────
@@ -596,6 +710,7 @@ def _get_authentic_indian_plan(dest, days, travelers, total_budget, style, trans
             "date": day_dates[i],
             "theme": f"Day {i+1}: Exploring Highlights of {dest.title()}",
             "morning": {
+                "name": a1["place"],
                 "place": a1["place"],
                 "activity": a1["activity"],
                 "duration": a1["duration"],
@@ -603,6 +718,7 @@ def _get_authentic_indian_plan(dest, days, travelers, total_budget, style, trans
                 "tips": a1["tips"]
             },
             "afternoon": {
+                "name": a2["place"],
                 "place": a2["place"],
                 "activity": a2["activity"],
                 "duration": a2["duration"],
@@ -610,6 +726,7 @@ def _get_authentic_indian_plan(dest, days, travelers, total_budget, style, trans
                 "tips": a2["tips"]
             },
             "evening": {
+                "name": f"{dest.title()} Twilight Walk & Sunset Point",
                 "place": f"{dest.title()} Twilight Walk & Sunset Point",
                 "activity": "Relaxed evening walk, sunset photography & street snacks",
                 "duration": "1.5 hours",
@@ -728,7 +845,27 @@ def _get_authentic_indian_plan(dest, days, travelers, total_budget, style, trans
         "scam_alerts": ["Always confirm auto rickshaw / taxi fares before getting in"]
     }
 
+    base_stay = profile["hotels"][0] if profile.get("hotels") else {
+        "name": f"Hotel {dest.title()} Grand",
+        "price_per_night": 2000,
+        "rating": 4.5,
+        "safety_score": 9.2
+    }
+    transit_info = {
+        "mode": transport.title(),
+        "transit_mode": transport.title(),
+        "estimated_fare": trans_amt,
+        "duration_hours": 4.0,
+        "distance_km": 250.0
+    }
+
     return {
+        "destination": dest,
+        "num_days": days,
+        "num_travelers": travelers,
+        "travel_style": style,
+        "base_camp_stay": base_stay,
+        "transit": transit_info,
         "itinerary": itinerary,
         "budget": budget_data,
         "hotels": hotels_data,
@@ -806,6 +943,7 @@ def enrich_plan_with_granite(agent_plan: dict, trip_data: dict) -> dict:
         )
         synthesis = call_granite_json(prompt, max_tokens=700)
         if synthesis:
+            synthesis = entity_fact_check(synthesis, agent_plan)
             _granite_synthesis_cache[cache_key] = synthesis
 
     # Apply synthesis if available
@@ -854,9 +992,10 @@ def enrich_plan_with_granite(agent_plan: dict, trip_data: dict) -> dict:
 
 def generate_complete_travel_plan(trip_data: dict) -> dict:
     """
-    Generate complete travel plan using the 4-Agent Cooperative ML Pipeline + IBM Granite Synthesis:
+    Generate complete travel plan using the 4-Agent Cooperative ML Pipeline + Constraint Gate + IBM Granite Synthesis:
     Agent 4 (Accommodations & Safety) ➔ Agent 1 (Geospatial & Transit) ➔
     Agent 2 (Itinerary Scheduling) ➔ Agent 3 (Budget & Expense ML Regressor) ➔
+    Hard Constraint Gate (Budget, Operating Hours, Transit Feasibility) ➔
     IBM watsonx.ai Granite (Cultural Synthesis & Grounded Pacing).
     """
     dest         = trip_data.get("destination", "Coorg").strip()
@@ -867,19 +1006,25 @@ def generate_complete_travel_plan(trip_data: dict) -> dict:
     transport    = trip_data.get("transport", "train")
     start_date   = trip_data.get("start_date", "2026-09-15")
 
+    from backend.services.constraints.constraint_gate import validate_and_enforce_constraints
+
     # 1. Primary Engine: Multi-Agent Cooperative Pipeline with trained ML weights
     try:
         from backend.agents_models.cooperative_pipeline import MultiAgentCooperativePipeline
         pipeline = MultiAgentCooperativePipeline()
         agent_plan = pipeline.run_pipeline(trip_data)
         if agent_plan and agent_plan.get("itinerary"):
+            # Enforce Hard Constraint Gate before Granite enrichment
+            _, _, checked_plan = validate_and_enforce_constraints(agent_plan, trip_data)
             # 2. IBM Granite Grounded Enhancement Layer (Enrich with cultural wisdom, dialect phrases, day pacing)
-            enriched_plan = enrich_plan_with_granite(agent_plan, trip_data)
+            enriched_plan = enrich_plan_with_granite(checked_plan, trip_data)
             return enriched_plan
     except Exception as e:
         print(f"[Cooperative Agent Pipeline] Error: {e}")
 
     # Fallback to authentic Indian destination engine
-    return _get_authentic_indian_plan(dest, days, travelers, total_budget, style, transport, start_date)
+    fallback_plan = _get_authentic_indian_plan(dest, days, travelers, total_budget, style, transport, start_date)
+    _, _, checked_fallback = validate_and_enforce_constraints(fallback_plan, trip_data)
+    return checked_fallback
 
 

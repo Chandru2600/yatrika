@@ -3,7 +3,15 @@ TravelPlannerAgent - Configuration Module
 """
 
 import os
+import sys
 from datetime import timedelta
+from dotenv import load_dotenv
+
+# Load .env if present in root workspace
+_root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_env_path = os.path.join(_root_dir, ".env")
+if os.path.exists(_env_path):
+    load_dotenv(_env_path)
 
 class Config:
     """Base configuration class."""
@@ -45,6 +53,8 @@ class Config:
         secret = os.environ.get("SECRET_KEY", "").strip()
         if not secret:
             if getattr(self, "TESTING", False) or os.environ.get("FLASK_ENV") == "testing":
+                secret = "test-secret-key-for-testing-only"
+            elif os.environ.get("FLASK_ENV") != "development" and ("pytest" in sys.modules or "PYTEST_CURRENT_TEST" in os.environ):
                 secret = "test-secret-key-for-testing-only"
             else:
                 raise ValueError(
