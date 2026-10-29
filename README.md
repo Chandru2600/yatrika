@@ -28,7 +28,7 @@ The **Travel Planner Agent** is a full-stack web application that uses a custom 
 | 🏨 **Hotel Finder** | Budget, mid-range & luxury hotel picks |
 | 🚌 **Inter-City Transit** | Railway AI, Flight API, KSRTC Bus, and Car/Bike multi-criteria optimization |
 | 🎒 **Packing Assistant** | Destination-specific checklist |
-| 🍜 **Local Food Guide** | Must-try dishes, restaurants, street food |
+| 🍜 **Local Food Guide** | Data-driven regional culinary discovery via `data/food_guide.csv`: famous must-try dishes and 1–2 curated meal stops along each day's route with multi-tier city/state fallback |
 | 📄 **PDF Export** | Full itinerary export as professional PDF |
 | 💳 **Expense Tracker** | Manual expense logging with chart visualization |
 | ⭐ **Saved Trips** | Save, manage, and revisit trip plans |

@@ -639,6 +639,47 @@
                     </div>
                   </div>
                   {% endif %}
+                  <!-- Local Food Layer (Feature 3): Must-Try Dishes & Curated Meal Stops Near Route -->
+                  {% if d.must_try_dishes or d.food_recommendations %}
+                  <div class="mt-3 pt-3 border-top" style="border-color: #E2E8F0 !important;">
+                    {% if d.must_try_dishes %}
+                    <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                      <span class="badge rounded-pill fw-bold" style="background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; font-size: 0.72rem;">
+                        <i class="bi bi-fire me-1"></i>Must-Try Dishes
+                      </span>
+                      {% for dish in d.must_try_dishes %}
+                      <span class="badge fw-medium rounded-pill" style="background: #F8FAFC; color: #334155; border: 1px solid #CBD5E1; font-size: 0.72rem;">
+                        {{ dish }}
+                      </span>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if d.food_recommendations %}
+                    <div class="row g-2 mt-1">
+                      {% for stop in d.food_recommendations %}
+                      <div class="col-sm-6">
+                        <div class="p-2 rounded-3 h-100 d-flex flex-column" style="background: #F8FAFC; border: 1px solid #E2E8F0; font-size: 0.8rem;">
+                          <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-dark text-truncate" title="{{ stop.eatery }}">
+                              <i class="bi bi-shop text-coral me-1"></i>{{ stop.eatery }}
+                            </span>
+                            <span class="badge extra-small px-2 py-0 fw-bold" style="background: #ECFDF5; color: #047857;">⭐ {{ stop.rating }}</span>
+                          </div>
+                          <div class="text-muted extra-small mt-1 text-truncate" title="{{ stop.specialty }}">
+                            <span class="fw-semibold text-secondary">{{ stop.meal }}:</span> {{ stop.specialty }}
+                          </div>
+                          <div class="d-flex justify-content-between align-items-center mt-auto pt-1 extra-small text-muted border-top" style="border-color: #F1F5F9 !important;">
+                            <span><i class="bi bi-geo-alt me-1 text-turquoise"></i>{{ stop.landmark|truncate(26) }}</span>
+                            <span class="fw-bold text-success">{{ stop.price_range }}</span>
+                          </div>
+                        </div>
+                      </div>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
                 </div>
                 {% endfor %}
               {% endif %}

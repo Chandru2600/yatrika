@@ -26,6 +26,7 @@ from backend.services.pdf.pdf_service import generate_trip_pdf
 from backend.services.calendar.calendar_service import generate_trip_ics
 from backend.services.packing.packing_service import generate_smart_packing_checklist
 from backend.services.booking.booking_service import build_booking_links
+from backend.services.food.food_service import attach_food_layer_to_itinerary
 from backend.agents_models.coord_resolver import resolve_destination_coords
 
 planner_bp = Blueprint("planner", __name__, url_prefix="/planner")
@@ -1053,6 +1054,7 @@ def share_trip_by_token(token: str):
     expenses   = get_expenses(trip["id"])
 
     itinerary = attach_weather_forecast_to_itinerary(itinerary, trip.get("destination", ""), trip.get("start_date"))
+    itinerary = attach_food_layer_to_itinerary(itinerary, trip.get("destination", ""))
 
     share_url = url_for("planner.share_trip_by_token", token=trip["share_token"], _external=True)
     weather_horizon = evaluate_weather_horizon(trip, weather)
@@ -1138,6 +1140,7 @@ def view_trip(trip_id: int):
     expenses   = get_expenses(trip_id)
 
     itinerary = attach_weather_forecast_to_itinerary(itinerary, trip.get("destination", ""), trip.get("start_date"))
+    itinerary = attach_food_layer_to_itinerary(itinerary, trip.get("destination", ""))
 
     share_url = url_for("planner.share_trip_by_token", token=trip["share_token"], _external=True) if trip.get("share_token") else ""
     weather_horizon = evaluate_weather_horizon(trip, weather)

@@ -1011,6 +1011,7 @@ def generate_complete_travel_plan(trip_data: dict) -> dict:
     from backend.services.booking.booking_service import build_booking_links
 
     from backend.services.weather.weather_service import attach_weather_forecast_to_itinerary
+    from backend.services.food.food_service import attach_food_layer_to_itinerary
 
     # 1. Primary Engine: Multi-Agent Cooperative Pipeline with trained ML weights
     try:
@@ -1025,6 +1026,7 @@ def generate_complete_travel_plan(trip_data: dict) -> dict:
             enriched_plan["booking_links"] = build_booking_links(trip_data)
             if enriched_plan.get("itinerary"):
                 enriched_plan["itinerary"] = attach_weather_forecast_to_itinerary(enriched_plan["itinerary"], dest, start_date)
+                enriched_plan["itinerary"] = attach_food_layer_to_itinerary(enriched_plan["itinerary"], dest)
             return enriched_plan
     except Exception as e:
         print(f"[Cooperative Agent Pipeline] Error: {e}")
@@ -1035,6 +1037,7 @@ def generate_complete_travel_plan(trip_data: dict) -> dict:
     checked_fallback["booking_links"] = build_booking_links(trip_data)
     if checked_fallback.get("itinerary"):
         checked_fallback["itinerary"] = attach_weather_forecast_to_itinerary(checked_fallback["itinerary"], dest, start_date)
+        checked_fallback["itinerary"] = attach_food_layer_to_itinerary(checked_fallback["itinerary"], dest)
     return checked_fallback
 
 
