@@ -374,6 +374,13 @@
           </button>
           {% endif %}
 
+          <!-- WhatsApp Share (Feature 5) -->
+          {% if whatsapp_share_url %}
+          <a href="{{ whatsapp_share_url }}" target="_blank" rel="noopener noreferrer" class="btn-stub w-100 mt-2 text-white fw-bold d-flex align-items-center justify-content-center gap-2 text-decoration-none" id="btnShareWhatsApp" style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); border: none; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);">
+            <i class="bi bi-whatsapp fs-6"></i> Share on WhatsApp
+          </a>
+          {% endif %}
+
           <!-- Actionable Booking Deep Links (Feature 1) -->
           <div class="dropdown w-100 mt-2">
             <button class="btn-stub dropdown-toggle w-100 text-white fw-bold d-flex align-items-center justify-content-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%); border: none; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);">

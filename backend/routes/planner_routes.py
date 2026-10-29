@@ -28,6 +28,7 @@ from backend.services.packing.packing_service import generate_smart_packing_chec
 from backend.services.booking.booking_service import build_booking_links
 from backend.services.food.food_service import attach_food_layer_to_itinerary
 from backend.services.emergency.emergency_service import get_emergency_contacts
+from backend.services.share.whatsapp_service import get_whatsapp_share_url
 from backend.agents_models.coord_resolver import resolve_destination_coords
 
 planner_bp = Blueprint("planner", __name__, url_prefix="/planner")
@@ -1063,6 +1064,7 @@ def share_trip_by_token(token: str):
     packing_checklist = generate_smart_packing_checklist(trip, weather, saved_checklist)
     booking_links = build_booking_links(trip)
     emergency_info = get_emergency_contacts(trip.get("destination", ""))
+    whatsapp_share_url = get_whatsapp_share_url(trip, itinerary, budget, booking_links)
 
     return render_template("planner/view_trip.html",
         trip=trip,
@@ -1076,7 +1078,8 @@ def share_trip_by_token(token: str):
         is_shared=True,
         share_url=share_url,
         booking_links=booking_links,
-        emergency_info=emergency_info
+        emergency_info=emergency_info,
+        whatsapp_share_url=whatsapp_share_url
     )
 
 
@@ -1151,6 +1154,7 @@ def view_trip(trip_id: int):
     packing_checklist = generate_smart_packing_checklist(trip, weather, saved_checklist)
     booking_links = build_booking_links(trip)
     emergency_info = get_emergency_contacts(trip.get("destination", ""))
+    whatsapp_share_url = get_whatsapp_share_url(trip, itinerary, budget, booking_links)
 
     return render_template("planner/view_trip.html",
         trip=trip,
@@ -1164,7 +1168,8 @@ def view_trip(trip_id: int):
         share_url=share_url,
         is_public=bool(trip.get("is_public", 0)),
         booking_links=booking_links,
-        emergency_info=emergency_info
+        emergency_info=emergency_info,
+        whatsapp_share_url=whatsapp_share_url
     )
 
 
