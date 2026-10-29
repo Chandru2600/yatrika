@@ -19,7 +19,8 @@ from backend.models.trip import (
     get_trip_checklist, update_trip_checklist
 )
 from backend.services.weather.weather_service import (
-    get_current_weather, get_forecast, get_travel_weather_advice, evaluate_weather_horizon
+    get_current_weather, get_forecast, get_travel_weather_advice, evaluate_weather_horizon,
+    attach_weather_forecast_to_itinerary
 )
 from backend.services.pdf.pdf_service import generate_trip_pdf
 from backend.services.calendar.calendar_service import generate_trip_ics
@@ -1051,6 +1052,8 @@ def share_trip_by_token(token: str):
     hotels     = json.loads(trip.get("hotels_json")    or "{}")
     expenses   = get_expenses(trip["id"])
 
+    itinerary = attach_weather_forecast_to_itinerary(itinerary, trip.get("destination", ""), trip.get("start_date"))
+
     share_url = url_for("planner.share_trip_by_token", token=trip["share_token"], _external=True)
     weather_horizon = evaluate_weather_horizon(trip, weather)
     saved_checklist = get_trip_checklist(trip["id"], trip["user_id"])
@@ -1133,6 +1136,8 @@ def view_trip(trip_id: int):
     budget     = json.loads(trip.get("budget_json")    or "{}")
     hotels     = json.loads(trip.get("hotels_json")    or "{}")
     expenses   = get_expenses(trip_id)
+
+    itinerary = attach_weather_forecast_to_itinerary(itinerary, trip.get("destination", ""), trip.get("start_date"))
 
     share_url = url_for("planner.share_trip_by_token", token=trip["share_token"], _external=True) if trip.get("share_token") else ""
     weather_horizon = evaluate_weather_horizon(trip, weather)

@@ -278,3 +278,172 @@ def evaluate_weather_horizon(trip: dict, weather: dict = None) -> dict:
             "is_live": False
         }
 
+
+# ── Feature 2: Open-Meteo Real Weather Forecast & Dynamic Alerts ──────
+
+_open_meteo_cache: dict = {}
+OPEN_METEO_BASE_URL = "https://api.open-meteo.com/v1/forecast"
+RAIN_CODES = {51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99}
+
+
+def get_cached_weather(lat: float, lon: float, date_str: str) -> dict | None:
+    """Retrieve weather data from memory cache for a given (lat, lon, date)."""
+    key = (round(float(lat), 3), round(float(lon), 3), str(date_str).strip())
+    return _open_meteo_cache.get(key)
+
+
+def set_cached_weather(lat: float, lon: float, date_str: str, data: dict) -> None:
+    """Cache weather data in memory per (lat, lon, date)."""
+    key = (round(float(lat), 3), round(float(lon), 3), str(date_str).strip())
+    _open_meteo_cache[key] = data
+
+
+def fetch_open_meteo_forecast(lat: float, lon: float, dates: list[str]) -> dict[str, dict]:
+    """
+    Fetches real weather forecast from Open-Meteo API (free, no key required).
+    Caches results per (lat, lon, date).
+    Degrades gracefully offline with zero crashes.
+    """
+    results: dict[str, dict] = {}
+    missing_dates = []
+
+    for d in dates:
+        cached = get_cached_weather(lat, lon, d)
+        if cached is not None:
+            results[d] = cached
+        else:
+            missing_dates.append(d)
+
+    if not missing_dates:
+        return results
+
+    try:
+        params = {
+            "latitude": round(float(lat), 4),
+            "longitude": round(float(lon), 4),
+            "daily": "weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max",
+            "timezone": "auto"
+        }
+        resp = requests.get(OPEN_METEO_BASE_URL, params=params, timeout=4)
+        if resp.status_code == 200:
+            daily = resp.json().get("daily", {})
+            times = daily.get("time", [])
+            t_max_arr = daily.get("temperature_2m_max", [])
+            t_min_arr = daily.get("temperature_2m_min", [])
+            precip_arr = daily.get("precipitation_sum", [])
+            rain_prob_arr = daily.get("precipitation_probability_max", [])
+            wcode_arr = daily.get("weathercode", [])
+
+            for idx, time_str in enumerate(times):
+                temp_max = float(t_max_arr[idx]) if idx < len(t_max_arr) and t_max_arr[idx] is not None else 28.0
+                temp_min = float(t_min_arr[idx]) if idx < len(t_min_arr) and t_min_arr[idx] is not None else 20.0
+                precip = float(precip_arr[idx]) if idx < len(precip_arr) and precip_arr[idx] is not None else 0.0
+                rain_prob = int(rain_prob_arr[idx]) if idx < len(rain_prob_arr) and rain_prob_arr[idx] is not None else 0
+                wcode = int(wcode_arr[idx]) if idx < len(wcode_arr) and wcode_arr[idx] is not None else 0
+
+                is_rain = wcode in RAIN_CODES or rain_prob >= 45 or precip >= 2.0
+                is_extreme_heat = temp_max >= 38.0
+
+                if is_rain:
+                    alert = {
+                        "has_alert": True,
+                        "type": "rain",
+                        "badge": "🌧️ Rain Forecast",
+                        "badge_class": "bg-warning text-dark border border-warning",
+                        "temp_max": temp_max,
+                        "temp_min": temp_min,
+                        "rain_prob": rain_prob,
+                        "condition": "Showers / Rain Expected",
+                        "suggestion": "Rain forecast: Move outdoor viewpoint visits to morning slots or explore indoor museums/monuments in the afternoon."
+                    }
+                elif is_extreme_heat:
+                    alert = {
+                        "has_alert": True,
+                        "type": "heat",
+                        "badge": f"🔥 Heat Alert ({temp_max:.0f}°C)",
+                        "badge_class": "bg-danger text-white border border-danger",
+                        "temp_max": temp_max,
+                        "temp_min": temp_min,
+                        "rain_prob": rain_prob,
+                        "condition": f"Extreme heat ({temp_max:.1f}°C)",
+                        "suggestion": "Extreme heat forecast: Move outdoor sightseeing to cool morning hours (before 10:30 AM) and rest or visit indoor sites in the afternoon."
+                    }
+                else:
+                    alert = {
+                        "has_alert": False,
+                        "type": "clear",
+                        "badge": "☀️ Fair Weather",
+                        "badge_class": "bg-info-subtle text-info border border-info-subtle",
+                        "temp_max": temp_max,
+                        "temp_min": temp_min,
+                        "rain_prob": rain_prob,
+                        "condition": "Pleasant / Clear",
+                        "suggestion": ""
+                    }
+
+                set_cached_weather(lat, lon, time_str, alert)
+                if time_str in dates:
+                    results[time_str] = alert
+
+    except Exception:
+        # Graceful degradation offline: do not crash
+        pass
+
+    return results
+
+
+def attach_weather_forecast_to_itinerary(itinerary: dict, destination: str, start_date: str = None) -> dict:
+    """
+    Enriches each itinerary day with real Open-Meteo weather alerts.
+    If rain/extreme heat is detected on that day, attaches actionable swap suggestions.
+    Guaranteed zero-crash fallback if offline or coords unresolvable.
+    """
+    if not isinstance(itinerary, dict):
+        return itinerary
+
+    days_list = itinerary.get("days", [])
+    if not days_list:
+        return itinerary
+
+    try:
+        from backend.agents_models.coord_resolver import resolve_destination_coords
+        from datetime import date, timedelta
+
+        coords = resolve_destination_coords(destination)
+        if not coords or coords == (12.9716, 77.5946) and "bangalore" not in destination.lower() and "bengaluru" not in destination.lower():
+            # Check if destination coordinates exist in itinerary or profile
+            lat = itinerary.get("lat") or 12.9716
+            lon = itinerary.get("lon") or 77.5946
+        else:
+            lat, lon = coords
+
+        try:
+            base_d = date.fromisoformat(str(start_date)[:10]) if start_date else date.today()
+        except Exception:
+            base_d = date.today()
+
+        dates_to_query = []
+        for idx, d in enumerate(days_list):
+            d_date = d.get("date")
+            if not d_date:
+                d_date = (base_d + timedelta(days=idx)).isoformat()
+                d["date"] = d_date
+            dates_to_query.append(d_date)
+
+        forecasts = fetch_open_meteo_forecast(lat, lon, dates_to_query)
+
+        for d in days_list:
+            d_date = d.get("date")
+            if d_date and d_date in forecasts:
+                d["weather_alert"] = forecasts[d_date]
+            else:
+                d["weather_alert"] = None
+
+    except Exception:
+        # Graceful offline degradation
+        for d in days_list:
+            if "weather_alert" not in d:
+                d["weather_alert"] = None
+
+    return itinerary
+
