@@ -565,31 +565,46 @@
         <div class="row g-4">
           <!-- Left: Narrative & Daily Loops -->
           <div class="col-lg-8">
-            <!-- Curated Trip Narrative -->
-            {% if itinerary.trip_summary or (itinerary.itinerary and itinerary.itinerary.overview) %}
-            <div class="dossier-section-card">
-              <h3 class="dossier-section-title">
-                <i class="bi bi-book text-turquoise"></i> Curated Expedition Narrative
-              </h3>
-              <p class="mb-3" style="color: #1E293B; line-height: 1.75; font-size: 0.98rem; font-weight: 500;">
-                {{ itinerary.trip_summary or itinerary.itinerary.overview }}
-              </p>
-              <div class="d-flex flex-wrap gap-2 pt-3 border-top" style="border-color: #E2E8F0 !important;">
-                <span class="badge rounded-pill small px-3 py-2 fw-semibold" style="background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0;">
-                  🌸 Best Time: {{ itinerary.get("best_time_to_visit", "October to May") }}
-                </span>
-                <span class="badge rounded-pill small px-3 py-2 fw-semibold" style="background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE;">
-                  🗣️ Languages: {{ itinerary.get("local_language", "Hindi, Regional & English") }}
-                </span>
-                <span class="badge rounded-pill small px-3 py-2 fw-semibold" style="background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A;">
-                  ₹ Currency: INR (₹)
-                </span>
-                <span class="badge rounded-pill small px-3 py-2 fw-semibold" style="background: #F5F3FF; color: #6D28D9; border: 1px solid #DDD6FE;">
-                  🕒 Timezone: IST (UTC+05:30)
-                </span>
+            <!-- Practical Essentials & Quick Booking Actions (Feature 7: Practical First) -->
+            <div class="dossier-section-card mb-4" id="practicalEssentialsCard" style="border-top: 4px solid var(--dossier-teal, #0D9488);">
+              <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 extra-small fw-bold text-uppercase">
+                    ⚡ Practical Travel Essentials
+                  </span>
+                  <h4 class="fw-bold mb-0 mt-1" style="color: #0F172A; font-size: 1.15rem;">
+                    <i class="bi bi-geo-alt-fill text-turquoise me-1"></i>{{ stay_name }}
+                  </h4>
+                  <div class="small text-muted"><i class="bi bi-pin-map me-1"></i>{{ stay_addr }}</div>
+                </div>
+                <div class="text-end">
+                  <div class="fs-5 fw-extrabold text-turquoise">₹{{ stay_price }}<span class="small text-muted fw-normal">/night</span></div>
+                  <span class="badge bg-success-subtle text-success border border-success-subtle extra-small fw-bold">✓ Safety Score: {{ stay_safety }}</span>
+                </div>
+              </div>
+
+              <!-- Actionable Booking Deep Links Row -->
+              <div class="p-3 rounded-3" style="background: #F8FAFC; border: 1.5px solid #E2E8F0;">
+                <div class="extra-small fw-bold text-muted text-uppercase mb-2">Direct Provider Booking (Dates &amp; Destination Prefilled):</div>
+                <div class="d-flex flex-wrap gap-2">
+                  {% for h_link in (booking_links.hotels if booking_links else []) %}
+                  <a href="{{ h_link.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary py-1 px-3 rounded-pill fw-semibold text-decoration-none">
+                    <i class="bi {{ h_link.icon }} me-1"></i>{{ h_link.name }}
+                  </a>
+                  {% endfor %}
+                  {% for t_link in (booking_links.trains if booking_links else []) %}
+                  <a href="{{ t_link.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success py-1 px-3 rounded-pill fw-semibold text-decoration-none">
+                    <i class="bi {{ t_link.icon }} me-1"></i>{{ t_link.name }}
+                  </a>
+                  {% endfor %}
+                  {% for b_link in (booking_links.buses if booking_links else []) %}
+                  <a href="{{ b_link.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-danger py-1 px-3 rounded-pill fw-semibold text-decoration-none">
+                    <i class="bi {{ b_link.icon }} me-1"></i>{{ b_link.name }}
+                  </a>
+                  {% endfor %}
+                </div>
               </div>
             </div>
-            {% endif %}
 
             <!-- Day-by-Day Loop Briefing -->
             <div class="dossier-section-card">
@@ -635,6 +650,7 @@
 
                   <!-- Morning -->
                   {% if d.morning %}
+                  {% set morning_addr = d.morning.proximity or d.morning.address or d.morning.location or d.base_camp %}
                   <div class="slot-row-item activity-card-interactive"
                        data-name="{{ (d.morning.name or d.morning.place)|e }}"
                        data-lat="{{ d.morning.lat or '' }}"
@@ -643,13 +659,21 @@
                        title="Click to view on Map">
                     <span class="slot-time-badge">🌅 Morning</span>
                     <div class="flex-grow-1">
-                      <div class="d-flex justify-content-between align-items-center">
+                      <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
                         <strong style="color: #0F172A; font-weight: 700;">{{ d.morning.name or d.morning.place }}</strong>
-                        <span class="badge extra-small px-2 py-1 fw-bold" style="background: #F1F5F9; color: #0F172A; border: 1px solid #CBD5E1;">{{ d.morning.dur or '2.5h' }}</span>
+                        <div class="d-flex align-items-center gap-1">
+                          {% if d.morning.time or d.morning.timing %}
+                          <span class="badge bg-light text-dark border extra-small fw-semibold"><i class="bi bi-clock me-1 text-primary"></i>{{ d.morning.time or d.morning.timing }}</span>
+                          {% endif %}
+                          {% if d.morning.cost is defined and d.morning.cost is not none %}
+                          <span class="badge bg-success-subtle text-success border border-success-subtle extra-small fw-bold">₹{{ d.morning.cost }}</span>
+                          {% endif %}
+                          <span class="badge extra-small px-2 py-1 fw-bold" style="background: #F1F5F9; color: #0F172A; border: 1px solid #CBD5E1;">{{ d.morning.dur or '2.5h' }}</span>
+                        </div>
                       </div>
                       <div class="small mt-1" style="color: #475569; font-weight: 450;">{{ d.morning.activity or d.morning.description }}</div>
-                      {% if d.morning.proximity %}
-                      <div class="extra-small mt-1 fw-semibold" style="color: #0284C7;"><i class="bi bi-geo-alt me-1"></i>{{ d.morning.proximity }}</div>
+                      {% if morning_addr %}
+                      <div class="extra-small mt-1 fw-semibold text-truncate" style="color: #0284C7;"><i class="bi bi-geo-alt me-1"></i>{{ morning_addr }}</div>
                       {% endif %}
                     </div>
                   </div>
@@ -657,6 +681,7 @@
 
                   <!-- Afternoon -->
                   {% if d.afternoon %}
+                  {% set afternoon_addr = d.afternoon.proximity or d.afternoon.address or d.afternoon.location or d.base_camp %}
                   <div class="slot-row-item activity-card-interactive"
                        data-name="{{ (d.afternoon.name or d.afternoon.place)|e }}"
                        data-lat="{{ d.afternoon.lat or '' }}"
@@ -665,13 +690,21 @@
                        title="Click to view on Map">
                     <span class="slot-time-badge" style="color: #B45309; background: #FEF3C7; border-color: #FDE68A;">☀️ Afternoon</span>
                     <div class="flex-grow-1">
-                      <div class="d-flex justify-content-between align-items-center">
+                      <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
                         <strong style="color: #0F172A; font-weight: 700;">{{ d.afternoon.name or d.afternoon.place }}</strong>
-                        <span class="badge extra-small px-2 py-1 fw-bold" style="background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A;">{{ d.afternoon.dur or '3h' }}</span>
+                        <div class="d-flex align-items-center gap-1">
+                          {% if d.afternoon.time or d.afternoon.timing %}
+                          <span class="badge bg-light text-dark border extra-small fw-semibold"><i class="bi bi-clock me-1 text-primary"></i>{{ d.afternoon.time or d.afternoon.timing }}</span>
+                          {% endif %}
+                          {% if d.afternoon.cost is defined and d.afternoon.cost is not none %}
+                          <span class="badge bg-success-subtle text-success border border-success-subtle extra-small fw-bold">₹{{ d.afternoon.cost }}</span>
+                          {% endif %}
+                          <span class="badge extra-small px-2 py-1 fw-bold" style="background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A;">{{ d.afternoon.dur or '3h' }}</span>
+                        </div>
                       </div>
                       <div class="small mt-1" style="color: #475569; font-weight: 450;">{{ d.afternoon.activity or d.afternoon.description }}</div>
-                      {% if d.afternoon.proximity %}
-                      <div class="extra-small mt-1 fw-semibold" style="color: #0284C7;"><i class="bi bi-geo-alt me-1"></i>{{ d.afternoon.proximity }}</div>
+                      {% if afternoon_addr %}
+                      <div class="extra-small mt-1 fw-semibold text-truncate" style="color: #0284C7;"><i class="bi bi-geo-alt me-1"></i>{{ afternoon_addr }}</div>
                       {% endif %}
                     </div>
                   </div>
@@ -679,6 +712,7 @@
 
                   <!-- Evening -->
                   {% if d.evening %}
+                  {% set evening_addr = d.evening.proximity or d.evening.address or d.evening.location or d.base_camp %}
                   <div class="slot-row-item activity-card-interactive"
                        data-name="{{ (d.evening.name or d.evening.place)|e }}"
                        data-lat="{{ d.evening.lat or '' }}"
@@ -687,13 +721,21 @@
                        title="Click to view on Map">
                     <span class="slot-time-badge" style="color: #6D28D9; background: #EDE9FE; border-color: #DDD6FE;">🌆 Evening</span>
                     <div class="flex-grow-1">
-                      <div class="d-flex justify-content-between align-items-center">
+                      <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
                         <strong style="color: #0F172A; font-weight: 700;">{{ d.evening.name or d.evening.place }}</strong>
-                        <span class="badge extra-small px-2 py-1 fw-bold" style="background: #F5F3FF; color: #6D28D9; border: 1px solid #DDD6FE;">{{ d.evening.dur or '2h' }}</span>
+                        <div class="d-flex align-items-center gap-1">
+                          {% if d.evening.time or d.evening.timing %}
+                          <span class="badge bg-light text-dark border extra-small fw-semibold"><i class="bi bi-clock me-1 text-primary"></i>{{ d.evening.time or d.evening.timing }}</span>
+                          {% endif %}
+                          {% if d.evening.cost is defined and d.evening.cost is not none %}
+                          <span class="badge bg-success-subtle text-success border border-success-subtle extra-small fw-bold">₹{{ d.evening.cost }}</span>
+                          {% endif %}
+                          <span class="badge extra-small px-2 py-1 fw-bold" style="background: #F5F3FF; color: #6D28D9; border: 1px solid #DDD6FE;">{{ d.evening.dur or '2h' }}</span>
+                        </div>
                       </div>
                       <div class="small mt-1" style="color: #475569; font-weight: 450;">{{ d.evening.activity or d.evening.description }}</div>
-                      {% if d.evening.proximity %}
-                      <div class="extra-small mt-1 fw-semibold" style="color: #0284C7;"><i class="bi bi-geo-alt me-1"></i>{{ d.evening.proximity }}</div>
+                      {% if evening_addr %}
+                      <div class="extra-small mt-1 fw-semibold text-truncate" style="color: #0284C7;"><i class="bi bi-geo-alt me-1"></i>{{ evening_addr }}</div>
                       {% endif %}
                     </div>
                   </div>
@@ -747,7 +789,7 @@
             <!-- Tourist Attractions Pill Grid -->
             <div class="dossier-section-card">
               <h3 class="dossier-section-title">
-                <i class="bi bi-geo-alt-fill text-coral"></i> Top Tourist Sights Selected by Agent 2
+                <i class="bi bi-geo-alt-fill text-coral"></i> Top Verified Sights &amp; Attractions
               </h3>
               <div class="row g-3">
                 {% if attractions %}
@@ -770,6 +812,70 @@
                   </div>
                   {% endfor %}
                 {% endif %}
+              </div>
+            </div>
+
+            <!-- Curated Narrative, Cultural Etiquette & Local Phrases (Feature 7: Cultural Insights Below Practical) -->
+            <div class="dossier-section-card mt-4" id="culturalInsightsSection">
+              <h3 class="dossier-section-title">
+                <i class="bi bi-compass text-turquoise"></i> Cultural Context &amp; Destination Narrative
+              </h3>
+              {% if itinerary.trip_summary or (itinerary.itinerary and itinerary.itinerary.overview) %}
+              <p class="mb-3" style="color: #1E293B; line-height: 1.75; font-size: 0.95rem; font-weight: 500;">
+                {{ itinerary.trip_summary or itinerary.itinerary.overview }}
+              </p>
+              {% endif %}
+
+              <!-- Cultural Etiquette -->
+              {% if itinerary.cultural_etiquette %}
+              <div class="mt-3 pt-3 border-top" style="border-color: #E2E8F0 !important;">
+                <h6 class="fw-bold mb-2 text-navy" style="font-size: 0.88rem;">
+                  <i class="bi bi-shield-check text-success me-1"></i> Local Etiquette &amp; Customs
+                </h6>
+                <ul class="mb-2 ps-3 small text-muted" style="line-height: 1.6;">
+                  {% for tip in itinerary.cultural_etiquette %}
+                  <li>{{ tip }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
+
+              <!-- Useful Local Phrases -->
+              {% if itinerary.useful_phrases %}
+              <div class="mt-3 pt-3 border-top" style="border-color: #E2E8F0 !important;">
+                <h6 class="fw-bold mb-2 text-navy" style="font-size: 0.88rem;">
+                  <i class="bi bi-chat-quote text-turquoise me-1"></i> Useful Phrases &amp; Local Dialect
+                </h6>
+                <div class="row g-2">
+                  {% for p in itinerary.useful_phrases %}
+                  <div class="col-sm-6">
+                    <div class="p-2 rounded-3 bg-light border small">
+                      <span class="fw-bold text-dark">{{ p.phrase }}:</span>
+                      <span class="text-turquoise fw-bold ms-1">"{{ p.local }}"</span>
+                      {% if p.pronunciation %}
+                      <span class="text-muted extra-small">({{ p.pronunciation }})</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+
+              <!-- Regional Overview Badges -->
+              <div class="d-flex flex-wrap gap-2 pt-3 border-top mt-3" style="border-color: #E2E8F0 !important;">
+                <span class="badge rounded-pill small px-3 py-2 fw-semibold" style="background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0;">
+                  🌸 Best Time: {{ itinerary.get("best_time_to_visit", "October to May") }}
+                </span>
+                <span class="badge rounded-pill small px-3 py-2 fw-semibold" style="background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE;">
+                  🗣️ Languages: {{ itinerary.get("local_language", "Hindi, Regional & English") }}
+                </span>
+                <span class="badge rounded-pill small px-3 py-2 fw-semibold" style="background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A;">
+                  ₹ Currency: INR (₹)
+                </span>
+                <span class="badge rounded-pill small px-3 py-2 fw-semibold" style="background: #F5F3FF; color: #6D28D9; border: 1px solid #DDD6FE;">
+                  🕒 Timezone: IST (UTC+05:30)
+                </span>
               </div>
             </div>
           </div>
