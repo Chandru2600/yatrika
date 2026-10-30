@@ -198,6 +198,249 @@
     background: #0b7a6f !important;
   }
 
+  /* ══════ Luxury Executive Boarding Pass (Compact Midnight Navy & Warm Gold) ══════ */
+  .dossier-boarding-pass {
+    display: flex !important;
+    position: relative !important;
+    background: linear-gradient(135deg, #090E17 0%, #0F172A 45%, #131F37 80%, #0B132B 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 12px !important;
+    color: #F8FAFC !important;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22) !important;
+    margin-bottom: 12px !important;
+    overflow: visible !important; /* Allows dropdown menu to render without clipping */
+  }
+
+  .ticket-main-body {
+    flex: 1 !important;
+    padding: 10px 16px 8px 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    min-width: 0 !important;
+  }
+
+  .ticket-brand-text {
+    font-size: 0.68rem !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    font-weight: 800 !important;
+    color: #F8FAFC !important;
+  }
+
+  .ticket-carrier-pill {
+    font-size: 0.58rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    background: rgba(16, 185, 129, 0.16) !important;
+    color: #34D399 !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    padding: 1px 7px !important;
+    border-radius: 999px !important;
+  }
+
+  .ticket-pnr-badge {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+  .ticket-pnr-badge .pnr-lbl {
+    color: #94A3B8 !important;
+  }
+  .ticket-pnr-badge .pnr-code {
+    color: #F8FAFC !important;
+  }
+
+  .corridor-station .station-code {
+    font-size: 1.25rem !important;
+    font-weight: 900 !important;
+    color: #F8FAFC !important;
+  }
+  .corridor-station.dest-station .station-code {
+    color: #38BDF8 !important; /* Crisp cyan accent */
+  }
+  .corridor-station .station-city {
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    color: #E2E8F0 !important;
+  }
+  .corridor-station .station-sub {
+    font-size: 0.62rem !important;
+    color: #94A3B8 !important;
+  }
+
+  .corridor-duration-badge {
+    font-size: 0.60rem !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #E2E8F0 !important;
+  }
+  .corridor-flight-line .corridor-track {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.25), rgba(56, 189, 248, 0.8)) !important;
+  }
+  .corridor-flight-line .corridor-transit-icon {
+    background: #0284C7 !important;
+    border: 1.5px solid #38BDF8 !important;
+  }
+  .corridor-mode-pill {
+    font-size: 0.62rem !important;
+    color: #94A3B8 !important;
+  }
+
+  .ticket-specs-row {
+    padding-top: 4px !important;
+    margin-top: 4px !important;
+    border-top: 1px dashed rgba(255, 255, 255, 0.15) !important;
+  }
+  .spec-col .spec-lbl {
+    font-size: 0.54rem !important;
+    color: #94A3B8 !important;
+  }
+  .spec-col .spec-val {
+    font-size: 0.72rem !important;
+    color: #F8FAFC !important;
+  }
+  .spec-col .spec-val.text-turquoise {
+    color: #38BDF8 !important;
+  }
+
+  .ticket-perforation-divider {
+    width: 14px !important;
+  }
+  .perforation-dashed-line {
+    border-left: 2px dashed rgba(255, 255, 255, 0.2) !important;
+  }
+  .notch-cutout {
+    background: var(--bg-canvas, #F4F6F9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+
+  /* Passenger Stub (Right ~195px) */
+  .ticket-stub-body {
+    width: 195px !important;
+    background: rgba(0, 0, 0, 0.25) !important;
+    padding: 8px 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    flex-shrink: 0 !important;
+    position: relative !important;
+    overflow: visible !important; /* Critical for dropdown menu visibility */
+  }
+
+  .stub-tag {
+    font-size: 0.58rem !important;
+    color: #94A3B8 !important;
+  }
+  .stub-class-badge {
+    font-size: 0.56rem !important;
+    background: rgba(245, 158, 11, 0.15) !important;
+    color: #FBBF24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.35) !important;
+  }
+
+  .stub-fare-block {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 8px !important;
+    padding: 3px 6px !important;
+    margin: 2px 0 4px 0 !important;
+  }
+  .stub-fare-lbl {
+    font-size: 0.52rem !important;
+    color: #94A3B8 !important;
+  }
+  .stub-fare-val {
+    font-size: 0.98rem !important;
+    font-weight: 900 !important;
+    color: #FBBF24 !important; /* Champagne gold */
+  }
+  .stub-fare-group {
+    font-size: 0.56rem !important;
+    color: #94A3B8 !important;
+  }
+
+  .stub-actions-dock {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    position: relative !important;
+    overflow: visible !important;
+  }
+
+  .stub-actions-dock .btn-stub {
+    width: 100% !important;
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    padding: 5px 8px !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .btn-stub.btn-save-trip {
+    background: #FFFFFF !important;
+    color: #0F172A !important;
+    border: 1px solid rgba(255, 255, 255, 0.9) !important;
+    font-weight: 800 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+  }
+  .btn-stub.btn-save-trip:hover {
+    background: #F1F5F9 !important;
+    color: #0284C7 !important;
+  }
+
+  .btn-stub.btn-whatsapp-action {
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3) !important;
+  }
+  .btn-stub.btn-whatsapp-action:hover {
+    filter: brightness(1.08) !important;
+    color: #FFFFFF !important;
+  }
+
+  .btn-stub.btn-booking-hub-toggle {
+    background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(56, 189, 248, 0.4) !important;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3) !important;
+  }
+  .btn-stub.btn-booking-hub-toggle:hover {
+    filter: brightness(1.08) !important;
+    color: #FFFFFF !important;
+  }
+
+  /* Booking Hub Dropdown Menu (Floating over page content) */
+  .stub-booking-dropdown {
+    position: relative !important;
+    z-index: 1060 !important;
+  }
+  .stub-booking-dropdown .dropdown-menu {
+    z-index: 1070 !important;
+    background: #FFFFFF !important;
+    border: 1px solid rgba(226, 232, 240, 0.95) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 14px 40px rgba(15, 23, 42, 0.25) !important;
+    min-width: 280px !important;
+    margin-top: 6px !important;
+  }
+  .stub-booking-dropdown .dropdown-item {
+    font-size: 0.78rem !important;
+    padding: 6px 12px !important;
+    color: #1E293B !important;
+    font-weight: 600 !important;
+  }
+  .stub-booking-dropdown .dropdown-item:hover {
+    background: #F0F9FF !important;
+    color: #0284C7 !important;
+  }
+
   @media (max-width: 991px) {
     .pillar-tabs-container.sticky-tabs-bar {
       top: 60px !important;
@@ -354,16 +597,17 @@
       </div>
 
       <!-- Right: Passenger Tear-off Stub (28%) -->
+      <!-- Right: Passenger Tear-off Stub (Compact 3-Action Dock) -->
       <div class="ticket-stub-body">
         <div class="stub-header">
           <span class="stub-tag">PASSENGER STUB</span>
           <span class="stub-class-badge">{% if 'FLIGHT' in t_mode %}ECONOMY PREMIER{% elif 'TRAIN' in t_mode %}EXECUTIVE CHAIR{% else %}DELUXE COACH{% endif %}</span>
         </div>
 
-        <!-- Authentic SVG Vector QR Code Tile -->
+        <!-- Authentic SVG Vector QR Code Tile (Compact) -->
         <div class="stub-qr-container">
-          <div class="stub-qr-box">
-            <svg viewBox="0 0 33 33" width="66" height="66" fill="#07192F" xmlns="http://www.w3.org/2000/svg">
+          <div class="stub-qr-box" style="width: 30px; height: 30px;">
+            <svg viewBox="0 0 33 33" width="26" height="26" fill="#07192F" xmlns="http://www.w3.org/2000/svg">
               <rect x="0" y="0" width="11" height="11" rx="2" fill="#07192F"/>
               <rect x="2" y="2" width="7" height="7" rx="1" fill="#FFFFFF"/>
               <rect x="4" y="4" width="3" height="3" fill="#07192F"/>
@@ -417,38 +661,26 @@
           <div class="stub-fare-group">Group Total: <span id="stubTotalFare">₹{{ "{:,.0f}".format(budget_sum|float) }}</span> ({{ trav }} pax)</div>
         </div>
 
-        <!-- Quick Action Dock -->
+        <!-- Quick Action Dock: 3 Essential High-Priority Actions -->
         <div class="stub-actions-dock">
-          <button type="button" class="btn-stub btn-save-trip btn-pdf-download" data-destination="{{ trip.destination }}" onclick="window.location.href='{{ url_for('planner.download_pdf', trip_id=trip.id) }}'">
-            <i class="bi bi-file-earmark-pdf-fill"></i> Download PDF Dossier
+          <!-- 1. Download PDF Dossier (User choice: keep download) -->
+          <button type="button" class="btn-stub btn-save-trip btn-pdf-download" data-destination="{{ trip.destination }}" onclick="window.location.href='{{ url_for('planner.download_pdf', trip_id=trip.id) }}'" title="Download complete trip itinerary dossier as printable PDF">
+            <i class="bi bi-file-earmark-pdf-fill text-danger"></i> Download PDF Dossier
           </button>
-          <div class="d-flex gap-2">
-            <button type="button" class="btn-stub btn-outline-stub" onclick="printItinerary()" style="flex:1;">
-              <i class="bi bi-printer"></i> Print
-            </button>
-            <button type="button" class="btn-stub btn-outline-stub" onclick="shareTrip({{ trip.id }})" style="flex:1;">
-              <i class="bi bi-share-fill"></i> Share
-            </button>
-          </div>
-          {% if not is_shared %}
-          <button type="button" class="btn-stub btn-outline-stub w-100 mt-2" onclick="window.location.href='{{ url_for('planner.export_ics', trip_id=trip.id) }}'" title="Export to Apple Calendar, Google Calendar, Outlook (.ics)">
-            <i class="bi bi-calendar-event me-1 text-turquoise"></i> Export Calendar (.ics)
-          </button>
-          {% endif %}
 
-          <!-- WhatsApp Share (Feature 5) -->
+          <!-- 2. WhatsApp Share (User choice: keep WhatsApp, Feature 5) -->
           {% if whatsapp_share_url %}
-          <a href="{{ whatsapp_share_url }}" target="_blank" rel="noopener noreferrer" class="btn-stub w-100 mt-2 text-white fw-bold d-flex align-items-center justify-content-center gap-2 text-decoration-none" id="btnShareWhatsApp" style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); border: none; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);">
-            <i class="bi bi-whatsapp fs-6"></i> Share on WhatsApp
+          <a href="{{ whatsapp_share_url }}" target="_blank" rel="noopener noreferrer" class="btn-stub btn-whatsapp-action" id="btnShareWhatsApp" title="Share travel itinerary to WhatsApp with live links">
+            <i class="bi bi-whatsapp"></i> Share on WhatsApp
           </a>
           {% endif %}
 
-          <!-- Actionable Booking Deep Links (Feature 1) -->
-          <div class="dropdown w-100 mt-2">
-            <button class="btn-stub dropdown-toggle w-100 text-white fw-bold d-flex align-items-center justify-content-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%); border: none; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);">
+          <!-- 3. Actionable Booking Hub (Feature 1 - Direct Stays & Transit Deep Links) -->
+          <div class="dropdown stub-booking-dropdown w-100">
+            <button class="btn-stub btn-booking-hub-toggle dropdown-toggle w-100" type="button" id="btnBookStaysTransit" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" title="Book verified stays, train seats, and bus tickets">
               <i class="bi bi-ticket-perforated-fill"></i> Book Stays &amp; Transit
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow-lg p-2" style="min-width: 280px; border-radius: 14px; border: 1px solid rgba(226, 232, 240, 0.9);">
+            <ul class="dropdown-menu dropdown-menu-end shadow-2xl p-2" id="bookingDropdownMenu" aria-labelledby="btnBookStaysTransit" style="min-width: 280px; border-radius: 14px; border: 1.5px solid #E2E8F0;">
               <li class="dropdown-header text-uppercase fw-bold text-muted small px-3 py-1">Hotels &amp; Stays</li>
               {% for h_link in (booking_links.hotels if booking_links else []) %}
               <li>
@@ -664,6 +896,11 @@
                     <i class="bi {{ b_link.icon }} me-1"></i>{{ b_link.name }}
                   </a>
                   {% endfor %}
+                  {% if not is_shared %}
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-3 rounded-pill fw-semibold" onclick="window.location.href='{{ url_for('planner.export_ics', trip_id=trip.id) }}'" title="Export to Apple Calendar, Google Calendar, Outlook (.ics)">
+                    <i class="bi bi-calendar-event me-1 text-primary"></i>Export Calendar (.ics)
+                  </button>
+                  {% endif %}
                 </div>
               </div>
             </div>
@@ -1648,6 +1885,29 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
+
+  // Reliable interactive click toggle for Book Stays & Transit dropdown
+  const bookBtn = document.getElementById("btnBookStaysTransit");
+  const bookMenu = document.getElementById("bookingDropdownMenu");
+  if (bookBtn && bookMenu) {
+    bookBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isShown = bookMenu.classList.contains("show");
+      if (isShown) {
+        bookMenu.classList.remove("show");
+        bookBtn.setAttribute("aria-expanded", "false");
+      } else {
+        bookMenu.classList.add("show");
+        bookBtn.setAttribute("aria-expanded", "true");
+      }
+    });
+    document.addEventListener("click", (e) => {
+      if (!bookBtn.contains(e.target) && !bookMenu.contains(e.target)) {
+        bookMenu.classList.remove("show");
+        bookBtn.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
 });
 </script>
 <script src="{{ url_for('static', filename='js/trip_view.js') }}?v=1.3"></script>
