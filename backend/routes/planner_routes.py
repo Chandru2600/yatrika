@@ -922,9 +922,11 @@ def save_wizard():
 def update_planner(trip_id: int):
     """Update trip's day planner layout and persist back to database."""
     from backend.database.db import execute_query
-    trip = get_trip_by_id(trip_id)
-    if not trip or trip["user_id"] != session["user_id"]:
+    trip_row = get_trip_by_id(trip_id)
+    if not trip_row or trip_row["user_id"] != session["user_id"]:
         return jsonify({"success": False, "error": "Trip not found."}), 404
+
+    trip = dict(trip_row)
 
     try:
         data = request.get_json() or {}
@@ -989,51 +991,99 @@ def update_planner(trip_id: int):
                 "hidden_gems": ["Secret viewpoint nearby", "Local handicraft market"]
             })
 
-        # Recalculate cost estimate based on new sequence
-        selected_attractions = itinerary.get("selected_attractions", [])
-        entry_fees = sum(a.get("fee", 0) for a in selected_attractions)
+        # Collect all activities present in day_planner
+        all_planned_acts = []
+        for d in range(1, num_days + 1):
+            day_plan = day_planner.get(str(d), {})
+            for zone in ["morning", "afternoon", "evening", "night"]:
+                for a in day_plan.get(zone, []):
+                    if isinstance(a, dict):
+                        all_planned_acts.append(a)
+
+        def parse_fee(val):
+            if isinstance(val, (int, float)):
+                return float(val)
+            if isinstance(val, str):
+                cleaned = "".join(c for c in val if c.isdigit() or c == ".")
+                if cleaned:
+                    try:
+                        return float(cleaned)
+                    except ValueError:
+                        pass
+            return 0.0
+
+        if all_planned_acts:
+            entry_fees = round(sum(parse_fee(a.get("raw_fee", a.get("fee", 0))) for a in all_planned_acts))
+            total_dist = sum(float(a.get("dist", 0) or 0) for a in all_planned_acts)
+        else:
+            selected_attractions = itinerary.get("selected_attractions", [])
+            entry_fees = round(sum(parse_fee(a.get("fee", 0)) for a in selected_attractions))
+            total_dist = sum(float(a.get("dist", 0) or 0) for a in selected_attractions)
+
+        if total_dist <= 0:
+            total_dist = float(num_days * 20)
+
         food_cost = num_travelers * num_days * 600
         hotel_cost = num_days * 2000
         shopping_cost = num_travelers * 500
-        
-        transport = trip["transport"]
-        if transport == "bike":
-            total_dist = sum(a.get("dist", 0) for a in selected_attractions)
-            fuel_cost = round(total_dist / 30 * 110)
+
+        transport = (trip.get("transport") or "car").lower()
+        if "bike" in transport:
+            fuel_cost = round(total_dist / 30.0 * 110.0)
+        elif "train" in transport:
+            fuel_cost = round(num_travelers * 350.0)
+        elif "bus" in transport:
+            fuel_cost = round(num_travelers * 280.0)
+        elif "flight" in transport or "air" in transport:
+            fuel_cost = round(num_travelers * 3200.0)
         else:
-            total_dist = sum(a.get("dist", 0) for a in selected_attractions)
-            fuel_cost = round(total_dist / 12 * 100)
-            
+            fuel_cost = round(total_dist / 12.0 * 100.0)
+
         total_spend = fuel_cost + entry_fees + food_cost + hotel_cost + shopping_cost
-        
+        daily_average = round(total_spend / num_days) if num_days > 0 else total_spend
+
         # Update daily budget values
         for day in itinerary_days:
-            day["daily_budget"] = round(total_spend / num_days) if num_days > 0 else total_spend
+            day["daily_budget"] = daily_average
 
         # Re-save to db
         itinerary["days"] = itinerary_days
         itinerary["day_planner"] = day_planner
-        
+
         # update budget_json total spend
         budget = json.loads(trip["budget_json"] or "{}")
         budget["total_budget"] = total_spend
-        budget["daily_average"] = total_spend / num_days if num_days > 0 else total_spend
-        if "breakdown" in budget and isinstance(budget["breakdown"], dict):
-            if "entry_fees" in budget["breakdown"] and isinstance(budget["breakdown"]["entry_fees"], dict):
-                budget["breakdown"]["entry_fees"]["amount"] = entry_fees
-            elif "activities_tickets" in budget["breakdown"] and isinstance(budget["breakdown"]["activities_tickets"], dict):
-                budget["breakdown"]["activities_tickets"]["amount"] = entry_fees
+        budget["daily_average"] = daily_average
+        budget["total_budget_inr"] = total_spend
 
-            if "fuel" in budget["breakdown"] and isinstance(budget["breakdown"]["fuel"], dict):
-                budget["breakdown"]["fuel"]["amount"] = fuel_cost
-            elif "transportation" in budget["breakdown"] and isinstance(budget["breakdown"]["transportation"], dict):
-                budget["breakdown"]["transportation"]["amount"] = fuel_cost
-
-            budget_pct_denom = total_spend if total_spend > 0 else 1
-            for k in budget["breakdown"]:
-                if isinstance(budget["breakdown"][k], dict) and "amount" in budget["breakdown"][k]:
-                    budget["breakdown"][k]["percentage"] = (budget["breakdown"][k]["amount"] / budget_pct_denom) * 100
-
+        breakdown = {
+            "accommodation": {
+                "name": "Accommodation & Stay",
+                "amount": hotel_cost,
+                "percentage": round((hotel_cost / total_spend) * 100, 1) if total_spend > 0 else 0
+            },
+            "food_dining": {
+                "name": "Food & Dining",
+                "amount": food_cost,
+                "percentage": round((food_cost / total_spend) * 100, 1) if total_spend > 0 else 0
+            },
+            "transportation": {
+                "name": "Transit & Fuel",
+                "amount": fuel_cost,
+                "percentage": round((fuel_cost / total_spend) * 100, 1) if total_spend > 0 else 0
+            },
+            "activities_tickets": {
+                "name": "Activities & Entry Tickets",
+                "amount": entry_fees,
+                "percentage": round((entry_fees / total_spend) * 100, 1) if total_spend > 0 else 0
+            },
+            "shopping_misc": {
+                "name": "Shopping & Miscellaneous",
+                "amount": shopping_cost,
+                "percentage": round((shopping_cost / total_spend) * 100, 1) if total_spend > 0 else 0
+            }
+        }
+        budget["breakdown"] = breakdown
 
         execute_query("""
             UPDATE trips
@@ -1042,7 +1092,19 @@ def update_planner(trip_id: int):
             WHERE id = ?
         """, (json.dumps(itinerary), json.dumps(budget), trip_id))
 
-        return jsonify({"success": True})
+        return jsonify({
+            "success": True,
+            "total_budget": total_spend,
+            "daily_average": daily_average,
+            "entry_fees": entry_fees,
+            "fuel_cost": fuel_cost,
+            "food_cost": food_cost,
+            "hotel_cost": hotel_cost,
+            "shopping_cost": shopping_cost,
+            "breakdown": breakdown,
+            "itinerary_days": itinerary_days,
+            "day_planner": day_planner
+        })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

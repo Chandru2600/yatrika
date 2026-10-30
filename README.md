@@ -23,6 +23,7 @@ The **Travel Planner Agent** is a full-stack web application that uses a custom 
 | 🤖 **AI Itinerary** | Travel Planner Agent generates day-wise plans with morning/afternoon/evening slots |
 | ⚡ **6-Field Rapid Wizard** | Simplified planner with 6 essential fields max (Destination, Start Date, Days, Travelers, Budget, Style) and collapsible Advanced Options; users reach plans in &lt;60s |
 | 📋 **Practical-First Layout** | Reordered day view putting timings, costs, addresses, and booking buttons at the top, with cultural narrative, local etiquette, and dialect phrases below |
+| 🔄 **Live Recalculation** | In-place drag-and-drop itinerary editing and day changes recalculate budget, entry fees, daily averages, timings, and map markers live without re-running wizard |
 | ⚡ **Actionable Booking Links** | Instant zero-key deep links to MakeMyTrip, Goibibo, Booking.com, IRCTC, ConfirmTkt, and RedBus prefilled with destination, dates, and traveler counts |
 | 🌤 **Weather Module** | Real-time & 7-day forecast via OpenWeatherMap + Open-Meteo zero-key travel date forecast with dynamic rain/extreme heat badges and indoor/outdoor swap suggestions |
 | 🗺 **Interactive Map** | MapLibre + OpenStreetMap showing attractions, hotels, hospitals |

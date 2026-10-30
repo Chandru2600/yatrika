@@ -268,6 +268,13 @@ window.renderDayPlanner = function() {
       const latAttr = (lat !== null && isFinite(lat)) ? lat : '';
       const lonAttr = (lon !== null && isFinite(lon)) ? lon : '';
 
+      const zoneTimeSlots = {
+        morning:   ['09:00 AM', '10:30 AM', '11:30 AM', '12:15 PM'],
+        afternoon: ['01:30 PM', '03:00 PM', '04:15 PM', '04:45 PM'],
+        evening:   ['05:30 PM', '07:00 PM', '08:15 PM', '09:00 PM']
+      };
+      const timeSlot = act.time || (zoneTimeSlots[zone] && zoneTimeSlots[zone][idx]) || `${zone.charAt(0).toUpperCase() + zone.slice(1)} Slot`;
+
       return `
       <div class="activity-card-planned activity-card-interactive" draggable="true"
            data-id="${act.id}" data-type="${act.type || 'attraction'}" data-zone="${zone}" data-index="${idx}"
@@ -277,7 +284,7 @@ window.renderDayPlanner = function() {
           <span class="act-icon fs-5">${act.icon || '📍'}</span>
           <div class="flex-grow-1">
             <div class="act-name fw-bold text-navy small">${act.name}</div>
-            ${act.time ? `<div class="extra-small text-muted"><i class="bi bi-clock me-1"></i>${act.time}</div>` : ''}
+            <div class="extra-small text-muted"><i class="bi bi-clock me-1"></i>${timeSlot}</div>
           </div>
           <span class="badge bg-light text-muted border extra-small">${act.dur || '1.5h'}</span>
         </div>
@@ -461,6 +468,9 @@ window.movePlannedActivity = function(day, currentZone, idx) {
 window.switchPlannerDay = function(dNum, btn) {
   State.currentPlannerDay = dNum;
   renderDayPlanner();
+  if (typeof window.refreshDayMapMarkers === 'function') {
+    window.refreshDayMapMarkers();
+  }
 
   if (btn) {
     document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
@@ -576,7 +586,55 @@ window.savePlannerChangesToServer = async function(silent = false) {
     });
     const result = await response.json();
     if (result.success) {
-      showToast('✓ Itinerary schedule saved', 'success');
+      if (result.total_budget) {
+        State.budget = result.total_budget;
+        const totalFmt = fmtINR(result.total_budget);
+        const perPersonFmt = fmtINR(Math.round(result.total_budget / (State.travelers || 1)));
+
+        // 1. Update Boarding Pass Fare indicators
+        const stubTotal = document.getElementById('stubTotalFare');
+        if (stubTotal) stubTotal.textContent = totalFmt;
+        const stubPerPerson = document.getElementById('stubPerPersonFare');
+        if (stubPerPerson) stubPerPerson.textContent = perPersonFmt;
+
+        // 2. Update Interactive Day Schedule header live badge
+        const liveBadgeVal = document.getElementById('plannerLiveBudgetValue');
+        if (liveBadgeVal) liveBadgeVal.textContent = totalFmt;
+
+        // 3. Update Budget Tab Summary Cards
+        const budgetTotalSum = document.getElementById('totalBudgetSummaryVal');
+        if (budgetTotalSum) budgetTotalSum.textContent = totalFmt;
+        const budgetPerTravSum = document.getElementById('perTravelerSummaryVal');
+        if (budgetPerTravSum) budgetPerTravSum.textContent = perPersonFmt;
+
+        // 4. Update Itemized Expense Breakdown Rows
+        if (result.breakdown) {
+          const bdContainer = document.getElementById('itemizedBreakdownContainer');
+          if (bdContainer) {
+            Object.entries(result.breakdown).forEach(([k, info]) => {
+              const row = bdContainer.querySelector(`[data-cat="${k}"]`);
+              if (row) {
+                const amtEl = row.querySelector('.cat-amount');
+                if (amtEl) amtEl.textContent = fmtINR(info.amount);
+                const pctEl = row.querySelector('.cat-pct');
+                if (pctEl) pctEl.textContent = `(${info.percentage.toFixed(1)}%)`;
+                const barEl = row.querySelector('.progress-bar');
+                if (barEl) barEl.style.width = `${info.percentage}%`;
+              }
+            });
+          }
+        }
+      }
+
+      // 5. Refresh timeline and route if open
+      if (typeof window.renderTimeline === 'function') {
+        window.renderTimeline();
+      }
+      if (typeof window.refreshDayMapMarkers === 'function') {
+        window.refreshDayMapMarkers();
+      }
+
+      showToast('✓ Live schedule & budget updated', 'success');
     } else {
       showToast(`❌ Update failed: ${result.error || 'Server error'}`, 'danger');
     }
@@ -1077,4 +1135,37 @@ window.renderMap = function() {
     }
   });
 };
+
+/* ── STEP 9: Live Map Marker Highlight for Active Planner Day ───── */
+window.refreshDayMapMarkers = function() {
+  if (!State.mapMarkers || !State.dayPlanner) return;
+  const currentDayPlan = State.dayPlanner[State.currentPlannerDay] || {};
+  const activeIds = new Set();
+  const activeNames = new Set();
+
+  ['morning', 'afternoon', 'evening', 'night'].forEach(zone => {
+    (currentDayPlan[zone] || []).forEach(act => {
+      if (act.id) activeIds.add(String(act.id));
+      if (act.name) activeNames.add(String(act.name).toLowerCase().trim());
+    });
+  });
+
+  State.mapMarkers.forEach((marker, key) => {
+    const el = marker.getElement();
+    if (!el) return;
+    const isDayActive = activeIds.has(key) || activeNames.has(key);
+    if (isDayActive) {
+      el.style.background = '#0d9488';
+      el.style.border = '3px solid #facc15';
+      el.style.transform = 'scale(1.15)';
+      el.style.zIndex = '10';
+    } else {
+      el.style.background = '#10b981';
+      el.style.border = '2.5px solid #fff';
+      el.style.transform = 'scale(1)';
+      el.style.zIndex = '1';
+    }
+  });
+};
+
 

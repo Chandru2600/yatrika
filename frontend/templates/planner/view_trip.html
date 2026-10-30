@@ -351,8 +351,8 @@
         <!-- Fare Block -->
         <div class="stub-fare-block">
           <div class="stub-fare-lbl">1-PERSON FARE</div>
-          <div class="stub-fare-val">₹{{ "{:,.0f}".format(per_person_fare) }}</div>
-          <div class="stub-fare-group">Group Total: ₹{{ "{:,.0f}".format(budget_sum|float) }} ({{ trav }} pax)</div>
+          <div class="stub-fare-val" id="stubPerPersonFare">₹{{ "{:,.0f}".format(per_person_fare) }}</div>
+          <div class="stub-fare-group">Group Total: <span id="stubTotalFare">₹{{ "{:,.0f}".format(budget_sum|float) }}</span> ({{ trav }} pax)</div>
         </div>
 
         <!-- Quick Action Dock -->
@@ -1015,7 +1015,12 @@
               <h3 class="dossier-section-title mb-1">
                 <i class="bi bi-sliders text-turquoise"></i> Interactive Day Schedule &amp; Drag-and-Drop Planner
               </h3>
-              <p class="small mb-0" style="color: #64748B;">Drag and reorder activities across morning, afternoon, and evening slots.</p>
+              <p class="small mb-0" style="color: #64748B;">
+                Drag and reorder activities across morning, afternoon, and evening slots.
+                <span class="badge bg-light text-dark border ms-2" id="plannerLiveBudgetBadge">
+                  💰 Budget: <strong class="text-turquoise" id="plannerLiveBudgetValue">₹{{ "{:,.0f}".format(budget_sum|float) }}</strong>
+                </span>
+              </p>
             </div>
             <div class="day-selector" id="daySelector"></div>
           </div>
@@ -1219,14 +1224,15 @@
               <h4 class="dossier-section-title">
                 <i class="bi bi-card-checklist text-turquoise"></i> Itemized Expense Allocations
               </h4>
+              <div id="itemizedBreakdownContainer">
               {% if budget.breakdown %}
                 {% for cat, info in budget.breakdown.items() %}
-                <div class="mb-3">
+                <div class="mb-3 breakdown-row" data-cat="{{ cat }}">
                   <div class="d-flex justify-content-between align-items-center mb-1 small">
-                    <span class="fw-bold" style="color: #0F172A;">{{ cat.replace('_', ' ')|title }}</span>
+                    <span class="fw-bold" style="color: #0F172A;">{{ (info.name if info is mapping and info.name else cat.replace('_', ' '))|title }}</span>
                     <div>
-                      <strong class="text-turquoise">₹{{ "{:,.0f}".format(info.amount) }}</strong>
-                      <span class="ms-1" style="color: #64748B;">({{ "%.1f"|format(info.percentage) }}%)</span>
+                      <strong class="text-turquoise cat-amount">₹{{ "{:,.0f}".format(info.amount) }}</strong>
+                      <span class="ms-1 cat-pct" style="color: #64748B;">({{ "%.1f"|format(info.percentage) }}%)</span>
                     </div>
                   </div>
                   <div class="progress" style="background: #E2E8F0; height: 6px; border-radius: 999px;">
@@ -1235,15 +1241,16 @@
                 </div>
                 {% endfor %}
               {% endif %}
+              </div>
 
               <div class="p-3 mt-4 rounded-4 d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: #F8FAFC; border: 1.5px solid #E2E8F0;">
                 <div>
                   <span class="extra-small" style="color: #64748B;">Total Trip Budget:</span>
-                  <div class="fs-5 fw-extrabold" style="color: #0F172A;">₹{{ "{:,.0f}".format(budget_sum|float) }}</div>
+                  <div class="fs-5 fw-extrabold" id="totalBudgetSummaryVal" style="color: #0F172A;">₹{{ "{:,.0f}".format(budget_sum|float) }}</div>
                 </div>
                 <div>
                   <span class="extra-small" style="color: #64748B;">Per Traveler:</span>
-                  <div class="fs-5 fw-extrabold text-turquoise">₹{{ "{:,.0f}".format((budget_sum / trip.num_travelers)|float) }}</div>
+                  <div class="fs-5 fw-extrabold text-turquoise" id="perTravelerSummaryVal">₹{{ "{:,.0f}".format((budget_sum / trip.num_travelers)|float) }}</div>
                 </div>
                 <span class="badge bg-success-subtle text-success border border-success-subtle">
                   ML Verified
