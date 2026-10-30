@@ -135,6 +135,77 @@
     opacity: 1;
     transform: translateY(0);
   }
+
+  /* Ultra-Slim Emergency & Safety Strip (Compact non-sticky header ribbon) */
+  .emergency-safety-strip-slim {
+    background: #0f172a !important;
+    color: #f8fafc !important;
+    border: 1px solid rgba(239, 68, 68, 0.35) !important;
+    border-left: 4px solid #ef4444 !important;
+    border-radius: 10px !important;
+    padding: 6px 14px !important;
+    margin-bottom: 14px !important;
+    font-size: 0.78rem !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08) !important;
+  }
+  .emergency-safety-strip-slim .badge-pill-danger {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    font-size: 0.68rem !important;
+    padding: 2px 7px !important;
+    border-radius: 6px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.2px;
+  }
+
+  /* Sticky Tab Navigation Bar (Locks below fixed navbar on scroll) */
+  .pillar-tabs-container.sticky-tabs-bar {
+    position: sticky !important;
+    top: 72px !important;
+    z-index: 1010 !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1.5px solid #E2E8F0 !important;
+    border-radius: 12px !important;
+    padding: 4px !important;
+    margin-bottom: 14px !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06) !important;
+  }
+
+  /* Independent Card Scroll Area ("as we did for cards") */
+  .dossier-cards-scroll-wrap {
+    max-height: calc(100vh - 146px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-right: 6px !important;
+    padding-bottom: 30px !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #0D9488 rgba(0, 0, 0, 0.05) !important;
+    scroll-behavior: smooth !important;
+  }
+  .dossier-cards-scroll-wrap::-webkit-scrollbar {
+    width: 6px !important;
+  }
+  .dossier-cards-scroll-wrap::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.03) !important;
+    border-radius: 10px !important;
+  }
+  .dossier-cards-scroll-wrap::-webkit-scrollbar-thumb {
+    background: #0D9488 !important;
+    border-radius: 10px !important;
+  }
+  .dossier-cards-scroll-wrap::-webkit-scrollbar-thumb:hover {
+    background: #0b7a6f !important;
+  }
+
+  @media (max-width: 991px) {
+    .pillar-tabs-container.sticky-tabs-bar {
+      top: 60px !important;
+    }
+    .dossier-cards-scroll-wrap {
+      max-height: calc(100vh - 128px) !important;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -142,51 +213,42 @@
 <div class="py-4">
   <div class="container-fluid px-lg-5">
 
-    <!-- ══════ 0. PERSISTENT EMERGENCY & SAFETY STRIP (Feature 4) ══════ -->
+    <!-- ══════ 0. ULTRA-SLIM EMERGENCY & SAFETY STRIP (Feature 4) ══════ -->
     {% if emergency_info %}
-    <div class="emergency-safety-strip mb-4 rounded-4 shadow-sm border border-danger-subtle p-3"
-         id="emergencySafetyStrip"
-         style="background: #0f172a; color: #f8fafc; border-left: 5px solid #ef4444 !important; position: sticky; top: 76px; z-index: 1020; backdrop-filter: blur(10px);">
-      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="emergency-safety-strip-slim mb-3" id="emergencySafetyStrip">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
         <!-- Left: Alert Label & Hospital -->
-        <div class="d-flex align-items-center gap-3 flex-wrap">
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-danger text-white px-2 py-1 fs-7 fw-bold d-inline-flex align-items-center gap-1 shadow-sm">
-              <i class="bi bi-shield-fill-exclamation"></i> 24x7 EMERGENCY & SAFETY
-            </span>
-            <span class="text-white-50 fs-8 d-none d-md-inline">| Offline Cached Directory</span>
-          </div>
-
-          <div class="d-flex align-items-center gap-2 fs-7 flex-wrap">
-            <span class="text-white fw-bold"><i class="bi bi-hospital text-danger me-1"></i>Nearest Hospital:</span>
-            <span class="text-info fw-semibold">{{ emergency_info.hospital_name }}</span>
-            <a href="tel:{{ emergency_info.hospital_phone_clean }}" class="btn btn-sm btn-outline-info py-0 px-2 rounded-pill fw-bold text-decoration-none" title="Call Emergency Hospital">
-              <i class="bi bi-telephone-fill me-1"></i>{{ emergency_info.hospital_phone }}
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="badge-pill-danger d-inline-flex align-items-center gap-1">
+            <i class="bi bi-shield-fill-exclamation"></i> 24x7 EMERGENCY &amp; SAFETY
+          </span>
+          <span class="text-white-50 small d-none d-md-inline" style="font-size: 0.74rem;">| Offline Directory</span>
+          <div class="d-flex align-items-center gap-1 flex-wrap ms-1">
+            <span class="text-white-50 fw-semibold" style="font-size: 0.75rem;"><i class="bi bi-hospital text-danger me-1"></i>Nearest Hospital:</span>
+            <span class="text-info fw-bold" style="font-size: 0.78rem;">{{ emergency_info.hospital_name }}</span>
+            <a href="tel:{{ emergency_info.hospital_phone_clean }}" class="text-info text-decoration-none fw-bold ms-1" style="font-size: 0.78rem; border-bottom: 1px dotted rgba(56, 189, 248, 0.6);" title="Call Hospital">
+              <i class="bi bi-telephone-fill me-1" style="font-size: 0.7rem;"></i>{{ emergency_info.hospital_phone }}
             </a>
             {% if emergency_info.hospital_landmark %}
-            <span class="text-secondary small d-none d-lg-inline">({{ emergency_info.hospital_landmark }})</span>
+            <span class="text-white-50 small d-none d-xl-inline" style="font-size: 0.72rem;">({{ emergency_info.hospital_landmark }})</span>
             {% endif %}
           </div>
         </div>
 
         <!-- Right: Helplines & Location Share Hint -->
         <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
-          <div class="d-flex align-items-center gap-1">
-            <span class="text-white-50 fs-8">Police:</span>
-            <a href="tel:{{ emergency_info.police_helpline }}" class="badge bg-danger text-white text-decoration-none fw-bold px-2 py-1 shadow-sm" title="Call Police 112">
-              <i class="bi bi-shield-fill-check me-1"></i>{{ emergency_info.police_helpline }}
-            </a>
-          </div>
+          <span class="text-white-50" style="font-size: 0.74rem;">Police:</span>
+          <a href="tel:{{ emergency_info.police_helpline }}" class="badge bg-danger text-white text-decoration-none fw-bold px-2 py-0" style="font-size: 0.72rem; border-radius: 4px;" title="Call Police 112">
+            {{ emergency_info.police_helpline }}
+          </a>
 
-          <div class="d-flex align-items-center gap-1">
-            <span class="text-white-50 fs-8">Ambulance:</span>
-            <a href="tel:{{ emergency_info.ambulance_helpline }}" class="badge bg-danger text-white text-decoration-none fw-bold px-2 py-1 shadow-sm" title="Call Ambulance 108">
-              <i class="bi bi-truck me-1"></i>{{ emergency_info.ambulance_helpline }}
-            </a>
-          </div>
+          <span class="text-white-50 ms-1" style="font-size: 0.74rem;">Ambulance:</span>
+          <a href="tel:{{ emergency_info.ambulance_helpline }}" class="badge bg-danger text-white text-decoration-none fw-bold px-2 py-0" style="font-size: 0.72rem; border-radius: 4px;" title="Call Ambulance 108">
+            {{ emergency_info.ambulance_helpline }}
+          </a>
 
-          <button type="button" class="btn btn-sm btn-outline-warning py-1 px-2 rounded-pill fw-bold d-inline-flex align-items-center gap-1" id="btnShareLiveLocation" onclick="copyLiveLocationHint()" title="Copy live location coordinates or WhatsApp sharing hint">
-            <i class="bi bi-geo-alt-fill text-warning"></i>
+          <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2 rounded-pill fw-semibold ms-1" style="font-size: 0.72rem; height: 24px; display: inline-flex; align-items: center; gap: 4px;" id="btnShareLiveLocation" onclick="copyLiveLocationHint()" title="Copy live location coordinates or WhatsApp sharing hint">
+            <i class="bi bi-geo-alt-fill text-warning" style="font-size: 0.68rem;"></i>
             <span id="liveLocationBtnText">Share Live Location</span>
           </button>
         </div>
@@ -528,7 +590,7 @@
     </section>
 
     <!-- ── 3. Consolidated 4-Pillar Luxury Tab Navigation ─────────── -->
-    <div class="pillar-tabs-container" id="itineraryTabs" role="tablist">
+    <div class="pillar-tabs-container sticky-tabs-bar" id="itineraryTabs" role="tablist">
       <a class="pillar-tab-btn active" data-bs-toggle="pill" href="#tab-itinerary">
         <i class="bi bi-compass-fill"></i> 1. Master Itinerary
       </a>
@@ -549,8 +611,8 @@
       </a>
     </div>
 
-    <!-- ── 4. Tab Content Modules ────────────────────────────────── -->
-    <div class="tab-content">
+    <!-- ── 4. Tab Content Modules (Internal Card Scroll) ─────────── -->
+    <div class="tab-content dossier-cards-scroll-wrap" id="itineraryTabContent">
 
       <!-- ╔══════════════════════════════════════════════════════════╗
            ║ PILLAR 1: MASTER ITINERARY & SIGHTSEEING LOOPS         ║
@@ -1567,6 +1629,26 @@ const EXP_DATA   = {{ expenses|map(attribute='amount')|list|tojson }};
 const EXP_LABELS = [];
 const EXP_DATA = [];
 {% endif %}
+
+// Tab scroll snap handler: scrolls page up to tabs bar, then cards scroll internally
+document.addEventListener("DOMContentLoaded", () => {
+  const tabsBar = document.getElementById("itineraryTabs");
+  const tabContent = document.getElementById("itineraryTabContent");
+  if (!tabsBar) return;
+
+  tabsBar.querySelectorAll(".pillar-tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const barTop = tabsBar.getBoundingClientRect().top + window.scrollY;
+      const navOffset = window.innerWidth <= 991 ? 62 : 74;
+      if (window.scrollY < barTop - navOffset) {
+        window.scrollTo({ top: barTop - navOffset, behavior: "smooth" });
+      }
+      if (tabContent) {
+        tabContent.scrollTop = 0;
+      }
+    });
+  });
+});
 </script>
 <script src="{{ url_for('static', filename='js/trip_view.js') }}?v=1.3"></script>
 {% endblock %}
