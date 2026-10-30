@@ -497,7 +497,7 @@
                 <span id="globalPlanetRunnerTitle">Scouting Karnataka &amp; All-India Journey...</span>
               </div>
               <div class="planet-runner-modal-sub" id="globalPlanetRunnerSub">
-                4-Agent Cooperative ML synthesizing stay-first routes &amp; attractions
+                Smart itinerary engine synthesizing stay-first routes &amp; attractions
               </div>
             </div>
           </div>
@@ -564,7 +564,7 @@
 
       const destName = destination || "Karnataka";
       if (titleEl) titleEl.textContent = title || `Scouting ${destName} & All-India Journey...`;
-      if (subEl) subEl.textContent = subtitle || "4-Agent Cooperative Engine actively resolving stay-first route & attractions";
+      if (subEl) subEl.textContent = subtitle || "Smart itinerary engine actively resolving stay-first route & attractions";
 
       modal.classList.add("is-active");
       modalShownTimestamp = Date.now();
@@ -707,7 +707,7 @@
         global.PlanetRunner.showModal(
           `Scouting & Generating Itinerary for ${dest}...`,
           dest,
-          "4-Agent Cooperative ML synthesizing stay-first anchors & verified transit"
+          "Smart itinerary engine synthesizing stay-first anchors & verified transit"
         );
       }
     });

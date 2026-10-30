@@ -201,7 +201,7 @@
     {% set src_code = src_city[:3]|upper %}
     {% set nights = [1, trip.num_days - 1]|max %}
     {% set trav = trip.num_travelers or 1 %}
-    {% set base_stay = (itinerary.get("base_camp_stay") or (hotels.get("base_camp") if hotels else None)) %}
+    {% set base_stay = (itinerary.get("base_camp_stay") if itinerary is mapping else None) or (hotels.get("base_camp") if hotels is mapping else (hotels[0] if (hotels and hotels is sequence and hotels is not string and hotels|length > 0) else None)) %}
     {% set stay_name = base_stay.name if base_stay else (dest_city ~ ' Heritage Resort') %}
     {% set stay_addr = base_stay.address if base_stay else (dest_city ~ ' Scenic Valley') %}
     {% set stay_price = base_stay.price_per_night if base_stay else 2800 %}
@@ -522,7 +522,7 @@
         </div>
         <div class="bento-card-footer">
           <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">10,025 Spot Dataset</span>
-          <span class="fw-bold small" style="color: #8B5CF6;">Random Forest ML</span>
+          <span class="fw-bold small" style="color: #8B5CF6;">Smart Cost Verified</span>
         </div>
       </div>
     </section>
@@ -1178,7 +1178,7 @@
           ("mid_range_hotels", "Comfort & Standard Homestays"),
           ("luxury_hotels", "Premium Heritage Resorts")
         ] %}
-        {% if hotels.get(tier) %}
+        {% if hotels is mapping and hotels.get(tier) %}
         <div class="d-flex align-items-center gap-2 mb-3 mt-4">
           <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD;">{{ label }}</span>
         </div>
@@ -1253,7 +1253,7 @@
                   <div class="fs-5 fw-extrabold text-turquoise" id="perTravelerSummaryVal">₹{{ "{:,.0f}".format((budget_sum / trip.num_travelers)|float) }}</div>
                 </div>
                 <span class="badge bg-success-subtle text-success border border-success-subtle">
-                  ML Verified
+                  Cost Verified
                 </span>
               </div>
             </div>

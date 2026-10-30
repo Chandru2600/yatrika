@@ -1011,7 +1011,7 @@ function renderDiscoveryHub(destName) {
 
       <!-- Quick Instant Load CTA -->
       <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pt-2">
-        <span class="extra-small text-muted"><i class="bi bi-shield-check text-success me-1"></i> Verified by Yatrika Geospatial Agent</span>
+        <span class="extra-small text-muted"><i class="bi bi-shield-check text-success me-1"></i> Verified by Yatrika Route Engine</span>
         <button type="button" class="btn-instant-skip" onclick="forceShowAttractions()">
           <i class="bi bi-lightning-charge-fill"></i> Show Verified Attractions Now
         </button>
@@ -3300,7 +3300,7 @@ function renderOverview() {
         </div>
         <div class="bento-card-footer">
           <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">10,025 Spot Dataset</span>
-          <span class="fw-bold small" style="color: #8B5CF6;">Random Forest ML</span>
+          <span class="fw-bold small" style="color: #8B5CF6;">Smart Cost Verified</span>
         </div>
       </div>
     </section>

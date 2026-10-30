@@ -178,7 +178,7 @@
     margin-top: 8px;
   }
 
-  /* ── Granite AI Travel Concierge Dock ──────────────────────── */
+  /* ── Yatrika AI Travel Concierge Dock ──────────────────────── */
   .concierge-dock {
     background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%);
     border: 1px solid rgba(20, 184, 166, 0.3);
@@ -751,7 +751,7 @@
       </div>
     </div>
 
-    <!-- ── 3. GRANITE AI TRAVEL CONCIERGE DOCK ──────────────────── -->
+    <!-- ── 3. YATRIKA AI TRAVEL CONCIERGE DOCK ──────────────────── -->
     <div class="concierge-dock">
       <div class="d-flex justify-content-between align-items-center mb-2">
         <div class="d-flex align-items-center gap-2">
@@ -759,7 +759,7 @@
             <i class="bi bi-stars"></i>
           </div>
           <div>
-            <h5 class="fw-bold text-navy mb-0">Granite AI Travel Concierge</h5>
+            <h5 class="fw-bold text-navy mb-0">Yatrika AI Travel Concierge</h5>
             <div class="text-muted extra-small">Instant intelligent advice on Indian routes, stay tips, and hill station transit</div>
           </div>
         </div>
@@ -850,7 +850,7 @@
             </div>
             <span class="badge rounded-pill bg-turquoise text-dark fw-bold px-2 py-1" style="font-size: 0.68rem;">~30 SECONDS</span>
           </div>
-          <div class="launcher-title">⚡ Granite Express Auto-Pilot</div>
+          <div class="launcher-title">⚡ Express Auto-Pilot</div>
           <div class="launcher-desc">
             Instantly generates an end-to-end trip plan with Base Camp homestays, verified road/rail transit, and day-by-day schedules in seconds.
           </div>
@@ -1198,7 +1198,7 @@
     }
   });
 
-  // ── Granite AI Concierge Execution ──────────────────────────
+  // ── Yatrika AI Concierge Execution ──────────────────────────
   function fillAndAsk(text) {
     const input = document.getElementById("conciergeQueryInput");
     if (input) {
@@ -1224,9 +1224,9 @@
 
       let inlineRunner = null;
       if (window.PlanetRunner && window.PlanetRunner.mountInline) {
-        inlineRunner = window.PlanetRunner.mountInline(respBody, "Consulting IBM Granite AI Engine...", "Granite Concierge");
+        inlineRunner = window.PlanetRunner.mountInline(respBody, "Consulting Travel Intelligence Engine...", "AI Concierge");
       } else {
-        respBody.innerHTML = '<div class="d-flex align-items-center gap-2 p-3"><span class="spinner-border spinner-border-sm text-turquoise"></span><span>Synthesizing travel advice from IBM Granite AI...</span></div>';
+        respBody.innerHTML = '<div class="d-flex align-items-center gap-2 p-3"><span class="spinner-border spinner-border-sm text-turquoise"></span><span>Synthesizing travel advice...</span></div>';
       }
 
       try {
