@@ -859,6 +859,10 @@ def _get_authentic_indian_plan(dest, days, travelers, total_budget, style, trans
         "distance_km": 250.0
     }
 
+    from backend.services.routing.route_builder import build_multiday_routes
+    day_routes = build_multiday_routes(base_stay, day_plans)
+    itinerary["day_routes"] = day_routes
+
     return {
         "destination": dest,
         "num_days": days,
@@ -867,6 +871,7 @@ def _get_authentic_indian_plan(dest, days, travelers, total_budget, style, trans
         "base_camp_stay": base_stay,
         "transit": transit_info,
         "itinerary": itinerary,
+        "day_routes": day_routes,
         "budget": budget_data,
         "hotels": hotels_data,
         "transport": transport_data,

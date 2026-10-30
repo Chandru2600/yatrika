@@ -50,6 +50,8 @@ async function fetchRoute(fromLat, fromLon, toLat, toLon) {
 document.addEventListener("DOMContentLoaded", () => {
   // Populate selectedAttractions and dayPlanner from database JSON payload
   State.dayPlanner = {};
+  State.dayRoutes = (typeof ITINERARY_DATA !== 'undefined' && (ITINERARY_DATA.day_routes || (ITINERARY_DATA.itinerary && ITINERARY_DATA.itinerary.day_routes))) || [];
+  State.activeRouteDay = 1;
 
   if (ITINERARY_DATA.day_planner && Object.keys(ITINERARY_DATA.day_planner).length) {
     for (let k in ITINERARY_DATA.day_planner) {
@@ -915,88 +917,325 @@ function buildEventCard(e) {
     </div>`;
 }
 
-/* ── STEP 7: Route Planner stops sequence ────────────────────────── */
-window.renderRoute = async function() {
-  const sel = State.selectedAttractions;
+/* ── STEP 7: OSRM Route Planner & Turn-by-Turn Leg Cards ─────────── */
+window.switchRouteDay = function(dayNum) {
+  State.activeRouteDay = parseInt(dayNum);
+  window.renderRoute(State.activeRouteDay);
+  if (State.mapInstance) {
+    window.drawDayRouteOnMap(State.activeRouteDay);
+  }
+};
+
+window.renderRoute = function(targetDay) {
   const rt  = document.getElementById('routeTimeline');
   const js  = document.getElementById('journeyStats');
   const cb  = document.getElementById('costBreakdown');
   if (!rt) return;
 
-  const tIcon = State.transport === 'bike' ? '🏍️' : '🚗';
+  const dayRoutes = State.dayRoutes || (ITINERARY_DATA.day_routes) || (ITINERARY_DATA.itinerary && ITINERARY_DATA.itinerary.day_routes) || [];
+  const dayNum = targetDay || State.activeRouteDay || 1;
 
-  const stops = [
-    { type:'hotel', icon:'🏨', name:'Your Base Camp Hotel', lat:null, lon:null },
-    ...sel.map(a=>({ id:a.id, type:'attraction', icon:a.icon, name:a.name, lat:a.lat || a.latitude, lon:a.lon || a.longitude, dur:a.dur, fee:a.fee, cat:a.cat })),
-    { type:'hotel', icon:'🏨', name:'Return to Base Camp', lat:null, lon:null }
-  ];
+  // Find matching route or fallback to first
+  let route = dayRoutes.find(r => parseInt(r.day || r.day_number) === dayNum) || dayRoutes[0];
 
+  // If no pre-computed day_routes, synthesize from selectedAttractions
+  if (!route) {
+    const sel = State.selectedAttractions;
+    const distKm = sel.reduce((s,a) => s + (a.dist || 4.5), 0);
+    const driveMin = Math.max(15, Math.round(distKm / 35 * 60));
+    route = {
+      day: dayNum,
+      source: 'haversine',
+      total_distance_km: parseFloat(distKm.toFixed(1)),
+      total_duration_minutes: driveMin,
+      total_duration_str: fmtHrs(driveMin),
+      legs: []
+    };
+  }
 
-  rt.innerHTML = `<div class="d-flex align-items-center gap-2 p-3"><span class="spinner-border spinner-border-sm"></span><span>Loading road distance info…</span></div>`;
+  const isOSRM = route.source === 'osrm';
+  const totalKm = route.total_distance_km || 0;
+  const totalDurStr = route.total_duration_str || fmtHrs(route.total_duration_minutes || 0);
 
-  let totalDistM = 0, totalDurS = 0;
-  let html = '';
-
-  for (let i = 0; i < stops.length; i++) {
-    const s = stops[i];
-    html += `<div class="route-stop activity-card-interactive"
-                  data-id="${s.id || ''}"
-                  data-name="${(s.name || '').replace(/"/g, '&quot;')}"
-                  data-lat="${s.lat || ''}"
-                  data-lon="${s.lon || ''}"
-                  onclick="window.focusCardElementOnMap(this)"
-                  title="Click to view on Map">
-      <div class="rs-pin ${s.type}">${s.icon}</div>
-      <div class="rs-info">
-        <div class="rs-name">${s.name}</div>
-        ${s.cat ? `<div class="rs-details"><span class="rs-detail-item">${s.cat}</span>${s.dur?`<span class="rs-detail-item">⏱ ${fmtHrs(s.dur)}</span>`:''}${s.fee?`<span class="rs-detail-item">🎟 ${s.fee}</span>`:''}</div>` : ''}
+  // 1. Day Selector Pills
+  let daysSelectorHtml = '';
+  if (State.days > 1) {
+    daysSelectorHtml = `
+      <div class="d-flex align-items-center gap-1 mb-3 overflow-auto pb-1" style="white-space: nowrap;">
+        <span class="small fw-bold text-muted me-1">Select Day:</span>
+        ${Array.from({length: State.days}, (_, i) => i + 1).map(d => `
+          <button type="button" class="btn btn-sm ${d === dayNum ? 'btn-primary text-white fw-bold' : 'btn-outline-secondary'} py-1 px-3 rounded-pill"
+                  onclick="window.switchRouteDay(${d})">
+            Day ${d}
+          </button>
+        `).join('')}
       </div>
-    </div>`;
+    `;
+  }
 
-    if (i < stops.length - 1 && stops[i].lat && stops[i+1].lat) {
-      const r = await fetchRoute(stops[i].lat, stops[i].lon, stops[i+1].lat, stops[i+1].lon);
-      const dkm = r ? (r.distM/1000).toFixed(1) : '—';
-      const tmin = r ? Math.round(r.durS/60) : '—';
-      if (r) { totalDistM += r.distM; totalDurS += r.durS; }
-      html += `<div class="rs-travel-connector">
-        <span class="mode-icon">${tIcon}</span>
-        <span class="travel-info">${dkm} km · ${typeof tmin==='number'?fmtHrs(tmin):tmin} · via road</span>
-      </div>`;
+  // 2. Day Summary Chip
+  const summaryChipHtml = `
+    <div class="day-route-summary-chip mb-3 p-2 px-3 rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2"
+         style="background: #F0F9FF; border: 1.5px solid #BAE6FD;">
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge ${isOSRM ? 'bg-primary' : 'bg-secondary'} text-white px-2 py-1">Day ${dayNum} Road Navigation</span>
+        <span class="fw-bold text-dark" style="font-size: 0.88rem;">🚗 ${totalKm} km • ⏱️ ${totalDurStr} road drive</span>
+      </div>
+      <span class="badge ${isOSRM ? 'bg-success' : 'bg-warning text-dark'} text-white extra-small">
+        ${isOSRM ? '✓ OSRM Road Verified' : '📐 Haversine Estimate'}
+      </span>
+    </div>
+  `;
+
+  // 3. Per-Leg Cards with Expandable Turn-by-Turn Steps
+  let legsHtml = '';
+  const legs = route.legs || [];
+
+  if (legs.length > 0) {
+    legsHtml = legs.map((leg, idx) => {
+      const fromName = leg.from_name || (idx === 0 ? 'Base Camp' : `Stop ${idx}`);
+      const toName = leg.to_name || (idx === legs.length - 1 ? 'Return to Base Camp' : `Stop ${idx+1}`);
+      const legDist = leg.distance_km || 0;
+      const legDur = leg.duration_str || `${leg.duration_minutes || 15}m`;
+      const steps = leg.steps || [];
+      const collapseId = `leg-steps-${dayNum}-${idx}`;
+
+      return `
+        <div class="route-leg-card card mb-2 border rounded-3 overflow-hidden" style="border-color: #E2E8F0 !important;">
+          <div class="card-header bg-white py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-1">
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill extra-small fw-bold">Leg ${idx+1}</span>
+              <strong class="text-dark small text-truncate" style="max-width: 220px;" title="${fromName} ➔ ${toName}">${fromName} ➔ ${toName}</strong>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="fw-bold text-primary small">🚗 ${legDist} km</span>
+              <span class="badge bg-light text-dark border extra-small">⏱️ ${legDur}</span>
+            </div>
+          </div>
+          ${steps.length > 0 ? `
+          <div class="card-body p-2 bg-light border-top" style="border-color: #F1F5F9 !important;">
+            <div class="d-flex justify-content-between align-items-center">
+              <button class="btn btn-sm btn-link text-decoration-none p-0 d-flex align-items-center gap-1 text-primary small fw-semibold"
+                      type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
+                <i class="bi bi-signpost-split"></i>
+                <span>Turn-by-turn steps (${steps.length} steps)</span>
+                <i class="bi bi-chevron-down extra-small"></i>
+              </button>
+              <span class="extra-small text-muted">${leg.source === 'osrm' ? 'OSRM GPS' : 'Haversine'}</span>
+            </div>
+            <div class="collapse mt-2" id="${collapseId}">
+              <div class="list-group list-group-flush rounded-2 border bg-white small" style="max-height: 200px; overflow-y: auto;">
+                ${steps.map(s => `
+                  <div class="list-group-item d-flex justify-content-between align-items-center py-1 px-2 border-bottom extra-small">
+                    <span><i class="bi bi-arrow-right-short text-primary me-1"></i>${s.instruction}</span>
+                    <span class="text-muted text-nowrap ms-2">${s.distance_m > 0 ? (s.distance_m >= 1000 ? (s.distance_m/1000).toFixed(1) + ' km' : Math.round(s.distance_m) + ' m') : ''}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+  } else {
+    legsHtml = `
+      <div class="alert alert-light border small text-muted p-3 text-center">
+        <i class="bi bi-info-circle me-1"></i> Road navigation circuit calculated for Day ${dayNum}.
+      </div>
+    `;
+  }
+
+  rt.innerHTML = daysSelectorHtml + summaryChipHtml + legsHtml;
+
+  // 4. Update Highway Metrics Card
+  if (js) {
+    js.innerHTML = [
+      ['🛣️ Day Road Distance', `${totalKm} km`],
+      ['🚗 Driving Time', totalDurStr],
+      ['📡 Routing Engine', isOSRM ? 'OSRM Road Navigation' : 'Haversine Road Estimate'],
+      ['🌙 Day Focus', `Day ${dayNum} of ${State.days}`],
+      ['👥 Travelers', `${State.travelers} Guests`],
+      ['🚗 Vehicle Mode', State.transport.charAt(0).toUpperCase() + State.transport.slice(1)],
+    ].map(([l,v])=>`
+      <div class="js-row d-flex justify-content-between py-2 border-bottom" style="font-size:0.88rem;">
+        <span class="js-label text-muted">${l}</span>
+        <span class="js-value fw-bold">${v}</span>
+      </div>
+    `).join('');
+  }
+
+  // 5. Update Cost Breakdown
+  if (cb) {
+    const distForFuel = totalKm * State.days;
+    const fuelCost  = State.transport==='bike'?Math.round(distForFuel/30*110):Math.round(distForFuel/12*100);
+    const tollCost  = Math.round(distForFuel/15*50);
+    const entryCost = State.selectedAttractions.reduce((s,a)=>(s+(a.fee||0)),0);
+    const foodEst   = State.travelers*State.days*600;
+    const hotelEst  = State.days*2000;
+
+    cb.innerHTML = [
+      ['⛽ Estimated Fuel',  fmtINR(fuelCost)],
+      ['🚧 Highway Tolls',   fmtINR(tollCost)],
+      ['🎟️ Attraction Fees', fmtINR(entryCost)],
+      ['🍽️ Food (est.)',     fmtINR(foodEst)],
+      ['🏨 Base Camp Stays', fmtINR(hotelEst)],
+    ].map(([l,v])=>`
+      <div class="cb-row d-flex justify-content-between py-1" style="font-size:0.88rem;">
+        <span class="cb-label">${l}</span>
+        <span class="cb-amount fw-bold">${v}</span>
+      </div>
+    `).join('') +
+    `<hr class="my-2"><div class="cb-row d-flex justify-content-between pt-1"><span class="cb-label fw-bold">💰 Total Estimate</span><span class="cb-amount fw-bold text-primary">${fmtINR(fuelCost+tollCost+entryCost+foodEst+hotelEst)}</span></div>`;
+  }
+};
+
+/* ── STEP 8: Draw OSRM Polyline & Numbered Markers on MapLibre Map ── */
+window.drawDayRouteOnMap = function(dayNum) {
+  const map = State.mapInstance;
+  if (!map) return;
+
+  const dayRoutes = State.dayRoutes || (ITINERARY_DATA.day_routes) || (ITINERARY_DATA.itinerary && ITINERARY_DATA.itinerary.day_routes) || [];
+  const targetDay = dayNum || State.activeRouteDay || 1;
+  const route = dayRoutes.find(r => parseInt(r.day || r.day_number) === targetDay) || dayRoutes[0];
+
+  // Remove existing numbered markers
+  if (State.routeMarkers) {
+    State.routeMarkers.forEach(m => {
+      try { m.remove(); } catch(e) {}
+    });
+  }
+  State.routeMarkers = [];
+
+  const bounds = new maplibregl.LngLatBounds();
+  let hasPoints = false;
+
+  // 1. Draw OSRM polyline if geometry exists
+  if (route && route.geometry && route.geometry.coordinates) {
+    const geojson = {
+      type: "Feature",
+      properties: {},
+      geometry: route.geometry
+    };
+
+    if (map.getSource('osrm-day-route')) {
+      map.getSource('osrm-day-route').setData(geojson);
+    } else {
+      map.addSource('osrm-day-route', {
+        type: 'geojson',
+        data: geojson
+      });
+
+      map.addLayer({
+        id: 'osrm-route-casing',
+        type: 'line',
+        source: 'osrm-day-route',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: {
+          'line-color': '#0369a1',
+          'line-width': 7.5,
+          'line-opacity': 0.45
+        }
+      });
+
+      map.addLayer({
+        id: 'osrm-route-line',
+        type: 'line',
+        source: 'osrm-day-route',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: {
+          'line-color': '#0284c7',
+          'line-width': 4.5,
+          'line-opacity': 0.95
+        }
+      });
+    }
+
+    route.geometry.coordinates.forEach(pt => {
+      bounds.extend(pt);
+      hasPoints = true;
+    });
+  }
+
+  // 2. Render numbered markers in visit order
+  if (route && route.legs && route.legs.length > 0) {
+    const legs = route.legs;
+
+    // Start stop: Base Camp
+    if (legs[0].from_coords) {
+      const [startLat, startLon] = legs[0].from_coords;
+      const startEl = document.createElement('div');
+      startEl.className = 'custom-map-marker marker-base-camp';
+      startEl.style.cssText = `width:36px;height:36px;background:#0d9488;border-radius:50%;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 3px 8px rgba(0,0,0,0.35);cursor:pointer;`;
+      startEl.textContent = '🏠';
+      startEl.title = `Start: ${legs[0].from_name}`;
+
+      const startPopup = new maplibregl.Popup({ offset: 20, closeButton: true }).setHTML(`
+        <div style="font-family:inherit;min-width:160px;padding:3px;">
+          <div class="badge bg-primary-subtle text-primary mb-1">Start & Return Anchor</div>
+          <div style="font-weight:700;color:#0F172A;">${legs[0].from_name}</div>
+          <div class="text-muted extra-small mt-1">Base Camp Lodging</div>
+        </div>
+      `);
+
+      const mStart = new maplibregl.Marker({ element: startEl })
+        .setLngLat([startLon, startLat])
+        .setPopup(startPopup)
+        .addTo(map);
+      State.routeMarkers.push(mStart);
+      bounds.extend([startLon, startLat]);
+      hasPoints = true;
+    }
+
+    // Intermediate stops (1, 2, 3...)
+    for (let i = 0; i < legs.length - 1; i++) {
+      const leg = legs[i];
+      if (!leg.to_coords) continue;
+      const [stopLat, stopLon] = leg.to_coords;
+      const stopNum = i + 1;
+
+      const stopEl = document.createElement('div');
+      stopEl.className = 'custom-map-marker marker-visit-order';
+      stopEl.style.cssText = `width:32px;height:32px;background:#0284c7;color:#fff;border-radius:50%;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.95rem;box-shadow:0 3px 8px rgba(2,132,199,0.45);cursor:pointer;user-select:none;transition:transform 0.2s;`;
+      stopEl.textContent = `${stopNum}`;
+      stopEl.title = `Stop ${stopNum}: ${leg.to_name}`;
+
+      stopEl.addEventListener('mouseenter', () => { stopEl.style.transform = 'scale(1.2)'; });
+      stopEl.addEventListener('mouseleave', () => { stopEl.style.transform = 'scale(1)'; });
+
+      const nextLeg = legs[i + 1];
+      const nextDriveInfo = nextLeg ? `🚗 Next drive: ${nextLeg.distance_km} km (${nextLeg.duration_str})` : '';
+
+      const stopPopup = new maplibregl.Popup({ offset: 20, closeButton: true }).setHTML(`
+        <div style="font-family:inherit;min-width:180px;padding:3px;">
+          <span class="badge bg-primary text-white mb-1">Stop ${stopNum} of ${legs.length - 1}</span>
+          <div style="font-weight:700;color:#0F172A;font-size:0.95rem;">${leg.to_name}</div>
+          <div class="extra-small text-muted mt-1">${leg.summary || 'Sightseeing Attraction'}</div>
+          ${nextDriveInfo ? `<div class="extra-small text-primary fw-semibold mt-1">${nextDriveInfo}</div>` : ''}
+          <button type="button" class="btn btn-sm btn-outline-primary w-100 py-1 mt-2" style="font-size:0.75rem;font-weight:600;"
+                  onclick="window.highlightAndScrollToActivity('', '${(leg.to_name || '').replace(/'/g, "\\'")}')">
+            🔍 View in Schedule
+          </button>
+        </div>
+      `);
+
+      const m = new maplibregl.Marker({ element: stopEl })
+        .setLngLat([stopLon, stopLat])
+        .setPopup(stopPopup)
+        .addTo(map);
+      State.routeMarkers.push(m);
+      bounds.extend([stopLon, stopLat]);
+      hasPoints = true;
     }
   }
 
-  rt.innerHTML = html;
-
-  const distKm = totalDistM > 0 ? (totalDistM/1000).toFixed(1) : sel.reduce((s,a)=>s+(a.dist||0), 0);
-  const driveMin = totalDurS > 0 ? Math.round(totalDurS/60) : Math.round(distKm / 45 * 60);
-
-  const fuelCost  = State.transport==='bike'?Math.round(distKm/30*110):Math.round(distKm/12*100);
-  const tollCost  = Math.round(distKm/10*5);
-  const entryCost = sel.reduce((s,a)=>(s+(a.fee||0)),0);
-  const foodEst   = State.travelers*State.days*600;
-  const hotelEst  = State.days*2000;
-
-  if (js) js.innerHTML = [
-    ['🛣️ Total Road Distance', distKm+' km'],
-    ['🚗 Driving Time',         fmtHrs(driveMin)],
-    ['🌙 Trip Duration',        State.days+' Days'],
-    ['👥 Travelers',            State.travelers],
-    ['🚗 Transport Mode',       State.transport.charAt(0).toUpperCase()+State.transport.slice(1)],
-  ].map(([l,v])=>`<div class="js-row d-flex justify-content-between py-2 border-bottom" style="font-size:0.88rem;"><span class="js-label text-muted">${l}</span><span class="js-value fw-bold">${v}</span></div>`).join('');
-
-  if (cb) cb.innerHTML = [
-    ['⛽ Fuel',         fmtINR(fuelCost)],
-    ['🚧 Tolls',        fmtINR(tollCost)],
-    ['🎟️ Entry Fees',  fmtINR(entryCost)],
-    ['🍽️ Food (est.)', fmtINR(foodEst)],
-    ['🏨 Hotel (est.)', fmtINR(hotelEst)],
-  ].map(([l,v])=>`<div class="cb-row d-flex justify-content-between py-1" style="font-size:0.88rem;"><span class="cb-label">${l}</span><span class="cb-amount fw-bold">${v}</span></div>`).join('') +
-  `<hr><div class="cb-row d-flex justify-content-between pt-1"><span class="cb-label fw-bold">💰 Total Estimate</span><span class="cb-amount fw-bold text-primary">${fmtINR(fuelCost+tollCost+entryCost+foodEst+hotelEst)}</span></div>`;
+  if (hasPoints && !bounds.isEmpty()) {
+    map.fitBounds(bounds, { padding: 50, maxZoom: 14 });
+  }
 };
 
-/* ── STEP 8: MapLibre Interactive Map ───────────────────────────── */
+/* ── STEP 9: MapLibre Interactive Map Initialization ─────────────── */
 window.renderMap = function() {
-  const sel = State.selectedAttractions;
   if (typeof maplibregl === 'undefined') return;
 
   if (State.mapInstance) {
@@ -1004,10 +1243,11 @@ window.renderMap = function() {
     State.mapInstance = null;
   }
   State.mapMarkers = new Map();
+  State.routeMarkers = [];
 
-  // Find center coordinate from first attraction with valid coords, fallback to Bangalore
+  // Center coordinate from first attraction or default Bangalore
   let defaultCenter = [77.5946, 12.9716];
-  for (const a of sel) {
+  for (const a of State.selectedAttractions) {
     const lat = Number(a.lat || a.latitude);
     const lon = Number(a.lon || a.longitude);
     if (isFinite(lat) && isFinite(lon) && (lat !== 0 || lon !== 0)) {
@@ -1035,14 +1275,14 @@ window.renderMap = function() {
       }]
     },
     center: defaultCenter,
-    zoom: sel.length ? 11 : 9
+    zoom: State.selectedAttractions.length ? 11 : 9
   });
   State.mapInstance = map;
 
   map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
-  // Handle map resizing when Map tab is shown on desktop or mobile
-  const mapTabTrigger = document.querySelector('a[data-bs-toggle="tab"][href="#tab-map"]');
+  // Handle map resizing when Map tab is displayed
+  const mapTabTrigger = document.querySelector('a[data-bs-toggle="tab"][href="#tab-map"], a[data-bs-toggle="pill"][href="#tab-map"]');
   if (mapTabTrigger && !mapTabTrigger._resizeBound) {
     mapTabTrigger._resizeBound = true;
     mapTabTrigger.addEventListener('shown.bs.tab', () => {
@@ -1055,117 +1295,11 @@ window.renderMap = function() {
   }
 
   map.on('load', () => {
-    const bounds = new maplibregl.LngLatBounds();
-    const coordCounts = {};
-    let validCount = 0;
-
-    sel.forEach((a) => {
-      const origLat = Number(a.lat || a.latitude);
-      const origLon = Number(a.lon || a.longitude);
-
-      // Handle missing coordinates safely
-      if (!isFinite(origLat) || !isFinite(origLon) || (origLat === 0 && origLon === 0)) {
-        return;
-      }
-
-      // Handle duplicate coordinates by applying a slight offset spiral
-      const coordKey = `${origLat.toFixed(4)},${origLon.toFixed(4)}`;
-      const seenCount = coordCounts[coordKey] || 0;
-      coordCounts[coordKey] = seenCount + 1;
-
-      let plotLat = origLat;
-      let plotLon = origLon;
-      if (seenCount > 0) {
-        const angle = seenCount * 1.25;
-        const radius = 0.00035 * seenCount;
-        plotLat += Math.sin(angle) * radius;
-        plotLon += Math.cos(angle) * radius;
-      }
-
-      validCount++;
-
-      // Create interactive DOM element for marker
-      const el = document.createElement('div');
-      el.className = 'custom-map-marker';
-      el.style.cssText = `width:34px;height:34px;background:#10b981;border-radius:50%;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:1.05rem;box-shadow:0 3px 8px rgba(0,0,0,0.3);cursor:pointer;transition:transform 0.2s ease;user-select:none;`;
-      el.textContent = a.icon || '📍';
-      el.title = `${a.name} (Click to locate in schedule)`;
-
-      // Bidirectional marker click: highlight and scroll to activity card in timeline/schedule
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.highlightAndScrollToActivity(a.id, a.name);
-      });
-
-      // Escape quotes for safe inline JS
-      const safeName = (a.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-      const safeCat = (a.cat || 'Sightseeing').replace(/"/g, '&quot;');
-
-      const popupHtml = `
-        <div style="font-family:inherit;min-width:180px;padding:4px 0;">
-          <div style="font-weight:700;font-size:0.95rem;color:#0F172A;line-height:1.2;margin-bottom:3px;">
-            ${a.icon || '📍'} ${a.name}
-          </div>
-          <div style="font-size:0.8rem;color:#64748B;margin-bottom:8px;">${safeCat}</div>
-          <button type="button" class="btn btn-sm btn-outline-primary w-100 py-1" style="font-size:0.75rem;font-weight:600;border-radius:6px;"
-                  onclick="window.highlightAndScrollToActivity('${a.id || ''}', '${safeName}')">
-            🔍 View in Schedule
-          </button>
-        </div>
-      `;
-
-      const marker = new maplibregl.Marker({ element: el })
-        .setLngLat([plotLon, plotLat])
-        .setPopup(new maplibregl.Popup({ offset: 18, closeButton: true }).setHTML(popupHtml))
-        .addTo(map);
-
-      // Register marker in State.mapMarkers for bidirectional lookup
-      if (a.id) {
-        State.mapMarkers.set(String(a.id), marker);
-      }
-      if (a.name) {
-        State.mapMarkers.set(String(a.name).toLowerCase().trim(), marker);
-      }
-
-      bounds.extend([plotLon, plotLat]);
-    });
-
-    if (validCount > 0 && !bounds.isEmpty()) {
-      map.fitBounds(bounds, { padding: 60, maxZoom: 14 });
-    }
+    // Render route timeline metrics and draw OSRM polyline + numbered markers
+    window.renderRoute(State.activeRouteDay || 1);
+    window.drawDayRouteOnMap(State.activeRouteDay || 1);
   });
 };
 
-/* ── STEP 9: Live Map Marker Highlight for Active Planner Day ───── */
-window.refreshDayMapMarkers = function() {
-  if (!State.mapMarkers || !State.dayPlanner) return;
-  const currentDayPlan = State.dayPlanner[State.currentPlannerDay] || {};
-  const activeIds = new Set();
-  const activeNames = new Set();
-
-  ['morning', 'afternoon', 'evening', 'night'].forEach(zone => {
-    (currentDayPlan[zone] || []).forEach(act => {
-      if (act.id) activeIds.add(String(act.id));
-      if (act.name) activeNames.add(String(act.name).toLowerCase().trim());
-    });
-  });
-
-  State.mapMarkers.forEach((marker, key) => {
-    const el = marker.getElement();
-    if (!el) return;
-    const isDayActive = activeIds.has(key) || activeNames.has(key);
-    if (isDayActive) {
-      el.style.background = '#0d9488';
-      el.style.border = '3px solid #facc15';
-      el.style.transform = 'scale(1.15)';
-      el.style.zIndex = '10';
-    } else {
-      el.style.background = '#10b981';
-      el.style.border = '2.5px solid #fff';
-      el.style.transform = 'scale(1)';
-      el.style.zIndex = '1';
-    }
-  });
-};
 
 

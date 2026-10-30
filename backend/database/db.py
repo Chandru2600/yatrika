@@ -148,6 +148,17 @@ def init_db() -> None:
         )
     """)
 
+    # ── OSRM Route Cache ──────────────────────────────────────
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS osrm_cache (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            cache_key     TEXT    NOT NULL UNIQUE,
+            response_json TEXT    NOT NULL,
+            created_at    TEXT    DEFAULT (datetime('now'))
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_osrm_cache_key ON osrm_cache(cache_key)")
+
     conn.commit()
     conn.close()
     print("[DB] Tables initialized successfully.")

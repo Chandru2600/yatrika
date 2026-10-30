@@ -27,6 +27,7 @@ The **Travel Planner Agent** is a full-stack web application that uses a custom 
 | 🧹 **Polished Traveler-Facing UI** | Scrubbed all internal engineering jargon ("Agent 1..4", "pipeline", "orienteering", "Granite", "ML regressor") from user-facing surfaces in favor of intuitive, natural travel language |
 | ⚡ **Actionable Booking Links** | Instant zero-key deep links to MakeMyTrip, Goibibo, Booking.com, IRCTC, ConfirmTkt, and RedBus prefilled with destination, dates, and traveler counts |
 | 🌤 **Weather Module** | Real-time & 7-day forecast via OpenWeatherMap + Open-Meteo zero-key travel date forecast with dynamic rain/extreme heat badges and indoor/outdoor swap suggestions |
+| 🛣 **Turn-by-Turn Road Routing** | Google-Maps-style real road polylines via Open Source Routing Machine (OSRM demo server / configurable `OSRM_BASE_URL`). Interactive MapLibre line rendering, numbered visit markers (🏠 Base Camp, ①, ②, ③, 🏁), expandable turn-by-turn navigation steps per leg, day road summary badge, and zero-crash Haversine fallback |
 | 🗺 **Interactive Map** | MapLibre + OpenStreetMap showing attractions, hotels, hospitals |
 | 💰 **Budget Planner** | Auto-breakdown across accommodation, food, transport, tickets |
 | 🏨 **Hotel Finder** | Budget, mid-range & luxury hotel picks |
@@ -95,6 +96,9 @@ TravelPlannerAgent/
 │       │   └── granite_service.py  # IBM Granite API + prompt templates
 │       ├── weather/
 │       │   └── weather_service.py  # OpenWeatherMap integration
+│       ├── routing/
+│       │   ├── osrm_client.py      # OSRM demo client with 2-tier cache
+│       │   └── route_builder.py    # Multi-waypoint day road route builder
 │       └── pdf/
 │           └── pdf_service.py      # ReportLab PDF generator
 │
@@ -167,6 +171,7 @@ IBM_PROJECT_ID=your_watsonx_project_id
 IBM_WATSONX_URL=https://us-south.ml.cloud.ibm.com
 GRANITE_MODEL_ID=ibm/granite-4-h-small
 WEATHER_API_KEY=your_openweathermap_key
+OSRM_BASE_URL=https://router.project-osrm.org
 ```
 
 > **Note on Security:** `SECRET_KEY` is mandatory in development and production (fails fast if unset). User passwords are encrypted using `bcrypt` (12 rounds) with backward compatibility for legacy hashes. CORS is restricted to configurable origins via `CORS_ALLOWED_ORIGINS`.
@@ -215,6 +220,19 @@ Open your browser at: **http://localhost:5000**
 
 ---
 
+## 🛣 Road Routing & Turn-by-Turn Navigation (OSRM)
+
+Yatrika includes a Google-Maps-style routing engine that calculates true driving paths, road distances, durations, and turn-by-turn navigation steps:
+
+- **Zero-Key Default:** Out of the box, calls the public Open Source Routing Machine demo server (`https://router.project-osrm.org`) with `overview=full` and `steps=true`. No API key required.
+- **Configurable `OSRM_BASE_URL`:** Point to any self-hosted or local OSRM backend via `.env` (e.g., `OSRM_BASE_URL=http://localhost:5000`).
+- **2-Tier Caching:** Frequently repeated waypoint pairs (Base Camp Stay ↔ Attractions ↔ Railway/Bus stations) are cached in an in-memory dictionary and persisted into the SQLite `osrm_cache` table. Subsequent queries resolve with 0 network calls.
+- **Agent 2 Scheduler Feedback:** Real driving durations are fed directly back into the itinerary schedule. Time slot windows (`09:00 AM - 11:30 AM`, etc.) automatically reflect actual highway and mountain transit times rather than straight-line guesses.
+- **Zero-Crash Resilience:** Enforces a strict 10-second timeout with global exception handling. If the OSRM server is unreachable, slow, or offline, the system seamlessly falls back to the calibrated Indian Road Haversine model (1.3× circuity factor, 35 km/h driving speed) so trip planning never fails.
+- **Interactive UI:** Renders colored route polylines on MapLibre GL, numbered markers in visit sequence (`🏠 Base Camp`, `①`, `②`, `③`, `🏁 Return`), expandable turn-by-turn navigation cards, and day circuit badges (`🛣 Total: X km • Y hrs driving`).
+
+---
+
 ## 🗄 Database
 
 SQLite database is created automatically at first run:
@@ -222,10 +240,11 @@ SQLite database is created automatically at first run:
 
 **Tables:**
 - `users` — registration, auth, roles
-- `trips` — trip data including AI-generated JSON blobs
+- `trips` — trip data including AI-generated JSON blobs (with `day_routes` polylines and steps)
 - `saved_trips` — user favourites with notes
 - `travel_history` — trip ratings and reviews
 - `expenses` — manual expense tracking per trip
+- `osrm_cache` — persistent SQLite cache for OSRM waypoint routes and turn-by-turn directions
 
 To create an admin user, run Python directly:
 

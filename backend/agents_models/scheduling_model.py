@@ -272,13 +272,26 @@ class ItinerarySchedulingModel:
 
         return matched
 
+    @staticmethod
+    def _format_clock_time(minutes_from_midnight: int) -> str:
+        """Formats minutes elapsed from midnight into 12-hour clock (e.g. 08:45 AM)."""
+        mins = int(minutes_from_midnight) % (24 * 60)
+        h = mins // 60
+        m = mins % 60
+        ampm = "AM" if h < 12 else "PM"
+        disp_h = h if 1 <= h <= 12 else (h - 12 if h > 12 else 12)
+        return f"{disp_h:02d}:{m:02d} {ampm}"
+
     def schedule_multiday_itinerary(self, destination: str, num_days: int, stay_info: dict,
                                    enriched_pois: list, travel_style: str = "adventure") -> list:
         """
         Organizes attractions into daily loops anchored to Base Camp stay.
+        Feeds OSRM / haversine road driving times into scheduled time windows.
         """
         stay_name = stay_info.get("name", "Base Camp")
         days_schedule = []
+
+        from backend.services.routing.route_builder import build_day_route
 
         # Sort attractions by rating and proximity to stay
         sorted_pois = sorted(
@@ -306,14 +319,56 @@ class ItinerarySchedulingModel:
             afternoon_poi = day_pois[1] if len(day_pois) > 1 else morning_poi
             evening_poi = day_pois[2] if len(day_pois) > 2 else afternoon_poi
 
+            # Feed real OSRM road geometry and drive durations into day schedule
+            pois_for_route = [morning_poi, afternoon_poi, evening_poi]
+            day_route = build_day_route(stay_info, pois_for_route)
+            legs = day_route.get("legs", [])
+
+            leg0_dur = legs[0].get("duration_minutes", 20) if len(legs) > 0 else 20
+            leg0_km = legs[0].get("distance_km", 6.5) if len(legs) > 0 else 6.5
+            leg0_src = legs[0].get("source", "haversine") if len(legs) > 0 else "haversine"
+
+            leg1_dur = legs[1].get("duration_minutes", 25) if len(legs) > 1 else 25
+            leg1_km = legs[1].get("distance_km", 8.0) if len(legs) > 1 else 8.0
+            leg1_src = legs[1].get("source", "haversine") if len(legs) > 1 else "haversine"
+
+            leg2_dur = legs[2].get("duration_minutes", 20) if len(legs) > 2 else 20
+            leg2_km = legs[2].get("distance_km", 5.5) if len(legs) > 2 else 5.5
+            leg2_src = legs[2].get("source", "haversine") if len(legs) > 2 else "haversine"
+
+            leg3_dur = legs[3].get("duration_minutes", 25) if len(legs) > 3 else 25
+            leg3_km = legs[3].get("distance_km", 7.5) if len(legs) > 3 else 7.5
+            leg3_src = legs[3].get("source", "haversine") if len(legs) > 3 else "haversine"
+
+            # Compute real road-timed schedule windows starting from Base Camp at 08:30 AM (510m)
+            m_arrive = 510 + leg0_dur
+            m_stay_mins = max(60, min(180, round(float(morning_poi.get("dur", 150)))))
+            m_depart = m_arrive + m_stay_mins
+            morning_time_str = f"{self._format_clock_time(m_arrive)} - {self._format_clock_time(m_depart)}"
+
+            a_arrive = m_depart + leg1_dur
+            a_stay_mins = max(90, min(210, round(float(afternoon_poi.get("dur", 180)))))
+            a_depart = a_arrive + a_stay_mins
+            afternoon_time_str = f"{self._format_clock_time(a_arrive)} - {self._format_clock_time(a_depart)}"
+
+            e_arrive = a_depart + leg2_dur
+            e_stay_mins = max(60, min(150, round(float(evening_poi.get("dur", 120)))))
+            e_depart = e_arrive + e_stay_mins
+            evening_time_str = f"{self._format_clock_time(e_arrive)} - {self._format_clock_time(e_depart)}"
+
             day_dict = {
                 "day_number": day,
                 "day": day,
                 "title": f"Day {day}: {morning_poi['name']} & {afternoon_poi['name']}",
                 "theme": f"Exploring {morning_poi['name']} & {afternoon_poi['name']}",
                 "base_camp": stay_name,
+                "day_route": day_route,
+                "total_drive_km": day_route.get("total_distance_km", 0.0),
+                "total_drive_minutes": day_route.get("total_duration_minutes", 0),
+                "total_drive_str": day_route.get("total_duration_str", "0m"),
+                "route_source": day_route.get("source", "haversine"),
                 "morning": {
-                    "time": "08:30 AM - 11:30 AM",
+                    "time": morning_time_str,
                     "place": morning_poi["name"],
                     "name": morning_poi["name"],
                     "activity": f"Depart {stay_name} -> Explore {morning_poi['name']}",
@@ -323,10 +378,14 @@ class ItinerarySchedulingModel:
                     "duration": "2.5 hours",
                     "lat": morning_poi.get("latitude", morning_poi.get("lat")),
                     "lon": morning_poi.get("longitude", morning_poi.get("lon")),
+                    "transit_drive_mins": leg0_dur,
+                    "transit_distance_km": leg0_km,
+                    "transit_source": leg0_src,
+                    "road_time_verified": leg0_src == "osrm",
                     "description": f"Morning exploration at {morning_poi['name']} ({morning_poi.get('type', 'Sightseeing')}) during calm morning hours."
                 },
                 "afternoon": {
-                    "time": "12:30 PM - 04:00 PM",
+                    "time": afternoon_time_str,
                     "place": afternoon_poi["name"],
                     "name": afternoon_poi["name"],
                     "activity": f"Authentic Regional Lunch -> Guided Sightseeing at {afternoon_poi['name']}",
@@ -336,10 +395,14 @@ class ItinerarySchedulingModel:
                     "duration": "3 hours",
                     "lat": afternoon_poi.get("latitude", afternoon_poi.get("lat")),
                     "lon": afternoon_poi.get("longitude", afternoon_poi.get("lon")),
+                    "transit_drive_mins": leg1_dur,
+                    "transit_distance_km": leg1_km,
+                    "transit_source": leg1_src,
+                    "road_time_verified": leg1_src == "osrm",
                     "description": f"Enjoy regional delicacies followed by an immersive visit to {afternoon_poi['name']}."
                 },
                 "evening": {
-                    "time": "05:00 PM - 07:30 PM",
+                    "time": evening_time_str,
                     "place": evening_poi["name"],
                     "name": evening_poi["name"],
                     "activity": f"Sunset Panorama at {evening_poi['name']} -> Scenic Drive back to {stay_name}",
@@ -349,10 +412,18 @@ class ItinerarySchedulingModel:
                     "duration": "2 hours",
                     "lat": evening_poi.get("latitude", evening_poi.get("lat")),
                     "lon": evening_poi.get("longitude", evening_poi.get("lon")),
+                    "transit_drive_mins": leg2_dur,
+                    "transit_distance_km": leg2_km,
+                    "transit_source": leg2_src,
+                    "road_time_verified": leg2_src == "osrm",
+                    "return_drive_mins": leg3_dur,
+                    "return_distance_km": leg3_km,
+                    "return_source": leg3_src,
                     "description": f"Golden hour viewpoint, fresh regional beverage, and evening return to {stay_name} for rest."
                 }
             }
             days_schedule.append(day_dict)
 
         return days_schedule
+
 

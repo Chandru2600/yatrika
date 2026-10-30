@@ -937,6 +937,24 @@
                     </span>
                   </div>
 
+                  <!-- Day Road Circuit Summary Chip (OSRM Grounded) -->
+                  {% if d.day_route or d.total_drive_km %}
+                  <div class="mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2 p-2 px-3 rounded-3" style="background: #F0F9FF; border: 1.5px solid #BAE6FD;">
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="badge bg-primary text-white">Day {{ d.day or loop.index }} Road Navigation</span>
+                      <span class="fw-bold text-dark" style="font-size: 0.88rem;">
+                        🚗 {{ d.total_drive_km or d.day_route.total_distance_km }} km total
+                        • ⏱️ {{ d.total_drive_str or d.day_route.total_duration_str }} road drive
+                      </span>
+                    </div>
+                    {% if d.route_source == 'osrm' or (d.day_route and d.day_route.source == 'osrm') %}
+                    <span class="badge bg-success text-white extra-small fw-bold">✓ OSRM Road Verified</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark extra-small">📐 Haversine Estimate</span>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+
                   <!-- Dynamic Real Weather Advisory & Outdoor/Indoor Swap (Feature 2) -->
                   {% if d.weather_alert and d.weather_alert.has_alert and d.weather_alert.suggestion %}
                   <div class="alert alert-warning py-2 px-3 rounded-3 mb-3 d-flex align-items-center gap-2 small" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #92400E;">
@@ -978,6 +996,17 @@
                   </div>
                   {% endif %}
 
+                  <!-- Transit Connector: Morning to Afternoon -->
+                  {% if d.afternoon and d.afternoon.transit_distance_km %}
+                  <div class="d-flex align-items-center gap-2 my-2 ms-4 text-muted small" style="font-size: 0.78rem;">
+                    <i class="bi bi-arrow-down text-primary"></i>
+                    <span class="badge bg-light text-primary border rounded-pill px-2 py-1">
+                      🚗 Drive to next stop: {{ d.afternoon.transit_distance_km }} km ({{ d.afternoon.transit_drive_mins }}m)
+                      {% if d.afternoon.road_time_verified %}<span class="text-success ms-1 fw-bold">✓ OSRM</span>{% endif %}
+                    </span>
+                  </div>
+                  {% endif %}
+
                   <!-- Afternoon -->
                   {% if d.afternoon %}
                   {% set afternoon_addr = d.afternoon.proximity or d.afternoon.address or d.afternoon.location or d.base_camp %}
@@ -1006,6 +1035,17 @@
                       <div class="extra-small mt-1 fw-semibold text-truncate" style="color: #0284C7;"><i class="bi bi-geo-alt me-1"></i>{{ afternoon_addr }}</div>
                       {% endif %}
                     </div>
+                  </div>
+                  {% endif %}
+
+                  <!-- Transit Connector: Afternoon to Evening -->
+                  {% if d.evening and d.evening.transit_distance_km %}
+                  <div class="d-flex align-items-center gap-2 my-2 ms-4 text-muted small" style="font-size: 0.78rem;">
+                    <i class="bi bi-arrow-down text-primary"></i>
+                    <span class="badge bg-light text-primary border rounded-pill px-2 py-1">
+                      🚗 Drive to next stop: {{ d.evening.transit_distance_km }} km ({{ d.evening.transit_drive_mins }}m)
+                      {% if d.evening.road_time_verified %}<span class="text-success ms-1 fw-bold">✓ OSRM</span>{% endif %}
+                    </span>
                   </div>
                   {% endif %}
 
@@ -1038,6 +1078,14 @@
                       {% endif %}
                     </div>
                   </div>
+                  {% if d.evening.return_distance_km %}
+                  <div class="d-flex align-items-center gap-2 mt-2 ms-4 text-muted small" style="font-size: 0.78rem;">
+                    <i class="bi bi-house-check text-success"></i>
+                    <span class="badge bg-light text-muted border rounded-pill px-2 py-1">
+                      🚗 Return to {{ d.base_camp or (base_stay.name if base_stay else 'Base Camp') }} ➔ {{ d.evening.return_distance_km }} km ({{ d.evening.return_drive_mins }}m)
+                    </span>
+                  </div>
+                  {% endif %}
                   {% endif %}
                   <!-- Local Food Layer (Feature 3): Must-Try Dishes & Curated Meal Stops Near Route -->
                   {% if d.must_try_dishes or d.food_recommendations %}

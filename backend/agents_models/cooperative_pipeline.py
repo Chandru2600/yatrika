@@ -240,6 +240,7 @@ class MultiAgentCooperativePipeline:
             "packing_checklist": packing_checklist,
             "days": daily_itinerary,
             "day_planner": day_planner_dict,
+            "day_routes": [d["day_route"] for d in daily_itinerary if "day_route" in d],
             "emergency_numbers": {
                 "police": "100",
                 "ambulance": "108",
@@ -258,6 +259,7 @@ class MultiAgentCooperativePipeline:
             "base_camp_stay": base_camp_stay,
             "transit": transit_info,
             "itinerary": unified_itinerary,
+            "day_routes": unified_itinerary.get("day_routes", []),
             "budget": budget_analysis,
             "hotels": tiered_hotels,
             "emergency_support": base_camp_stay.get("emergency_support", {}),

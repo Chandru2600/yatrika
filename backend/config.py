@@ -48,6 +48,9 @@ class Config:
     EXCHANGE_API_KEY  = ""
     EXCHANGE_BASE_URL = "https://v6.exchangerate-api.com/v6"
 
+    # ── OSRM Routing Engine ───────────────────────────────────
+    OSRM_BASE_URL = "https://router.project-osrm.org"
+
     def __init__(self):
         """Read all env vars at instantiation time (after load_dotenv)."""
         secret = os.environ.get("SECRET_KEY", "").strip()
@@ -72,6 +75,7 @@ class Config:
         self.GRANITE_MODEL_ID = os.environ.get("GRANITE_MODEL_ID", "ibm/granite-4-h-small").strip()
         self.WEATHER_API_KEY  = (os.environ.get("WEATHER_API_KEY") or os.environ.get("OPENWEATHER_API_KEY", "")).strip()
         self.EXCHANGE_API_KEY = os.environ.get("EXCHANGE_API_KEY", "").strip()
+        self.OSRM_BASE_URL    = (os.environ.get("OSRM_BASE_URL") or "https://router.project-osrm.org").rstrip("/")
 
     # ── Upload ────────────────────────────────────────────────
     UPLOAD_FOLDER      = os.path.join(BASE_DIR, "uploads")

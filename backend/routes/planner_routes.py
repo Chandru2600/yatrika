@@ -1126,6 +1126,13 @@ def share_trip_by_token(token: str):
 
     itinerary = attach_weather_forecast_to_itinerary(itinerary, trip.get("destination", ""), trip.get("start_date"))
     itinerary = attach_food_layer_to_itinerary(itinerary, trip.get("destination", ""))
+    if "day_routes" not in itinerary and itinerary.get("days"):
+        try:
+            from backend.services.routing.route_builder import build_multiday_routes
+            stay = itinerary.get("base_camp_stay") or (hotels.get("budget_hotels") or [{}])[0]
+            itinerary["day_routes"] = build_multiday_routes(stay, itinerary.get("days", []))
+        except Exception:
+            pass
 
     share_url = url_for("planner.share_trip_by_token", token=trip["share_token"], _external=True)
     weather_horizon = evaluate_weather_horizon(trip, weather)
@@ -1216,6 +1223,13 @@ def view_trip(trip_id: int):
 
     itinerary = attach_weather_forecast_to_itinerary(itinerary, trip.get("destination", ""), trip.get("start_date"))
     itinerary = attach_food_layer_to_itinerary(itinerary, trip.get("destination", ""))
+    if "day_routes" not in itinerary and itinerary.get("days"):
+        try:
+            from backend.services.routing.route_builder import build_multiday_routes
+            stay = itinerary.get("base_camp_stay") or (hotels.get("budget_hotels") or [{}])[0]
+            itinerary["day_routes"] = build_multiday_routes(stay, itinerary.get("days", []))
+        except Exception:
+            pass
 
     share_url = url_for("planner.share_trip_by_token", token=trip["share_token"], _external=True) if trip.get("share_token") else ""
     weather_horizon = evaluate_weather_horizon(trip, weather)
