@@ -1,0 +1,44 @@
+name: Yatrika Continuous Integration
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-scan:
+    name: Build, Secret Scan & Pytest Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run Secret Scan
+        run: |
+          python scripts/secret_scan.py --tree
+          python scripts/secret_scan.py --diff
+
+      - name: Execute Full Pytest Suite
+        env:
+          FLASK_ENV: testing
+          TESTING: "True"
+          SECRET_KEY: "ci-secret-key-for-testing-purposes-minimum-32-chars-long"
+          WTF_CSRF_ENABLED: "False"
+        run: |
+          python -m pytest tests/unit tests/golden tests/test_feature*.py -v --tb=short

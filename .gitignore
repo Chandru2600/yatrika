@@ -10,10 +10,21 @@ dist/
 build/
 .eggs/
 
-# Environment files
+# Environment and Secret files
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+*.pem
+*.key
+*.pkcs12
+*.pfx
+*.p12
+credentials.json
+client_secrets.json
+service_account.json
+secrets.json
+id_rsa*
+id_ed25519*
 
 # Database
 *.db

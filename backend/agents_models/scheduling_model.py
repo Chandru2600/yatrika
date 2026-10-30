@@ -292,14 +292,15 @@ class ItinerarySchedulingModel:
 
         for day in range(1, num_days + 1):
             day_pois = []
-            spots_count = min(3, max(2, total_pois - poi_index)) if total_pois >= num_days * 2 else 2
-            for _ in range(spots_count):
-                if poi_index < total_pois:
-                    day_pois.append(sorted_pois[poi_index])
-                    poi_index += 1
-                else:
-                    day_pois.append(sorted_pois[poi_index % max(1, total_pois)])
-                    poi_index += 1
+            if total_pois > 0:
+                spots_count = min(3, max(2, total_pois - poi_index)) if total_pois >= num_days * 2 else 2
+                for _ in range(spots_count):
+                    if poi_index < total_pois:
+                        day_pois.append(sorted_pois[poi_index])
+                        poi_index += 1
+                    else:
+                        day_pois.append(sorted_pois[poi_index % total_pois])
+                        poi_index += 1
 
             morning_poi = day_pois[0] if len(day_pois) > 0 else {"name": f"{destination.title()} Morning Trail", "type": "Scenic Walk", "fee_inr": 0, "stay_proximity_badge": "Near Base Camp"}
             afternoon_poi = day_pois[1] if len(day_pois) > 1 else morning_poi
