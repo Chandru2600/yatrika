@@ -137,8 +137,18 @@ class TestStayManagerService:
 class TestStayManagerEndpoints:
     """Test suite for Stay Manager HTTP routes."""
 
+    def test_stay_manager_search_entry_view(self, app_client):
+        """GET /stay-manager with no destination renders the clean Launchpad entry card with Continue."""
+        resp = app_client.get("/stay-manager")
+        assert resp.status_code == 200
+        html = resp.get_data(as_text=True)
+        assert "Continue to Stays" in html or "Continue" in html
+        assert "tripSource" in html
+        assert "tripDestination" in html
+        assert "tripDays" in html
+
     def test_stay_manager_html_view(self, app_client):
-        """GET /stay-manager renders the split screen page."""
+        """GET /stay-manager with destination renders the dedicated results page."""
         resp = app_client.get("/stay-manager?destination=Coorg&source=Bengaluru")
         assert resp.status_code == 200
         html = resp.get_data(as_text=True)
@@ -146,6 +156,16 @@ class TestStayManagerEndpoints:
         assert "stayMap" in html
         assert "View on Map" in html
         assert "Book" in html
+
+    def test_stay_manager_results_endpoint(self, app_client):
+        """GET /stay-manager/results renders the cards grid with facilities filters and floating map."""
+        resp = app_client.get("/stay-manager/results?destination=Electronic+City+Bengaluru&source=Bengaluru&num_days=3")
+        assert resp.status_code == 200
+        html = resp.get_data(as_text=True)
+        assert "Stays Near" in html
+        assert "FACILITIES" in html
+        assert "floatingMapModal" in html
+        assert "View on Map" in html
 
     def test_stay_manager_api_search(self, app_client):
         """GET /stay-manager/api/search returns valid JSON stays."""

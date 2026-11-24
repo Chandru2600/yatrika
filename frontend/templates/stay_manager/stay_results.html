@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}Stays Near {{ destination }} — Yatrika Stay Manager{% endblock %}
+
+{% block extra_css %}
+<!-- MapLibre GL CSS -->
+<link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+<link href="{{ url_for('static', filename='css/stay_manager.css') }}" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<div class="stay-manager-page results-mode-page">
+
+  <!-- ── 1. Top Search Recap Bar & Actions ───────────────────────── -->
+  <section class="stay-results-topbar">
+    <div class="container-fluid px-lg-4 py-3">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <!-- Title & Location Info -->
+        <div class="d-flex align-items-center gap-3">
+          <a href="{{ url_for('stay_routes.stay_manager_view', source=source, destination=destination, num_days=num_days, budget=budget, checkin=checkin, modify=1) }}"
+             class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 extra-small fw-bold d-inline-flex align-items-center gap-1">
+            <i class="bi bi-arrow-left"></i> Modify Search
+          </a>
+          <div>
+            <h1 class="fs-5 fw-bold text-navy mb-0">
+              Stays Near <span class="text-coral">{{ destination }}</span>
+            </h1>
+            <div class="extra-small text-muted d-flex align-items-center gap-2 flex-wrap">
+              <span><i class="bi bi-geo-alt-fill text-turquoise"></i> From {{ source }}</span>
+              <span>•</span>
+              <span><i class="bi bi-calendar-check text-primary"></i> {{ num_days }} Days ({{ initial_data.nights }} Nights)</span>
+              <span>•</span>
+              <span><i class="bi bi-people text-muted"></i> {{ travelers }} Guests</span>
+              <span>•</span>
+              <span>Target: ₹{{ "{:,}".format(budget) }}/nt</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Engine Indicator -->
+        <div class="d-flex align-items-center gap-2">
+          <div id="aiEngineStatusBadge" class="badge rounded-pill bg-dark-slate text-teal py-2 px-3 extra-small border border-teal-subtle">
+            {% if initial_data.source_engine == 'ibm_granite' %}
+              <i class="bi bi-cpu-fill text-turquoise me-1"></i> IBM Granite 4-h-small Active
+            {% else %}
+              <i class="bi bi-shield-check text-success me-1"></i> Agent 4 Accommodations Active
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 2. Filters & Facilities Control Bar ─────────────────────── -->
+  <section class="stay-filters-section border-bottom bg-white shadow-sm">
+    <div class="container-fluid px-lg-4 py-2">
+      <!-- Row 1: Sort by & Tier Filter -->
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+        <!-- Sort Control -->
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="filter-label"><i class="bi bi-sort-down text-muted"></i> SORT:</span>
+          <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-filter-sort active" data-sort="recommended" onclick="setSortMode('recommended', this)">
+              AI Recommended
+            </button>
+            <button type="button" class="btn btn-filter-sort" data-sort="price_asc" onclick="setSortMode('price_asc', this)" title="Sort by Budget: Lowest price first">
+              💰 Budget: Low to High
+            </button>
+            <button type="button" class="btn btn-filter-sort" data-sort="luxury_desc" onclick="setSortMode('luxury_desc', this)" title="Sort by Luxury: Premium first">
+              ✨ Luxuries & Premium
+            </button>
+            <button type="button" class="btn btn-filter-sort" data-sort="distance" onclick="setSortMode('distance', this)">
+              📍 Nearest to Office
+            </button>
+            <button type="button" class="btn btn-filter-sort" data-sort="rating" onclick="setSortMode('rating', this)">
+              ⭐ Highest Rated
+            </button>
+          </div>
+        </div>
+
+        <!-- Tier Pills (Budget, Mid-range, Luxury) -->
+        <div class="d-flex align-items-center gap-1 flex-wrap">
+          <span class="filter-label">TIER:</span>
+          <button type="button" class="btn-tier-pill active" data-tier="all" onclick="setTierFilter('all', this)">All</button>
+          <button type="button" class="btn-tier-pill" data-tier="Budget" onclick="setTierFilter('Budget', this)">Budget (&lt; ₹2.2k)</button>
+          <button type="button" class="btn-tier-pill" data-tier="Mid-range" onclick="setTierFilter('Mid-range', this)">Mid-range</button>
+          <button type="button" class="btn-tier-pill" data-tier="Luxury" onclick="setTierFilter('Luxury', this)">Luxury / Resorts</button>
+        </div>
+
+        <!-- Stays Count Badge -->
+        <div class="ms-auto text-end">
+          <span class="extra-small fw-bold text-muted">
+            Showing <strong id="visibleCount" class="text-navy">{{ initial_data.stays|length }}</strong> of {{ initial_data.stays|length }} stays
+          </span>
+        </div>
+      </div>
+
+      <!-- Row 2: Facilities / Amenities Filter Tags -->
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-1 border-top border-light">
+        <div class="d-flex align-items-center gap-1 flex-wrap">
+          <span class="filter-label"><i class="bi bi-funnel-fill text-turquoise"></i> FACILITIES:</span>
+          <button type="button" class="btn-facility-pill" data-facility="wifi" onclick="toggleFacilityFilter('wifi', this)">
+            📶 Free WiFi
+          </button>
+          <button type="button" class="btn-facility-pill" data-facility="ac" onclick="toggleFacilityFilter('ac', this)">
+            ❄️ AC
+          </button>
+          <button type="button" class="btn-facility-pill" data-facility="parking" onclick="toggleFacilityFilter('parking', this)">
+            🚗 Free Parking
+          </button>
+          <button type="button" class="btn-facility-pill" data-facility="breakfast" onclick="toggleFacilityFilter('breakfast', this)">
+            🍳 Breakfast Included
+          </button>
+          <button type="button" class="btn-facility-pill" data-facility="pool" onclick="toggleFacilityFilter('pool', this)">
+            🏊 Swimming Pool
+          </button>
+          <button type="button" class="btn-facility-pill" data-facility="work_desk" onclick="toggleFacilityFilter('work_desk', this)">
+            💼 Work Desk / Business
+          </button>
+          <button type="button" class="btn-facility-pill" data-facility="power_backup" onclick="toggleFacilityFilter('power_backup', this)">
+            ⚡ Power Backup
+          </button>
+        </div>
+
+        <!-- Reset Button -->
+        <button type="button" id="resetFiltersBtn" class="btn btn-link btn-sm text-decoration-none text-muted extra-small p-0 d-none" onclick="resetAllFilters()">
+          <i class="bi bi-x-circle me-1"></i>Reset Filters
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 3. Cards Grid Section (NO map beside!) ─────────────────── -->
+  <section class="stay-cards-grid-section py-4">
+    <div class="container-fluid px-lg-4">
+      <div id="stayCardsGrid" class="stay-grid-container">
+        {% for s in initial_data.stays %}
+        <article class="stay-grid-card" id="card_{{ s.id }}"
+                 data-id="{{ s.id }}"
+                 data-lat="{{ s.lat }}"
+                 data-lon="{{ s.lon }}"
+                 data-price="{{ s.price_per_night }}"
+                 data-dist="{{ s.distance_km }}"
+                 data-rating="{{ s.rating }}"
+                 data-tier="{{ s.tier or 'Mid-range' }}"
+                 data-facilities="{{ (s.facilities or [])|join(',') }}">
+          
+          <!-- Image Thumbnail -->
+          <div class="stay-grid-thumb-wrap">
+            <img src="{{ s.img }}" alt="{{ s.name }}" class="stay-grid-thumb" loading="lazy" />
+            <span class="stay-grid-badge">{{ s.type }}</span>
+            <span class="stay-grid-rating">★ {{ s.rating }}</span>
+            <span class="stay-grid-tier-tag">{{ s.tier or 'Mid-range' }}</span>
+          </div>
+
+          <!-- Card Content -->
+          <div class="stay-grid-content">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+              <h2 class="stay-grid-title text-navy mb-0" title="{{ s.name }}">{{ s.name }}</h2>
+              <div class="text-end text-nowrap">
+                <span class="stay-grid-price">₹{{ "{:,}".format(s.price_per_night) }}</span>
+                <span class="stay-price-sub">/ nt</span>
+                {% if initial_data.nights > 1 and s.total_price %}
+                <div class="extra-small text-muted">₹{{ "{:,}".format(s.total_price) }} for {{ initial_data.nights }} nights</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Commute Distance to Office -->
+            <div class="stay-distance-line mb-2">
+              <i class="bi bi-geo-alt-fill text-turquoise me-1"></i>
+              <span><strong>{{ s.distance_km }} km</strong> to office (~{{ s.drive_mins }} mins drive)</span>
+            </div>
+
+            <!-- Address -->
+            <p class="stay-grid-address text-muted mb-2">{{ s.address }}</p>
+
+            <!-- Amenities chips -->
+            <div class="stay-amenities-wrap mb-3">
+              {% for a in s.amenities %}
+              <span class="stay-amenity-chip">{{ a }}</span>
+              {% endfor %}
+            </div>
+
+            <!-- Action Buttons: View on Map & Booking Links -->
+            <div class="stay-card-footer pt-2 border-top d-flex align-items-center justify-content-between gap-2 mt-auto">
+              <!-- Floating Map Trigger -->
+              <button type="button" class="btn btn-sm btn-outline-primary btn-floating-map-trigger py-1 px-3 extra-small fw-semibold"
+                      onclick="openFloatingMap('{{ s.id }}', {{ s.lat }}, {{ s.lon }}, '{{ s.name|escape }}', '{{ s.price_per_night }}', '{{ s.img }}', '{{ s.distance_km }}', '{{ s.drive_mins }}')">
+                <i class="bi bi-map-fill me-1 text-primary"></i>View on Map
+              </button>
+
+              <!-- Deep Links -->
+              <div class="d-flex align-items-center gap-1">
+                <a href="{{ s.booking_links.agoda }}" target="_blank" rel="noopener noreferrer"
+                   class="btn btn-sm btn-light border py-1 px-2 extra-small text-dark fw-semibold" title="Compare on Agoda">
+                  Agoda ↗
+                </a>
+                <a href="{{ s.booking_links.booking_com }}" target="_blank" rel="noopener noreferrer"
+                   class="btn btn-sm btn-success py-1 px-2 extra-small text-white fw-semibold" title="Book on Booking.com">
+                  Book ↗
+                </a>
+              </div>
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+
+      <!-- Empty Filter State -->
+      <div id="noMatchingStaysState" class="text-center py-5 bg-white rounded-4 border border-secondary-subtle d-none my-4">
+        <i class="bi bi-funnel-x fs-1 text-warning mb-2 d-block"></i>
+        <h3 class="fs-6 fw-bold text-navy mb-1">No stays match your selected filters</h3>
+        <p class="extra-small text-muted mb-3">Try deselecting some facilities or switching tier filters.</p>
+        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="resetAllFilters()">
+          Clear All Filters
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 4. Floating Map Window Modal (Popup) ────────────────────── -->
+  <div id="floatingMapModal" class="floating-map-overlay d-none" onclick="handleMapOverlayClick(event)">
+    <div class="floating-map-window" onclick="event.stopPropagation()">
+      <!-- Window Header -->
+      <div class="floating-map-header">
+        <div class="d-flex align-items-center gap-2">
+          <span class="fs-5">🏨</span>
+          <div>
+            <div class="fw-bold small text-white" id="modalHotelTitle">Hotel Details on Map</div>
+            <div class="extra-small text-turquoise" id="modalHotelSubtitle">Target Office Proximity Route</div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge rounded-pill bg-dark border border-teal-subtle text-teal extra-small py-1 px-2" id="modalCommuteBadge">
+            📍 Loading route...
+          </span>
+          <button type="button" class="btn-close-floating-map" onclick="closeFloatingMap()" aria-label="Close Floating Map">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Map Canvas -->
+      <div class="floating-map-body">
+        <div id="stayMap" class="floating-map-container"></div>
+        
+        <!-- Live OSRM Road Route Badge -->
+        <div id="mapRouteSummaryChip" class="map-route-summary-chip d-none">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-signpost-2-fill text-turquoise fs-5"></i>
+            <div>
+              <div class="fw-bold extra-small text-white" id="mapRouteTitle">Road Connection</div>
+              <div class="extra-small text-slate-300" id="mapRouteDetails">1.5 km • 5 mins drive</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Window Footer with Booking Deep Links -->
+      <div class="floating-map-footer">
+        <div class="extra-small text-muted">
+          Anchor Office: <strong class="text-coral" id="modalAnchorOffice">{{ destination }}</strong>
+        </div>
+        <div class="d-flex align-items-center gap-2" id="modalBookingActions">
+          <button type="button" class="btn btn-sm btn-secondary py-1 px-3 extra-small" onclick="closeFloatingMap()">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Embedded Server State Data -->
+<script id="serverStayData" type="application/json">
+  {{ initial_data|tojson|safe }}
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<!-- MapLibre GL JS -->
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+<script src="{{ url_for('static', filename='js/stay_manager.js') }}"></script>
+{% endblock %}

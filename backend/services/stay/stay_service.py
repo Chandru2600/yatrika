@@ -149,6 +149,33 @@ Return ONLY a valid JSON array of objects. Do not wrap in markdown or prose. Eac
     return None
 
 
+def _extract_facility_tags(amenities: list, stay_type: str = "", price: int = 2500) -> list:
+    """Extracts standardized facility tags for rapid client-side filtering."""
+    amen_str = " ".join(amenities).lower() + " " + stay_type.lower()
+    tags = set()
+    if any(k in amen_str for k in ["wifi", "wi-fi", "internet"]):
+        tags.add("wifi")
+    if any(k in amen_str for k in ["ac", "air condition", "air-condition"]):
+        tags.add("ac")
+    if any(k in amen_str for k in ["park", "valet", "car"]):
+        tags.add("parking")
+    if any(k in amen_str for k in ["breakfast", "dining", "buffet", "meal"]):
+        tags.add("breakfast")
+    if any(k in amen_str for k in ["pool", "swimming"]):
+        tags.add("pool")
+    if any(k in amen_str for k in ["desk", "business", "conference", "workspace", "work"]):
+        tags.add("work_desk")
+    if any(k in amen_str for k in ["power", "backup", "generator"]):
+        tags.add("power_backup")
+
+    # Universal default facilities for standard Indian hospitality
+    if "wifi" not in tags:
+        tags.add("wifi")
+    if price >= 2000 and "ac" not in tags:
+        tags.add("ac")
+    return sorted(list(tags))
+
+
 def _extract_search_tokens(destination: str) -> list:
     """Extract clean tokens and substrings to search hotels by city, area, or campus."""
     clean = re.sub(r"[^\w\s,]", " ", destination).lower()
@@ -243,11 +270,14 @@ def _query_agent_fallback_stays(destination: str, dest_lat: float, dest_lon: flo
 
         clean_dest_label = destination.split(",")[0].strip().title()
         archetypes = [
-            ("Grand Residency & Suites", "Business Hotel", int(budget_per_night * 1.15), 4.7, 410, ["High-Speed WiFi", "Work Desk", "Breakfast Buffet", "Airport Shuttle"]),
-            ("Comfort Inn & Executive Stays", "Executive Inn", int(budget_per_night * 0.9), 4.5, 280, ["Free WiFi", "Power Backup", "Room Service", "Parking"]),
-            ("Green Palms Boutique Hotel", "Boutique Hotel", int(budget_per_night * 1.05), 4.6, 195, ["Free WiFi", "Rooftop Cafe", "Conference Room", "Gym"]),
-            ("Urban Nest Service Apartments", "Service Apartment", int(budget_per_night * 0.85), 4.4, 150, ["Kitchenette", "Free WiFi", "Laundry", "24/7 Security"]),
-            ("The Heritage View Lodge", "Boutique Homestay", int(budget_per_night * 0.95), 4.8, 320, ["Garden View", "Home Cooked Meals", "Quiet Ambiance", "WiFi"])
+            ("Grand Executive Suites & Spa", "Luxury Hotel", int(budget_per_night * 1.65), 4.8, 510, ["Free WiFi", "AC", "Swimming Pool", "Free Breakfast", "Parking", "Spa"]),
+            ("Royal Palm Business Hotel", "Business Luxury", int(budget_per_night * 1.35), 4.7, 430, ["Free WiFi", "AC", "Work Desk", "Free Breakfast", "Gym", "Power Backup"]),
+            ("Green Orchids Boutique Hotel", "Boutique Hotel", int(budget_per_night * 1.1), 4.6, 290, ["Free WiFi", "AC", "Free Breakfast", "Free Parking", "Work Desk"]),
+            ("Comfort Inn & Executive Stays", "Executive Inn", int(budget_per_night * 0.95), 4.5, 320, ["Free WiFi", "AC", "Power Backup", "Room Service", "Work Desk"]),
+            ("Urban Nest Service Apartments", "Service Apartment", int(budget_per_night * 0.8), 4.4, 210, ["Free WiFi", "AC", "Kitchenette", "Laundry", "24/7 Security"]),
+            ("The Heritage Valley Lodge", "Boutique Homestay", int(budget_per_night * 1.05), 4.8, 380, ["Free WiFi", "Garden View", "Home Cooked Meals", "Quiet Ambiance"]),
+            ("Silicon Residency & Suites", "Business Stay", int(budget_per_night * 1.2), 4.6, 260, ["Free WiFi", "AC", "Work Desk", "Free Breakfast", "Airport Shuttle"]),
+            ("City Express Budget Inn", "Budget Inn", int(budget_per_night * 0.65), 4.3, 190, ["Free WiFi", "AC", "Power Backup", "Hot Water", "24/7 Front Desk"])
         ]
         for idx, (suffix, stype, sprice, srating, srev, samenities) in enumerate(archetypes):
             jlat = dest_lat + (((idx % 3) - 1) * 0.006)
@@ -266,7 +296,7 @@ def _query_agent_fallback_stays(destination: str, dest_lat: float, dest_lon: flo
 
     # Sort candidates closest to target budget
     candidates.sort(key=lambda x: abs(x["price_per_night"] - budget_per_night))
-    return candidates[:8]
+    return candidates[:12]
 
 
 def find_managed_stays(source: str, destination: str, checkin: str = "", checkout: str = "",
@@ -372,15 +402,27 @@ def find_managed_stays(source: str, destination: str, checkin: str = "", checkou
         rate_per_night = int(float(s.get("price_per_night", budget_per_night)))
         total_stay_cost = rate_per_night * nights
 
+        # Determine Tier
+        if rate_per_night < 2200:
+            stay_tier = "Budget"
+        elif rate_per_night < 4500:
+            stay_tier = "Mid-range"
+        else:
+            stay_tier = "Luxury"
+
         # Booking deep links
         booking_links = _build_booking_links(raw_name, dest, checkin, checkout, travelers)
         photo_url = _select_stay_photo(dest, s.get("type", ""), raw_name)
+
+        raw_amenities = s.get("amenities", ["Free WiFi", "AC", "24/7 Front Desk"])
+        facility_tags = _extract_facility_tags(raw_amenities, s.get("type", ""), rate_per_night)
 
         clean_item = {
             "id": f"stay_{len(deduped_stays) + 1}",
             "name": raw_name,
             "norm_name": norm_key,
             "type": s.get("type", "Boutique Hotel"),
+            "tier": stay_tier,
             "price_per_night": rate_per_night,
             "total_price": total_stay_cost,
             "nights": nights,
@@ -393,10 +435,11 @@ def find_managed_stays(source: str, destination: str, checkin: str = "", checkou
             "lon": s_lon,
             "img": photo_url,
             "booking_links": booking_links,
-            "amenities": s.get("amenities", ["Free WiFi", "Parking", "24/7 Check-in"])[:3]
+            "amenities": raw_amenities[:4],
+            "facilities": facility_tags
         }
         deduped_stays.append(clean_item)
-        if len(deduped_stays) >= 6:
+        if len(deduped_stays) >= 10:
             break
 
     return {

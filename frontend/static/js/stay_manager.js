@@ -1,16 +1,19 @@
 /**
- * Yatrika Stay Manager — Interactive Map & Real-time AI Hotel Discovery
- * Includes Launchpad-style 3D Tilt Card, Steppers, & Split-Screen Map Navigation
+ * Yatrika Stay Manager — Interactive Filtering, Steppers, & Floating Map Window
  */
 
 let stayMap = null;
 let currentStayData = null;
 let hotelMarkers = [];
 let destMarker = null;
-let activePurpose = 'work';
+
+// Filter & Sort State
+let currentSort = 'recommended';
+let currentTier = 'all';
+let activeFacilities = new Set();
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. Load initial embedded server state
+  // 1. Load initial embedded server state (Results Page)
   try {
     const rawDataEl = document.getElementById('serverStayData');
     if (rawDataEl && rawDataEl.textContent.trim()) {
@@ -20,17 +23,23 @@ document.addEventListener('DOMContentLoaded', () => {
     console.warn('[StayManager] Failed to parse embedded server data:', err);
   }
 
-  // 2. Initialize 3D Card Tilt Interaction
+  // 2. Initialize 3D Card Tilt on Launchpad Hero (Search Mode)
   init3DCardTilt();
 
-  // 3. Initialize Dates
+  // 3. Initialize Dates and Steppers (Search Mode)
   initStayDates();
 
-  // 4. Initialize interactive MapLibre map
-  initStayMap();
+  // 4. Keyboard Listener for Floating Map Modal (ESC to close)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeFloatingMap();
+    }
+  });
 });
 
-// ── 1. Subtle 3D Card Tilt Physics ──────────────────────────────────────────
+// ==============================================================================
+// 1. Search Mode: 3D Tilt Physics & Stepper Handlers
+// ==============================================================================
 function init3DCardTilt() {
   const card = document.getElementById('stayLaunchpadCard');
   const wrapper = document.getElementById('card3DWrapper');
@@ -40,7 +49,7 @@ function init3DCardTilt() {
     const rect = wrapper.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
-    const rotateX = -(y / rect.height) * 7; // subtle max 7 deg
+    const rotateX = -(y / rect.height) * 7;
     const rotateY = (x / rect.width) * 7;
     card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
   });
@@ -50,7 +59,6 @@ function init3DCardTilt() {
   });
 }
 
-// ── 2. Date Initialization & Stepper Controls ───────────────────────────────
 function initStayDates() {
   const startInput = document.getElementById('tripStartDate');
   const endInput = document.getElementById('tripEndDate');
@@ -58,7 +66,7 @@ function initStayDates() {
 
   const today = new Date();
   const defaultCheckin = new Date(today);
-  defaultCheckin.setDate(today.getDate() + 1);
+  defaultCheckin.setDate(today.getDate() + 2);
 
   if (startInput && !startInput.value) {
     startInput.value = defaultCheckin.toISOString().split('T')[0];
@@ -124,103 +132,261 @@ function selectQuickOffice(office, origin) {
 
   const form = document.getElementById('staySearchForm');
   if (form) {
-    handleStaySearch(new Event('submit'));
-  }
-}
-
-function scrollToSearchCard() {
-  const heroSection = document.getElementById('stayHeroSection');
-  if (heroSection) {
-    heroSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-  const destInput = document.getElementById('tripDestination');
-  if (destInput) {
-    setTimeout(() => destInput.focus(), 400);
+    form.submit();
   }
 }
 
 function selectPurpose(purpose, btnEl) {
-  activePurpose = purpose;
+  const purposeInput = document.getElementById('tripPurpose');
+  if (purposeInput) purposeInput.value = purpose;
+
   document.querySelectorAll('.btn-purpose-pill').forEach(b => b.classList.remove('active'));
   if (btnEl) btnEl.classList.add('active');
+}
 
-  const form = document.getElementById('staySearchForm');
-  if (form) {
-    handleStaySearch(new Event('submit'));
+// ==============================================================================
+// 2. Results Mode: Dynamic Filters & Sorting (Budget, Luxuries, Facilities)
+// ==============================================================================
+function setSortMode(mode, btnEl) {
+  currentSort = mode;
+  document.querySelectorAll('.btn-filter-sort').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+  applyStayFilters();
+}
+
+function setTierFilter(tier, btnEl) {
+  currentTier = tier;
+  document.querySelectorAll('.btn-tier-pill').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+  applyStayFilters();
+}
+
+function toggleFacilityFilter(facility, btnEl) {
+  if (activeFacilities.has(facility)) {
+    activeFacilities.delete(facility);
+    if (btnEl) btnEl.classList.remove('active');
+  } else {
+    activeFacilities.add(facility);
+    if (btnEl) btnEl.classList.add('active');
+  }
+
+  // Show or hide Reset button
+  const resetBtn = document.getElementById('resetFiltersBtn');
+  if (resetBtn) {
+    if (activeFacilities.size > 0 || currentTier !== 'all' || currentSort !== 'recommended') {
+      resetBtn.classList.remove('d-none');
+    } else {
+      resetBtn.classList.add('d-none');
+    }
+  }
+
+  applyStayFilters();
+}
+
+function resetAllFilters() {
+  activeFacilities.clear();
+  currentTier = 'all';
+  currentSort = 'recommended';
+
+  document.querySelectorAll('.btn-facility-pill').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.btn-tier-pill').forEach(b => {
+    b.classList.toggle('active', b.dataset.tier === 'all');
+  });
+  document.querySelectorAll('.btn-filter-sort').forEach(b => {
+    b.classList.toggle('active', b.dataset.sort === 'recommended');
+  });
+
+  const resetBtn = document.getElementById('resetFiltersBtn');
+  if (resetBtn) resetBtn.classList.add('d-none');
+
+  applyStayFilters();
+}
+
+function applyStayFilters() {
+  const container = document.getElementById('stayCardsGrid');
+  if (!container) return;
+
+  const cards = Array.from(container.querySelectorAll('.stay-grid-card'));
+  let visibleCount = 0;
+
+  cards.forEach(card => {
+    const cardTier = card.dataset.tier || '';
+    const facilitiesStr = card.dataset.facilities || '';
+    const cardFacilities = facilitiesStr.split(',').map(f => f.trim().toLowerCase());
+
+    // 1. Tier Match
+    const matchesTier = (currentTier === 'all') || (cardTier.toLowerCase() === currentTier.toLowerCase());
+
+    // 2. Facilities Match (Must include all active filters)
+    let matchesFacilities = true;
+    for (const reqFac of activeFacilities) {
+      if (!cardFacilities.includes(reqFac.toLowerCase())) {
+        matchesFacilities = false;
+        break;
+      }
+    }
+
+    if (matchesTier && matchesFacilities) {
+      card.style.display = 'flex';
+      visibleCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  // Update visible count badge
+  const countBadge = document.getElementById('visibleCount');
+  if (countBadge) countBadge.textContent = visibleCount;
+
+  // Empty state handling
+  const emptyState = document.getElementById('noMatchingStaysState');
+  if (emptyState) {
+    if (visibleCount === 0) {
+      emptyState.classList.remove('d-none');
+    } else {
+      emptyState.classList.add('d-none');
+    }
+  }
+
+  // 3. Sort visible cards
+  const visibleCards = cards.filter(c => c.style.display !== 'none');
+  visibleCards.sort((a, b) => {
+    const priceA = parseFloat(a.dataset.price) || 0;
+    const priceB = parseFloat(b.dataset.price) || 0;
+    const distA = parseFloat(a.dataset.dist) || 0;
+    const distB = parseFloat(b.dataset.dist) || 0;
+    const ratingA = parseFloat(a.dataset.rating) || 0;
+    const ratingB = parseFloat(b.dataset.rating) || 0;
+
+    if (currentSort === 'price_asc') {
+      return priceA - priceB; // Budget: Low to High
+    } else if (currentSort === 'luxury_desc') {
+      return priceB - priceA; // Luxuries & Premium: High to Low
+    } else if (currentSort === 'distance') {
+      return distA - distB; // Nearest to Office
+    } else if (currentSort === 'rating') {
+      return ratingB - ratingA; // Highest Rated
+    }
+    return 0; // AI Recommended (server default)
+  });
+
+  visibleCards.forEach(c => container.appendChild(c));
+}
+
+// ==============================================================================
+// 3. Floating Map Window (Modal Overlay)
+// ==============================================================================
+function handleMapOverlayClick(event) {
+  if (event.target.id === 'floatingMapModal') {
+    closeFloatingMap();
   }
 }
 
-// ── 3. Interactive MapLibre Setup ───────────────────────────────────────────
-function initStayMap() {
+function closeFloatingMap() {
+  const modal = document.getElementById('floatingMapModal');
+  if (modal) {
+    modal.classList.add('d-none');
+  }
+}
+
+async function openFloatingMap(stayId, lat, lon, name, price, img, distKm, driveMins) {
+  const modal = document.getElementById('floatingMapModal');
+  if (!modal) return;
+
+  // 1. Show Modal
+  modal.classList.remove('d-none');
+
+  // 2. Set Header & Subtitle Info
+  const titleEl = document.getElementById('modalHotelTitle');
+  const badgeEl = document.getElementById('modalCommuteBadge');
+  const anchorEl = document.getElementById('modalAnchorOffice');
+
+  if (titleEl) titleEl.textContent = name;
+  if (badgeEl) badgeEl.textContent = `🚗 ${distKm} km • ~${driveMins} mins to office`;
+  if (anchorEl && currentStayData?.destination) {
+    anchorEl.textContent = currentStayData.destination;
+  }
+
+  // 3. Initialize or Resize MapLibre inside Floating Container
+  initOrResizeFloatingMap(lat, lon, name, price, img, distKm, driveMins);
+}
+
+function initOrResizeFloatingMap(hotelLat, hotelLon, hotelName, price, img, distKm, driveMins) {
   const mapContainer = document.getElementById('stayMap');
   if (!mapContainer) return;
 
-  const initialLat = currentStayData?.dest_coords?.lat || 12.8399;
-  const initialLon = currentStayData?.dest_coords?.lon || 77.6770;
+  const destLat = currentStayData?.dest_coords?.lat || hotelLat;
+  const destLon = currentStayData?.dest_coords?.lon || hotelLon;
 
-  stayMap = new maplibregl.Map({
-    container: 'stayMap',
-    style: {
-      version: 8,
-      sources: {
-        'osm-tiles': {
-          type: 'raster',
-          tiles: [
-            'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-          ],
-          tileSize: 256,
-          attribution: '&copy; OpenStreetMap contributors'
-        }
+  if (!stayMap) {
+    stayMap = new maplibregl.Map({
+      container: 'stayMap',
+      style: {
+        version: 8,
+        sources: {
+          'osm-tiles': {
+            type: 'raster',
+            tiles: [
+              'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+            ],
+            tileSize: 256,
+            attribution: '&copy; OpenStreetMap contributors'
+          }
+        },
+        layers: [
+          {
+            id: 'osm-tiles-layer',
+            type: 'raster',
+            source: 'osm-tiles',
+            minzoom: 0,
+            maxzoom: 19
+          }
+        ]
       },
-      layers: [
-        {
-          id: 'osm-tiles-layer',
-          type: 'raster',
-          source: 'osm-tiles',
-          minzoom: 0,
-          maxzoom: 19
-        }
-      ]
-    },
-    center: [initialLon, initialLat],
-    zoom: 12.5
-  });
-
-  stayMap.addControl(new maplibregl.NavigationControl(), 'top-right');
-
-  stayMap.on('load', () => {
-    // Road route source & layer
-    stayMap.addSource('stay-road-route', {
-      type: 'geojson',
-      data: { type: 'FeatureCollection', features: [] }
+      center: [hotelLon, hotelLat],
+      zoom: 13
     });
 
-    stayMap.addLayer({
-      id: 'stay-road-route-casing',
-      type: 'line',
-      source: 'stay-road-route',
-      layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': '#0f172a', 'line-width': 6, 'line-opacity': 0.8 }
-    });
+    stayMap.addControl(new maplibregl.NavigationControl(), 'top-right');
 
-    stayMap.addLayer({
-      id: 'stay-road-route-line',
-      type: 'line',
-      source: 'stay-road-route',
-      layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': '#0284c7', 'line-width': 4 }
-    });
+    stayMap.on('load', () => {
+      // Road route GeoJSON line source & layers
+      stayMap.addSource('stay-road-route', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] }
+      });
 
-    if (currentStayData) {
-      renderMapMarkers(currentStayData);
-    }
-  });
+      stayMap.addLayer({
+        id: 'stay-road-route-casing',
+        type: 'line',
+        source: 'stay-road-route',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': '#0f172a', 'line-width': 7, 'line-opacity': 0.85 }
+      });
+
+      stayMap.addLayer({
+        id: 'stay-road-route-line',
+        type: 'line',
+        source: 'stay-road-route',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': '#0284c7', 'line-width': 4.5 }
+      });
+
+      renderFloatingMapMarkersAndRoute(hotelLat, hotelLon, hotelName, price, img, distKm, driveMins, destLat, destLon);
+    });
+  } else {
+    // Already initialized: resize to modal container dimensions & re-render
+    setTimeout(() => {
+      stayMap.resize();
+      renderFloatingMapMarkersAndRoute(hotelLat, hotelLon, hotelName, price, img, distKm, driveMins, destLat, destLon);
+    }, 100);
+  }
 }
 
-function renderMapMarkers(data) {
+async function renderFloatingMapMarkersAndRoute(hotelLat, hotelLon, hotelName, price, img, distKm, driveMins, destLat, destLon) {
   if (!stayMap) return;
 
-  // Clear existing markers
+  // Clear previous markers
   hotelMarkers.forEach(m => m.remove());
   hotelMarkers = [];
   if (destMarker) {
@@ -228,310 +394,85 @@ function renderMapMarkers(data) {
     destMarker = null;
   }
 
-  const destLat = data.dest_coords?.lat;
-  const destLon = data.dest_coords?.lon;
-
   // 1. Destination / Office Marker
-  if (destLat && destLon) {
-    const destEl = document.createElement('div');
-    destEl.className = 'custom-dest-pin';
-    destEl.innerHTML = '🏢';
-    destEl.title = `Office Anchor: ${data.destination}`;
+  const destEl = document.createElement('div');
+  destEl.className = 'custom-dest-pin';
+  destEl.innerHTML = '🏢';
+  destEl.title = `Office Anchor: ${currentStayData?.destination || 'Office'}`;
 
-    destMarker = new maplibregl.Marker({ element: destEl })
-      .setLngLat([destLon, destLat])
-      .setPopup(new maplibregl.Popup({ offset: 15 }).setHTML(`
-        <div class="p-1">
-          <div class="fw-bold extra-small text-coral">🏢 Office / Work Anchor</div>
-          <div class="small fw-semibold text-navy">${data.destination}</div>
-        </div>
-      `))
-      .addTo(stayMap);
-  }
+  destMarker = new maplibregl.Marker({ element: destEl })
+    .setLngLat([destLon, destLat])
+    .setPopup(new maplibregl.Popup({ offset: 15 }).setHTML(`
+      <div class="p-1">
+        <div class="fw-bold extra-small text-coral">🏢 Target Office Anchor</div>
+        <div class="small fw-semibold text-navy">${currentStayData?.destination || 'Target Location'}</div>
+      </div>
+    `))
+    .addTo(stayMap);
 
-  // 2. Hotel Pins
-  const bounds = new maplibregl.LngLatBounds();
-  if (destLat && destLon) {
-    bounds.extend([destLon, destLat]);
-  }
+  // 2. Selected Hotel Marker
+  const pinEl = document.createElement('div');
+  pinEl.className = 'custom-hotel-pin active-pin';
+  pinEl.innerHTML = `₹${Number(price).toLocaleString('en-IN')}`;
 
-  const stays = data.stays || [];
-  stays.forEach(s => {
-    if (!s.lat || !s.lon) return;
-
-    const pinEl = document.createElement('div');
-    pinEl.className = 'custom-hotel-pin';
-    pinEl.id = `marker_${s.id}`;
-    pinEl.innerHTML = `₹${s.price_per_night.toLocaleString('en-IN')}`;
-
-    pinEl.addEventListener('click', (e) => {
-      e.stopPropagation();
-      focusStayOnMap(s.id, s.lat, s.lon, s.name, s.price_per_night, s.img, s.distance_km, s.drive_mins);
-    });
-
-    const marker = new maplibregl.Marker({ element: pinEl })
-      .setLngLat([s.lon, s.lat])
-      .addTo(stayMap);
-
-    hotelMarkers.push(marker);
-    bounds.extend([s.lon, s.lat]);
-  });
-
-  if (stays.length > 0 && !bounds.isEmpty()) {
-    stayMap.fitBounds(bounds, { padding: 60, maxZoom: 14.5 });
-  }
-}
-
-async function focusStayOnMap(stayId, lat, lon, name, price, img, distKm, driveMins) {
-  if (!stayMap) return;
-
-  // 1. Highlight Card in Left Pane
-  document.querySelectorAll('.stay-card').forEach(c => c.classList.remove('active-selected'));
-  const targetCard = document.getElementById(`card_${stayId}`);
-  if (targetCard) {
-    targetCard.classList.add('active-selected');
-    targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-
-  // 2. Highlight Pin on Map
-  document.querySelectorAll('.custom-hotel-pin').forEach(p => p.classList.remove('active-pin'));
-  const targetPin = document.getElementById(`marker_${stayId}`);
-  if (targetPin) {
-    targetPin.classList.add('active-pin');
-  }
-
-  // 3. Smooth Camera Fly-To
-  stayMap.flyTo({
-    center: [lon, lat],
-    zoom: 14.5,
-    duration: 900
-  });
-
-  // 4. Open MapLibre Popup
-  new maplibregl.Popup({ offset: 20 })
-    .setLngLat([lon, lat])
-    .setHTML(`
-      <div style="max-width: 210px; padding: 2px;">
+  const hotelMarker = new maplibregl.Marker({ element: pinEl })
+    .setLngLat([hotelLon, hotelLat])
+    .setPopup(new maplibregl.Popup({ offset: 20 }).setHTML(`
+      <div style="max-width: 220px; padding: 2px;">
         <img src="${img}" style="width: 100%; height: 95px; object-fit: cover; border-radius: 6px; margin-bottom: 6px;" />
-        <div class="fw-bold small text-navy leading-tight mb-1">${name}</div>
+        <div class="fw-bold small text-navy leading-tight mb-1">${hotelName}</div>
         <div class="d-flex justify-content-between align-items-center extra-small text-muted mb-1">
           <span class="fw-bold text-success">₹${Number(price).toLocaleString('en-IN')}/nt</span>
           <span>📍 ${distKm} km</span>
         </div>
         <div class="extra-small text-turquoise fw-semibold">🚗 ~${driveMins} mins to office</div>
       </div>
-    `)
+    `))
     .addTo(stayMap);
 
-  // 5. Fetch & Render OSRM Road Route to Destination Anchor
-  const destLat = currentStayData?.dest_coords?.lat;
-  const destLon = currentStayData?.dest_coords?.lon;
+  hotelMarkers.push(hotelMarker);
 
-  if (destLat && destLon) {
-    try {
-      const resp = await fetch('/stay-manager/api/route', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          stay_lat: lat,
-          stay_lon: lon,
-          dest_lat: destLat,
-          dest_lon: destLon
-        })
-      });
-      const routeData = await resp.json();
-      if (routeData.success && routeData.geometry) {
+  // Fit bounds around both hotel and office
+  const bounds = new maplibregl.LngLatBounds();
+  bounds.extend([destLon, destLat]);
+  bounds.extend([hotelLon, hotelLat]);
+  stayMap.fitBounds(bounds, { padding: 80, maxZoom: 15, duration: 800 });
+
+  // Open hotel popup
+  hotelMarker.togglePopup();
+
+  // 3. Fetch and Render Live OSRM Road Route
+  try {
+    const resp = await fetch('/stay-manager/api/route', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        stay_lat: hotelLat,
+        stay_lon: hotelLon,
+        dest_lat: destLat,
+        dest_lon: destLon
+      })
+    });
+    const routeData = await resp.json();
+    if (routeData.success && routeData.geometry) {
+      if (stayMap.getSource('stay-road-route')) {
         stayMap.getSource('stay-road-route').setData({
           type: 'Feature',
           geometry: routeData.geometry
         });
-
-        // Show Road Circuit Badge
-        const summaryChip = document.getElementById('mapRouteSummaryChip');
-        if (summaryChip) {
-          summaryChip.classList.remove('d-none');
-          document.getElementById('mapRouteTitle').textContent = `${name} ➔ ${currentStayData.destination}`;
-          document.getElementById('mapRouteDetails').textContent = `🛣️ ${routeData.distance_km} km • ~${routeData.duration_mins} mins road drive`;
-        }
-      }
-    } catch (e) {
-      console.warn('[StayManager] Failed to fetch road route:', e);
-    }
-  }
-}
-
-// ── 4. Main Search Handler ──────────────────────────────────────────────────
-async function handleStaySearch(event) {
-  if (event) event.preventDefault();
-
-  const source = document.getElementById('tripSource')?.value.trim() || 'Bengaluru';
-  const destination = document.getElementById('tripDestination')?.value.trim() || 'Electronic City, Bengaluru';
-  const checkin = document.getElementById('tripStartDate')?.value.trim() || '';
-  const checkout = document.getElementById('tripEndDate')?.value.trim() || '';
-  const days = document.getElementById('tripDays')?.value.trim() || '3';
-  const budget = document.getElementById('tripBudget')?.value.trim() || '2500';
-  const travelers = document.getElementById('tripTravelers')?.value.trim() || '2';
-
-  const btn = document.getElementById('staySearchBtn');
-  const btnText = btn?.querySelector('.btn-text');
-  const spinner = btn?.querySelector('.spinner-border');
-
-  if (btn) btn.disabled = true;
-  if (btnText) btnText.classList.add('d-none');
-  if (spinner) spinner.classList.remove('d-none');
-
-  try {
-    const queryParams = new URLSearchParams({
-      source,
-      destination,
-      checkin,
-      checkout,
-      num_days: days,
-      budget,
-      travelers,
-      purpose: activePurpose
-    });
-
-    const response = await fetch(`/stay-manager/api/search?${queryParams.toString()}`);
-    const data = await response.json();
-
-    if (data && data.stays) {
-      currentStayData = data;
-      renderStayCards(data);
-      renderMapMarkers(data);
-
-      // Update AI Engine badge
-      const badge = document.getElementById('aiEngineStatusBadge');
-      if (badge) {
-        if (data.source_engine === 'ibm_granite') {
-          badge.innerHTML = `<i class="bi bi-cpu-fill text-turquoise me-1"></i> IBM Granite 4-h-small Active`;
-        } else {
-          badge.innerHTML = `<i class="bi bi-shield-check text-success me-1"></i> Agent 4 Accommodations Active`;
-        }
       }
 
-      // Update results count label & anchor text
-      const countLabel = document.getElementById('resultsCountLabel');
-      if (countLabel) {
-        countLabel.textContent = `${data.stays.length} Stays Near ${data.destination}`;
-      }
-      const anchorText = document.getElementById('currentAnchorText');
-      if (anchorText) {
-        anchorText.textContent = data.destination;
-      }
-
-      // Smooth scroll to results
-      const resultsSection = document.getElementById('stayResultsSection');
-      if (resultsSection) {
-        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Show Road Circuit Badge
+      const summaryChip = document.getElementById('mapRouteSummaryChip');
+      if (summaryChip) {
+        summaryChip.classList.remove('d-none');
+        const titleEl = document.getElementById('mapRouteTitle');
+        const detailsEl = document.getElementById('mapRouteDetails');
+        if (titleEl) titleEl.textContent = `${hotelName} ➔ ${currentStayData?.destination || 'Office'}`;
+        if (detailsEl) detailsEl.textContent = `🛣️ ${routeData.distance_km} km road route • ~${routeData.duration_mins} mins drive`;
       }
     }
   } catch (err) {
-    console.error('[StayManager] Search error:', err);
-  } finally {
-    if (btn) btn.disabled = false;
-    if (btnText) btnText.classList.remove('d-none');
-    if (spinner) spinner.classList.add('d-none');
+    console.warn('[StayManager] Route fetch failed:', err);
   }
-}
-
-// ── 5. Render Clean Stay Cards ──────────────────────────────────────────────
-function renderStayCards(data) {
-  const container = document.getElementById('stayCardsContainer');
-  if (!container) return;
-
-  if (!data.stays || data.stays.length === 0) {
-    container.innerHTML = `
-      <div class="text-center py-5 bg-white rounded-3 border border-secondary-subtle">
-        <i class="bi bi-house-slash fs-2 text-warning mb-2 d-block"></i>
-        <div class="fw-bold text-navy">No stays found near ${data.destination}</div>
-        <div class="extra-small text-muted">Try adjusting your budget or office location</div>
-      </div>
-    `;
-    return;
-  }
-
-  const nights = data.nights || 1;
-
-  container.innerHTML = data.stays.map(s => {
-    const totalCostStr = s.total_price && nights > 1
-      ? `<div class="extra-small text-muted">₹${s.total_price.toLocaleString('en-IN')} for ${nights} nights</div>`
-      : '';
-
-    return `
-      <article class="stay-card" id="card_${s.id}" data-id="${s.id}" data-lat="${s.lat}" data-lon="${s.lon}" data-price="${s.price_per_night}" data-dist="${s.distance_km}" data-rating="${s.rating}">
-        <div class="stay-card-thumb-wrap">
-          <img src="${s.img}" alt="${s.name}" class="stay-card-thumb" loading="lazy" />
-          <span class="stay-thumb-badge">${s.type}</span>
-          <span class="stay-thumb-rating">★ ${s.rating}</span>
-        </div>
-
-        <div class="stay-card-content">
-          <div class="d-flex justify-content-between align-items-start gap-2">
-            <h2 class="stay-title text-navy mb-1" title="${s.name}">${s.name}</h2>
-            <div class="text-end text-nowrap">
-              <span class="stay-price-amount">₹${s.price_per_night.toLocaleString('en-IN')}</span>
-              <span class="stay-price-sub">/ nt</span>
-              ${totalCostStr}
-            </div>
-          </div>
-
-          <div class="stay-distance-line">
-            <i class="bi bi-geo-alt-fill text-turquoise me-1"></i>
-            <span>${s.distance_km} km to destination (~${s.drive_mins} mins drive)</span>
-          </div>
-
-          <p class="stay-address text-muted mb-2">${s.address}</p>
-
-          <div class="d-flex flex-wrap gap-1 mb-2">
-            ${(s.amenities || []).map(a => `<span class="stay-amenity-chip">${a}</span>`).join('')}
-          </div>
-
-          <div class="stay-card-footer pt-2 border-top d-flex align-items-center justify-content-between gap-2">
-            <button type="button" class="btn btn-sm btn-outline-primary btn-map-view py-1 px-2 extra-small fw-semibold"
-                    onclick="focusStayOnMap('${s.id}', ${s.lat}, ${s.lon}, '${escapeHtml(s.name)}', '${s.price_per_night}', '${s.img}', '${s.distance_km}', '${s.drive_mins}')">
-              <i class="bi bi-map-fill me-1"></i>View on Map
-            </button>
-
-            <div class="d-flex align-items-center gap-1">
-              <a href="${s.booking_links.agoda}" target="_blank" rel="noopener noreferrer"
-                 class="btn btn-sm btn-light border py-1 px-2 extra-small text-dark fw-semibold" title="Compare on Agoda">
-                Agoda ↗
-              </a>
-              <a href="${s.booking_links.booking_com}" target="_blank" rel="noopener noreferrer"
-                 class="btn btn-sm btn-success py-1 px-2 extra-small text-white fw-semibold" title="Book on Booking.com">
-                Book ↗
-              </a>
-            </div>
-          </div>
-        </div>
-      </article>
-    `;
-  }).join('');
-}
-
-// ── 6. Sort Stays ───────────────────────────────────────────────────────────
-function sortStayCards(criterion) {
-  const container = document.getElementById('stayCardsContainer');
-  if (!container) return;
-
-  const cards = Array.from(container.querySelectorAll('.stay-card'));
-  if (!cards.length) return;
-
-  cards.sort((a, b) => {
-    if (criterion === 'price_low') {
-      return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
-    } else if (criterion === 'distance') {
-      return parseFloat(a.dataset.dist) - parseFloat(b.dataset.dist);
-    } else if (criterion === 'rating') {
-      return parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating);
-    }
-    return 0;
-  });
-
-  cards.forEach(c => container.appendChild(c));
-}
-
-function escapeHtml(str) {
-  return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }

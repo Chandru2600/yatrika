@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Stay Manager — Find Stays Near Your Office | Yatrika AI{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/stay_manager.css') }}" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<div class="stay-manager-page search-mode-page">
+  <!-- ── 1. Hero Section: Launchpad-Style 3D Tilt Card ──────────── -->
+  <section class="stay-launchpad-hero" id="stayHeroSection">
+    <!-- Ambient Atmospheric Glows -->
+    <div class="orb-cyan"></div>
+    <div class="orb-coral"></div>
+
+    <div class="container d-flex flex-column align-items-center">
+      <!-- Title Header -->
+      <div class="launchpad-header text-center mb-4">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-dark-slate border border-teal-subtle mb-2">
+          <span class="fs-6">🏨</span>
+          <span class="extra-small fw-bold text-turquoise text-uppercase tracking-wider">Universal Stay & Office Proximity Intelligence</span>
+        </div>
+        <h1 class="launchpad-title">
+          Where is your <span class="text-cyan-gradient">Office or Work</span>?
+        </h1>
+        <p class="launchpad-sub">
+          Enter your origin, exact office location or landmark inside a city, days, and budget to discover verified stays nearby.
+        </p>
+      </div>
+
+      <!-- 3D Tilt Glass Card -->
+      <div class="card-3d-wrapper" id="card3DWrapper">
+        <div class="launchpad-card" id="stayLaunchpadCard">
+          <form id="staySearchForm" method="GET" action="{{ url_for('stay_routes.stay_results_view') }}">
+            
+            <!-- Row 1: Source & Exact Office / Destination -->
+            <div class="route-picker-row">
+              <!-- Source -->
+              <div>
+                <label class="compact-input-label">
+                  <i class="bi bi-geo-alt-fill text-muted"></i> From (Origin City)
+                </label>
+                <div class="glass-input-box">
+                  <i class="bi bi-geo-alt text-muted fs-6"></i>
+                  <input type="text" name="source" id="tripSource" class="glass-text-input"
+                         placeholder="e.g. Bengaluru, Mumbai, Delhi, Hyderabad..."
+                         value="{{ source or 'Bengaluru' }}" autocomplete="off" required />
+                </div>
+              </div>
+
+              <!-- Destination / Exact Office Location Inside City -->
+              <div>
+                <label class="compact-input-label">
+                  <i class="bi bi-building-fill text-turquoise"></i> To (Exact Office / Work Landmark Inside City)
+                </label>
+                <div class="glass-input-box office-input-box">
+                  <i class="bi bi-pin-map-fill text-coral fs-6"></i>
+                  <input type="text" name="destination" id="tripDestination" class="glass-text-input fw-semibold text-white"
+                         placeholder="e.g. Infosys Electronic City, Bengaluru or BKC Mumbai..."
+                         value="{{ destination or 'Infosys Electronic City, Bengaluru' }}" autocomplete="off" required />
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Office & Business Hubs Bar -->
+            <div class="quick-hubs-bar">
+              <span class="small fw-bold text-uppercase me-1" style="font-size: 0.68rem; color: #64748b; letter-spacing: 0.05em;">POPULAR HUBS:</span>
+              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('Infosys, Electronic City, Bengaluru', 'Bengaluru')">🏢 Electronic City</button>
+              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('Whitefield, Bengaluru', 'Bengaluru')">🏢 Whitefield</button>
+              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('Manyata Tech Park, Bengaluru', 'Bengaluru')">🏢 Manyata Tech Park</button>
+              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('Bandra Kurla Complex (BKC), Mumbai', 'Mumbai')">🏢 BKC Mumbai</button>
+              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('Hitec City, Hyderabad', 'Hyderabad')">🏢 Hitec City</button>
+              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('DLF Cyber City, Gurgaon', 'Delhi')">🏢 Cyber City</button>
+              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('Coorg, Karnataka', 'Bengaluru')">🌿 Coorg</button>
+              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('Munnar, Kerala', 'Kochi')">🫖 Munnar</button>
+            </div>
+
+            <!-- Row 2: Dates, Days Stepper, Travelers, Budget -->
+            <div class="trip-controls-strip">
+              <!-- Start Date -->
+              <div class="strip-box">
+                <label class="compact-input-label"><i class="bi bi-calendar-event text-muted"></i> Check-in Date</label>
+                <input type="date" name="checkin" id="tripStartDate" class="strip-input" value="{{ checkin }}" onchange="updateDatesFromDays()" />
+              </div>
+
+              <!-- Number of Days Stepper -->
+              <div class="strip-box">
+                <label class="compact-input-label">
+                  <i class="bi bi-clock-history text-muted"></i> Number of Days
+                </label>
+                <div class="d-flex align-items-center justify-content-between pt-1">
+                  <button type="button" class="stepper-mini-btn" onclick="changeDays(-1)">−</button>
+                  <span id="daysCountBadge" class="fw-bold text-turquoise" style="font-size: 0.95rem;">{{ num_days or 3 }} Days</span>
+                  <button type="button" class="stepper-mini-btn" onclick="changeDays(1)">+</button>
+                </div>
+                <input type="hidden" name="num_days" id="tripDays" value="{{ num_days or 3 }}" />
+                <input type="hidden" name="checkout" id="tripEndDate" value="{{ checkout }}" />
+              </div>
+
+              <!-- Travelers Counter -->
+              <div class="strip-box">
+                <label class="compact-input-label"><i class="bi bi-people text-muted"></i> Guests</label>
+                <div class="d-flex align-items-center justify-content-between pt-1">
+                  <button type="button" class="stepper-mini-btn" onclick="changeTravelers(-1)">−</button>
+                  <span id="travelersCountBadge" class="fw-bold text-white" style="font-size: 0.95rem;">{{ travelers or 2 }} Guests</span>
+                  <button type="button" class="stepper-mini-btn" onclick="changeTravelers(1)">+</button>
+                </div>
+                <input type="hidden" name="travelers" id="tripTravelers" value="{{ travelers or 2 }}" />
+              </div>
+
+              <!-- Budget per Night -->
+              <div class="strip-box">
+                <label class="compact-input-label"><i class="bi bi-cash-stack text-success"></i> Budget / Night</label>
+                <div class="d-flex align-items-center gap-1 pt-1">
+                  <span class="text-muted small">₹</span>
+                  <input type="number" name="budget" id="tripBudget" class="strip-input fw-bold text-success"
+                         value="{{ budget or 2500 }}" step="200" min="500" max="25000" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Purpose Pills Selection & Continue Button -->
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mt-3 pt-3 border-top border-secondary-subtle">
+              <div class="d-flex align-items-center gap-1 flex-wrap">
+                <span class="extra-small text-muted me-1 fw-bold">PURPOSE:</span>
+                <button type="button" class="btn-purpose-pill active" data-purpose="work" onclick="selectPurpose('work', this)">🏢 Office / Work</button>
+                <button type="button" class="btn-purpose-pill" data-purpose="family" onclick="selectPurpose('family', this)">👨‍👩‍👧 Family & Personal</button>
+                <button type="button" class="btn-purpose-pill" data-purpose="transit" onclick="selectPurpose('transit', this)">🚊 Station / Transit</button>
+                <button type="button" class="btn-purpose-pill" data-purpose="medical" onclick="selectPurpose('medical', this)">🏥 Medical / Quiet</button>
+                <button type="button" class="btn-purpose-pill" data-purpose="all" onclick="selectPurpose('all', this)">All Stays</button>
+                <input type="hidden" name="purpose" id="tripPurpose" value="{{ purpose or 'work' }}" />
+              </div>
+
+              <!-- Continue Button -->
+              <button type="submit" id="stayContinueBtn" class="btn-launch-gradient px-4 py-2">
+                <span class="d-inline-flex align-items-center gap-2">
+                  <span>Continue to Stays</span>
+                  <i class="bi bi-arrow-right fs-6"></i>
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/stay_manager.js') }}"></script>
+{% endblock %}
