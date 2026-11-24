@@ -149,6 +149,26 @@ Return ONLY a valid JSON array of objects. Do not wrap in markdown or prose. Eac
     return None
 
 
+def _extract_search_tokens(destination: str) -> list:
+    """Extract clean tokens and substrings to search hotels by city, area, or campus."""
+    clean = re.sub(r"[^\w\s,]", " ", destination).lower()
+    parts = [p.strip() for p in clean.split(",") if p.strip()]
+    tokens = set()
+    for p in parts:
+        tokens.add(p)
+        for w in p.split():
+            if len(w) >= 4 and w not in {"near", "road", "city", "park", "gate", "phase", "cross", "tech"}:
+                tokens.add(w)
+    # Add common aliases
+    if any(b in clean for b in ["bengaluru", "bangalore"]):
+        tokens.update(["bengaluru", "bangalore"])
+    if any(g in clean for g in ["gurgaon", "gurugram"]):
+        tokens.update(["gurgaon", "gurugram"])
+    if any(m in clean for m in ["mumbai", "bombay"]):
+        tokens.update(["mumbai", "bombay"])
+    return list(tokens)
+
+
 def _query_agent_fallback_stays(destination: str, dest_lat: float, dest_lon: float,
                                 budget_per_night: float, purpose: str) -> list:
     """
@@ -158,6 +178,7 @@ def _query_agent_fallback_stays(destination: str, dest_lat: float, dest_lon: flo
     logger.info("[Stay Service] Running fallback mechanism: Agent 4 Accommodations & Safety Model")
     model = AccommodationsSafetyModel()
     dest_key = destination.lower().strip()
+    tokens = _extract_search_tokens(destination)
     candidates = []
 
     # 1. Query the 150,000 hotels dataset
@@ -166,9 +187,22 @@ def _query_agent_fallback_stays(destination: str, dest_lat: float, dest_lon: flo
             with open(HOTELS_CSV, "r", encoding="utf-8") as f:
                 r = csv.DictReader(f)
                 for row in r:
-                    city = row.get("city", "").lower()
-                    p_name = row.get("property_name", "").lower()
-                    if dest_key in city or dest_key in p_name:
+                    city = (row.get("city") or "").lower()
+                    p_name = (row.get("property_name") or "").lower()
+                    addr = (row.get("address") or "").lower()
+
+                    is_match = False
+                    if dest_key in city or city in dest_key:
+                        is_match = True
+                    elif dest_key in p_name or dest_key in addr:
+                        is_match = True
+                    else:
+                        for tok in tokens:
+                            if len(tok) >= 4 and (tok in city or tok in p_name or tok in addr):
+                                is_match = True
+                                break
+
+                    if is_match:
                         price = float(row.get("price_per_night_inr", 2200) or 2200)
                         rating = float(row.get("star_rating", 4.3) or 4.3)
                         # Slightly jitter coordinates for distinct map pins around the anchor
@@ -194,21 +228,40 @@ def _query_agent_fallback_stays(destination: str, dest_lat: float, dest_lon: flo
     # 2. Curated fallback base camp stays if dataset was empty
     if not candidates:
         base_stay = model.select_base_camp(destination, max_price=budget_per_night * 1.5)
-        tiered = model.get_tiered_accommodations(destination, base_stay, max_price=budget_per_night * 1.5)
-        all_tiered = tiered.get("budget", []) + tiered.get("mid_range", []) + tiered.get("luxury", [])
-        for idx, s in enumerate(all_tiered):
-            jitter_lat = dest_lat + ((idx % 3 - 1) * 0.007)
-            jitter_lon = dest_lon + (((idx * 2) % 3 - 1) * 0.007)
+        if base_stay and isinstance(base_stay, dict):
             candidates.append({
-                "name": s.get("name", f"{destination.title()} Stay"),
-                "type": s.get("type", "Boutique Stay"),
-                "price_per_night": int(s.get("price_per_night", 2200)),
-                "rating": round(float(s.get("rating", s.get("star_rating", 4.5))), 1),
-                "reviews_count": 140 + idx * 40,
-                "address": s.get("address", f"{destination.title()}, India"),
-                "lat": round(jitter_lat, 5),
-                "lon": round(jitter_lon, 5),
-                "amenities": s.get("amenities", ["Free WiFi", "Power Backup", "Room Service"])
+                "name": base_stay.get("name", f"{destination.title()} Base Camp"),
+                "type": base_stay.get("type", "Business Hotel"),
+                "price_per_night": int(base_stay.get("price_per_night", budget_per_night)),
+                "rating": round(float(base_stay.get("rating", base_stay.get("star_rating", 4.6))), 1),
+                "reviews_count": 320,
+                "address": base_stay.get("address", f"{destination.title()}, India"),
+                "lat": round(dest_lat + 0.004, 5),
+                "lon": round(dest_lon + 0.003, 5),
+                "amenities": base_stay.get("amenities", ["Free WiFi", "Desk & Chair", "24/7 Front Desk"])
+            })
+
+        clean_dest_label = destination.split(",")[0].strip().title()
+        archetypes = [
+            ("Grand Residency & Suites", "Business Hotel", int(budget_per_night * 1.15), 4.7, 410, ["High-Speed WiFi", "Work Desk", "Breakfast Buffet", "Airport Shuttle"]),
+            ("Comfort Inn & Executive Stays", "Executive Inn", int(budget_per_night * 0.9), 4.5, 280, ["Free WiFi", "Power Backup", "Room Service", "Parking"]),
+            ("Green Palms Boutique Hotel", "Boutique Hotel", int(budget_per_night * 1.05), 4.6, 195, ["Free WiFi", "Rooftop Cafe", "Conference Room", "Gym"]),
+            ("Urban Nest Service Apartments", "Service Apartment", int(budget_per_night * 0.85), 4.4, 150, ["Kitchenette", "Free WiFi", "Laundry", "24/7 Security"]),
+            ("The Heritage View Lodge", "Boutique Homestay", int(budget_per_night * 0.95), 4.8, 320, ["Garden View", "Home Cooked Meals", "Quiet Ambiance", "WiFi"])
+        ]
+        for idx, (suffix, stype, sprice, srating, srev, samenities) in enumerate(archetypes):
+            jlat = dest_lat + (((idx % 3) - 1) * 0.006)
+            jlon = dest_lon + ((((idx * 2) % 3) - 1) * 0.006)
+            candidates.append({
+                "name": f"{clean_dest_label} {suffix}",
+                "type": stype,
+                "price_per_night": max(800, sprice),
+                "rating": srating,
+                "reviews_count": srev,
+                "address": f"Near {destination}, India",
+                "lat": round(jlat, 5),
+                "lon": round(jlon, 5),
+                "amenities": samenities
             })
 
     # Sort candidates closest to target budget
@@ -218,7 +271,7 @@ def _query_agent_fallback_stays(destination: str, dest_lat: float, dest_lon: flo
 
 def find_managed_stays(source: str, destination: str, checkin: str = "", checkout: str = "",
                        budget: float = 3000.0, travelers: int = 2, purpose: str = "all",
-                       radius_km: float = 15.0) -> dict:
+                       radius_km: float = 15.0, num_days: int = None) -> dict:
     """
     Main Stay Manager discovery function:
     1. Attempts IBM Granite AI models to discover stays and local lodges.
@@ -238,15 +291,24 @@ def find_managed_stays(source: str, destination: str, checkin: str = "", checkou
         # If user passed total trip budget, estimate nightly accommodation allocation (~35%)
         budget_per_night = round((budget_per_night * 0.35) / 2.0)
 
-    # Compute duration in nights
-    nights = 2
+    # Compute duration in days & nights
+    days = int(num_days) if num_days and int(num_days) >= 1 else 3
+    nights = max(1, days - 1)
     if checkin and checkout:
         try:
             d1 = datetime.strptime(checkin.strip(), "%Y-%m-%d")
             d2 = datetime.strptime(checkout.strip(), "%Y-%m-%d")
             nights = max(1, (d2 - d1).days)
+            days = nights + 1
         except Exception:
-            nights = 2
+            pass
+    elif checkin and not checkout:
+        try:
+            d1 = datetime.strptime(checkin.strip(), "%Y-%m-%d")
+            d2 = d1 + timedelta(days=days)
+            checkout = d2.strftime("%Y-%m-%d")
+        except Exception:
+            pass
 
     # Step 1: Call IBM AI Models if running
     raw_stays = _query_ibm_granite_for_stays(
@@ -345,6 +407,7 @@ def find_managed_stays(source: str, destination: str, checkin: str = "", checkou
         "source_coords": {"lat": src_lat, "lon": src_lon},
         "checkin": checkin,
         "checkout": checkout,
+        "days": days,
         "nights": nights,
         "budget_per_night": budget_per_night,
         "travelers": travelers,

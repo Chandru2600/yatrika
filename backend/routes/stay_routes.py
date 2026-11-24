@@ -21,17 +21,23 @@ def stay_manager_view():
     destination = request.args.get("destination", "Coorg").strip()
     checkin = request.args.get("checkin", "")
     checkout = request.args.get("checkout", "")
+    days_param = request.args.get("num_days") or request.args.get("days", "3")
     budget = request.args.get("budget", "3000")
     travelers = request.args.get("travelers", "2")
     purpose = request.args.get("purpose", "all").strip()
+
+    try:
+        d_val = max(1, int(days_param))
+    except (ValueError, TypeError):
+        d_val = 3
 
     # Default to upcoming weekend if dates not provided
     if not checkin:
         tomorrow = datetime.now() + timedelta(days=2)
         checkin = tomorrow.strftime("%Y-%m-%d")
     if not checkout:
-        after_tomorrow = datetime.now() + timedelta(days=4)
-        checkout = after_tomorrow.strftime("%Y-%m-%d")
+        end_dt = datetime.strptime(checkin, "%Y-%m-%d") + timedelta(days=d_val)
+        checkout = end_dt.strftime("%Y-%m-%d")
 
     try:
         b_val = float(budget)
@@ -51,7 +57,8 @@ def stay_manager_view():
         checkout=checkout,
         budget=b_val,
         travelers=t_val,
-        purpose=purpose
+        purpose=purpose,
+        num_days=d_val
     )
 
     return render_template(
@@ -61,6 +68,7 @@ def stay_manager_view():
         destination=destination,
         checkin=checkin,
         checkout=checkout,
+        num_days=d_val,
         budget=int(b_val),
         travelers=t_val,
         purpose=purpose
@@ -74,7 +82,15 @@ def search_stays_api():
     destination = request.args.get("destination", "").strip() or "Coorg"
     checkin = request.args.get("checkin", "").strip()
     checkout = request.args.get("checkout", "").strip()
+    days_param = request.args.get("num_days") or request.args.get("days", "")
     purpose = request.args.get("purpose", "all").strip()
+
+    d_val = None
+    if days_param:
+        try:
+            d_val = max(1, int(days_param))
+        except (ValueError, TypeError):
+            d_val = None
 
     try:
         budget = float(request.args.get("budget", 2500))
@@ -93,7 +109,8 @@ def search_stays_api():
         checkout=checkout,
         budget=budget,
         travelers=travelers,
-        purpose=purpose
+        purpose=purpose,
+        num_days=d_val
     )
     return jsonify(result)
 

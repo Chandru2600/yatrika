@@ -71,6 +71,27 @@ class TestStayManagerService:
             assert len(norm_names) == len(set(norm_names)), "Duplicate hotel detected in stays list"
             assert len(names) == len(set(names)), "Duplicate raw hotel name detected"
 
+    def test_exact_office_location_and_days_calculation(self):
+        """Testing exact office destination inside city with days and total calculation."""
+        res = find_managed_stays(
+            source="Bengaluru",
+            destination="Infosys Electronic City, Bengaluru",
+            budget=2800,
+            travelers=2,
+            num_days=4
+        )
+        assert res["status"] == "success"
+        assert res["days"] == 4
+        assert res["nights"] == 3
+        assert len(res["stays"]) > 0
+        # Check that dest_coords are resolved to Electronic City corridor
+        assert 12.80 <= res["dest_coords"]["lat"] <= 12.87
+        assert 77.65 <= res["dest_coords"]["lon"] <= 77.70
+        # Check total price calculation
+        stay = res["stays"][0]
+        assert stay["nights"] == 3
+        assert stay["total_price"] == stay["price_per_night"] * 3
+
     def test_ibm_granite_path_when_configured(self):
         """When IBM Granite is available and responds with valid JSON array, it is used."""
         mock_granite_output = """[
