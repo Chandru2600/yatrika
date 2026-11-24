@@ -4273,5 +4273,10 @@
     "img": null,
     "desc": null,
     "title": null
+  },
+  "namdroling_monastery_coorg": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Golden_Temple%2C_Bylakuppe%2C_Coorg.jpg/800px-Golden_Temple%2C_Bylakuppe%2C_Coorg.jpg",
+    "desc": "Famous tourist attraction in Coorg.",
+    "title": "Namdroling Monastery"
   }
 }

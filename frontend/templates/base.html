@@ -59,6 +59,11 @@
       <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
         {% if not session.get('user_id') %}
         <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('stay_routes.stay_manager_view') }}">
+            <i class="bi bi-buildings me-1 text-primary"></i>Stay Manager
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" href="{{ url_for('main.home') }}">
             <i class="bi bi-compass me-1 text-turquoise"></i>Explore Destinations
           </a>
@@ -69,6 +74,11 @@
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('main.launchpad') }}">
               <i class="bi bi-rocket-takeoff me-1 text-turquoise"></i>Launchpad
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('stay_routes.stay_manager_view') }}">
+              <i class="bi bi-buildings me-1 text-primary"></i>Stay Manager
             </a>
           </li>
           <li class="nav-item">
@@ -85,6 +95,11 @@
               <li>
                 <a class="dropdown-item py-2" href="{{ url_for('main.launchpad') }}">
                   <i class="bi bi-rocket-takeoff me-2 text-turquoise"></i>Planning Launchpad
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item py-2" href="{{ url_for('stay_routes.stay_manager_view') }}">
+                  <i class="bi bi-buildings me-2 text-primary"></i>Stay Manager
                 </a>
               </li>
               <li>

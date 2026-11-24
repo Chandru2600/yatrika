@@ -28,6 +28,8 @@ The **Travel Planner Agent** is a full-stack web application that uses a custom 
 | ⚡ **Actionable Booking Links** | Instant zero-key deep links to MakeMyTrip, Goibibo, Booking.com, IRCTC, ConfirmTkt, and RedBus prefilled with destination, dates, and traveler counts |
 | 🌤 **Weather Module** | Real-time & 7-day forecast via OpenWeatherMap + Open-Meteo zero-key travel date forecast with dynamic rain/extreme heat badges and indoor/outdoor swap suggestions |
 | 🛣 **Turn-by-Turn Road Routing** | Google-Maps-style real road polylines via Open Source Routing Machine (OSRM demo server / configurable `OSRM_BASE_URL`). Interactive MapLibre line rendering, numbered visit markers (🏠 Base Camp, ①, ②, ③, 🏁), expandable turn-by-turn navigation steps per leg, day road summary badge, and zero-crash Haversine fallback |
+| 🏨 **Universal Stay Manager** | Dedicated accommodation discovery workspace (`/stay-manager`) accessible beside Launchpad. Dual-engine intelligence: IBM Granite AI detection with strict Agent 4 (Accommodations & Safety) fallback, guaranteed zero duplicate stays, accurate Agoda/Booking.com market pricing, lean non-redundant cards, and click-to-map OSRM road polyline navigation |
+| 🖼 **Exact Landmark Images** | Coordinate-bound Wikimedia Commons geosearch (< 1000m) and verified Indian landmark photo registry across Step Studio, Custom Studio, and trip cards, replacing generic placeholder photos with authentic landmark photography |
 | 🗺 **Interactive Map** | MapLibre + OpenStreetMap showing attractions, hotels, hospitals |
 | 💰 **Budget Planner** | Auto-breakdown across accommodation, food, transport, tickets |
 | 🏨 **Hotel Finder** | Budget, mid-range & luxury hotel picks |

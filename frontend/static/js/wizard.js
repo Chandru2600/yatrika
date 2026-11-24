@@ -1328,8 +1328,11 @@ function buildAttractionCard(a) {
         ${a.opening !== 'Check locally' ? `<div class="ac-meta-item"><i class="bi bi-door-open me-1"></i>${a.opening}</div>` : ''}
       </div>
       <div class="d-flex gap-2 mt-2">
+        <button class="btn btn-sm btn-outline-info" onclick="window.focusAttractionOnMap('${a.lat}', '${a.lon}', '${(a.name||'').replace(/'/g, "\\'")}'); event.stopPropagation();" style="font-size:0.75rem;" title="View on Map">
+          <i class="bi bi-geo-alt-fill"></i> Map
+        </button>
         <button class="btn btn-sm btn-outline-primary flex-grow-1" onclick="openDrawer('${a.id}'); event.stopPropagation();" style="font-size:0.75rem;"><i class="bi bi-info-circle"></i> Details</button>
-        <button class="btn btn-sm ${sel ? 'btn-success' : 'btn-primary'} select-btn-explore" onclick="toggleSelection('${a.id}'); event.stopPropagation();" style="width: 85px; font-size:0.75rem; font-weight:600;">
+        <button class="btn btn-sm ${sel ? 'btn-success' : 'btn-primary'} select-btn-explore" onclick="toggleSelection('${a.id}'); event.stopPropagation();" style="width: 80px; font-size:0.75rem; font-weight:600;">
           ${sel ? '✓ Added' : '+ Add'}
         </button>
       </div>
@@ -2520,6 +2523,20 @@ function mapFlyToRoute() {
     State.mapInstance.flyTo({ center: [State.destLon, State.destLat], zoom: 11, speed: 1.2 });
   }
 }
+
+window.focusAttractionOnMap = function(lat, lon, name) {
+  if (State.mapInstance && lat && lon) {
+    const parsedLat = parseFloat(lat);
+    const parsedLon = parseFloat(lon);
+    if (!isNaN(parsedLat) && !isNaN(parsedLon)) {
+      State.mapInstance.flyTo({ center: [parsedLon, parsedLat], zoom: 14.5, speed: 1.4 });
+      new maplibregl.Popup({ offset: 15 })
+        .setLngLat([parsedLon, parsedLat])
+        .setHTML(`<div class="p-1 fw-bold extra-small text-navy">📍 ${name}</div>`)
+        .addTo(State.mapInstance);
+    }
+  }
+};
 
 function mapToggleSatellite() {
   if (!State.mapInstance) return;
@@ -4187,7 +4204,8 @@ async function fetchDestinationStays(dest) {
 }
 
 function getStayImage(stay) {
-  if (stay.image_url) return stay.image_url;
+  if (stay.image_url && stay.image_url.trim()) return stay.image_url;
+  if (stay.img && stay.img.trim()) return stay.img;
   const stayImages = [
     'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&auto=format&fit=crop&q=80',
     'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&auto=format&fit=crop&q=80',
@@ -4293,9 +4311,14 @@ function renderDestinationStays(stays) {
                 <span class="text-muted extra-small">/ traveler (${nights}n)</span>
                 <div class="extra-small text-muted">₹${s.price_per_night.toLocaleString('en-IN')}/nt room · ₹${totalStayCost.toLocaleString('en-IN')} group</div>
               </div>
-              <button type="button" class="btn btn-sm stay-select-btn ${isSelected ? 'btn-success text-white' : 'btn-outline-primary'}">
-                ${isSelected ? '✓ Selected' : 'Select →'}
-              </button>
+              <div class="d-flex align-items-center gap-1">
+                <button type="button" class="btn btn-sm btn-outline-info py-1 px-2" onclick="window.focusAttractionOnMap('${s.lat || s.latitude}', '${s.lon || s.longitude}', '${(s.name||'').replace(/'/g, "\\'")}'); event.stopPropagation();" title="View hotel on Map" style="font-size:0.75rem;">
+                  <i class="bi bi-geo-alt-fill"></i> Map
+                </button>
+                <button type="button" class="btn btn-sm stay-select-btn ${isSelected ? 'btn-success text-white' : 'btn-outline-primary'}">
+                  ${isSelected ? '✓ Selected' : 'Select →'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

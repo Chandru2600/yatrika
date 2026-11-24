@@ -128,90 +128,39 @@ def search_stays_api():
             }
         ])
 
-    # Search in all_india_hotels_150000.csv
-    import csv
-    from pathlib import Path
-    csv_path = Path(__file__).resolve().parent.parent.parent / "FACULTY_EVALUATION_DATASETS" / "2_All_India_Hotels_and_Accommodations_150000.csv"
+    from backend.services.stay.stay_service import find_managed_stays
+    b_val = 3000.0
+    res = find_managed_stays(
+        source=request.args.get("source", "Bengaluru"),
+        destination=dest,
+        budget=b_val,
+        travelers=int(request.args.get("travelers", 2) or 2)
+    )
 
-    dest_lat, dest_lon = resolve_destination_coords(dest)
     matched = []
-    if csv_path.exists():
-        try:
-            with open(csv_path, "r", encoding="utf-8") as f:
-                r = csv.DictReader(f)
-                for row in r:
-                    city_text = row.get("city", "").lower()
-                    prop_text = row.get("property_name", "").lower()
-                    if dest_lower in city_text or dest_lower in prop_text:
-                        matched.append({
-                            "id": f"stay_{len(matched)+1}",
-                            "name": row.get("property_name", "Verified Stay"),
-                            "type": row.get("tier", "Mid-range") + " Stay",
-                            "price_per_night": int(float(row.get("price_per_night_inr", 2500))),
-                            "rating": float(row.get("star_rating", 4.0)),
-                            "reviews_count": 180 + (len(matched) * 45),
-                            "safety_score": float(row.get("safety_score", 9.0)),
-                            "latitude": dest_lat,
-                            "longitude": dest_lon,
-                            "lat": dest_lat,
-                            "lon": dest_lon,
-                            "address": row.get("address", f"{dest.title()}, India"),
-                            "pincode": row.get("pincode", ""),
-                            "amenities": ["Free WiFi", "AC", "Room Service", "Daily Housekeeping"],
-                            "description": f"Verified accommodation located in {dest.title()} with verified guest safety scores.",
-                            "badge": row.get("tier", "Verified")
-                        })
-                        if len(matched) >= 6:
-                            break
-        except Exception:
-            pass
-
-    if not matched:
-        # Graceful fallback default stays for the destination
-        matched = [
-            {
-                "id": "stay_fb_1",
-                "name": f"Grand {dest.title()} Heritage Resort",
-                "type": "Resort & Spa",
-                "price_per_night": 3200,
-                "rating": 4.7,
-                "reviews_count": 340,
-                "safety_score": 9.5,
-                "address": f"Main Road, {dest.title()}, India",
-                "pincode": "570001",
-                "amenities": ["Swimming Pool", "Complimentary Breakfast", "Free High-Speed WiFi", "Mountain/City View"],
-                "description": f"Premier resort property in {dest.title()} providing authentic regional hospitality and base camp convenience.",
-                "badge": "Popular Choice"
-            },
-            {
-                "id": "stay_fb_2",
-                "name": f"{dest.title()} Nature View Homestay",
-                "type": "Boutique Homestay",
-                "price_per_night": 2100,
-                "rating": 4.8,
-                "reviews_count": 210,
-                "safety_score": 9.6,
-                "address": f"Valley View Road, {dest.title()}",
-                "pincode": "570001",
-                "amenities": ["Home Cooked Meals", "Campfire", "Balcony Views", "Local Guide"],
-                "description": f"Warm family-run homestay situated in quiet natural surroundings of {dest.title()}.",
-                "badge": "Top Rated Homestay"
-            },
-            {
-                "id": "stay_fb_3",
-                "name": f"Comfort Inn {dest.title()} Central",
-                "type": "Budget Hotel",
-                "price_per_night": 1450,
-                "rating": 4.3,
-                "reviews_count": 185,
-                "safety_score": 9.1,
-                "address": f"Near Central Station, {dest.title()}",
-                "pincode": "570001",
-                "amenities": ["AC Rooms", "Free WiFi", "24/7 Front Desk", "Hot Water"],
-                "description": f"Clean and accessible central accommodation ideal for budget conscious travelers.",
-                "badge": "Best Value"
-            }
-        ]
+    dest_lat, dest_lon = resolve_destination_coords(dest)
+    for s in res.get("stays", []):
+        matched.append({
+            "id": s["id"],
+            "name": s["name"],
+            "type": s["type"],
+            "price_per_night": s["price_per_night"],
+            "rating": s["rating"],
+            "reviews_count": s.get("reviews_count", 210),
+            "safety_score": 9.4,
+            "latitude": s.get("lat", dest_lat),
+            "longitude": s.get("lon", dest_lon),
+            "lat": s.get("lat", dest_lat),
+            "lon": s.get("lon", dest_lon),
+            "address": s.get("address", f"{dest.title()}, India"),
+            "pincode": "570001",
+            "amenities": s.get("amenities", ["Free WiFi", "AC", "24/7 Front Desk"]),
+            "description": f"Verified accommodation near {dest.title()} with authentic regional hospitality.",
+            "badge": s.get("type", "Verified"),
+            "image_url": s.get("img"),
+            "img": s.get("img"),
+            "booking_links": s.get("booking_links", {})
+        })
 
     return jsonify(matched)
 
@@ -381,7 +330,7 @@ def search_attractions_api():
         "basilica of bom jesus", "se cathedral", "dilwara", "palitana"
     ]
 
-    from backend.services.wikipedia.wiki_places_service import batch_get_real_places
+    from backend.services.wikipedia.wiki_places_service import batch_get_real_places, DESTINATION_AUTHENTIC_PHOTOS
 
     candidates = []
     for idx, (_, row) in enumerate(nearby.iterrows()):
@@ -405,9 +354,12 @@ def search_attractions_api():
                 continue
         candidates.append((idx, row, nm, typ, rating, dur_hrs))
 
-    # Pre-fetch authentic Wikipedia/Wikimedia photos & summaries in parallel
-    place_pairs = [(c[2], dest) for c in candidates]
+    # Pre-fetch authentic Wikipedia/Wikimedia photos & summaries with exact coordinates in parallel
+    place_pairs = [(c[2], dest, float(c[1]["Latitude"]), float(c[1]["Longitude"])) for c in candidates]
     real_places_data = batch_get_real_places(place_pairs)
+
+    dest_key = dest.lower().strip() if dest else "coorg"
+    dest_fallback_photo = next((v for k, v in DESTINATION_AUTHENTIC_PHOTOS.items() if k in dest_key), "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Abbi_falls_coorg.jpg/800px-Abbi_falls_coorg.jpg")
 
     for idx, row, nm, typ, rating, dur_hrs in candidates:
         cat_name, icon = _get_cat_icon(typ)
@@ -416,7 +368,7 @@ def search_attractions_api():
         fee = int(float(row.get("Entrance Fee in INR", 0)))
 
         real_info = real_places_data.get((nm, dest), {})
-        photo = real_info.get("img") or PHOTO_COLLECTION[idx % len(PHOTO_COLLECTION)]
+        photo = real_info.get("img") or dest_fallback_photo
         real_desc = real_info.get("desc")
         desc_text = real_desc if real_desc else f"Verified tourist attraction in {row.get('State', 'India')}. Rated {rating}★ by travelers."
 

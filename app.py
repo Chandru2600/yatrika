@@ -45,12 +45,14 @@ def create_app(env: str = "development") -> Flask:
     from backend.routes.planner_routes import planner_bp
     from backend.routes.admin_routes   import admin_bp
     from backend.routes.api_routes     import api_bp
+    from backend.routes.stay_routes    import stay_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(planner_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(stay_bp)
 
     # ── CORS Middleware (Configurable Allowed Origins) ────────
     from flask import request
