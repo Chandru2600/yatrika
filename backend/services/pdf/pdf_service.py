@@ -279,7 +279,7 @@ def _build_boarding_pass(trip: dict, itinerary: dict, budget: dict, hotels: dict
     num_days = int(trip.get("num_days", 1) or 1)
     nights = max(1, num_days - 1)
     trav = int(trip.get("num_travelers", 1) or 1)
-    pnr = f"YTR-{int(trip.get('id', 1)) * 1337 + 104200}"
+    pnr = f"DRAFT-{trip.get('id', 1)}"
 
     base_stay = itinerary.get("base_camp_stay") or (hotels.get("base_camp") if isinstance(hotels, dict) else None)
     stay_name = (base_stay.get("name") if isinstance(base_stay, dict) else None) or f"{dest_city} Heritage Resort"

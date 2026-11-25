@@ -522,16 +522,16 @@
     <div class="dossier-boarding-pass shadow-2xl" id="dossierTicket">
       <!-- Left: Main Boarding Pass (72%) -->
       <div class="ticket-main-body">
-        <!-- Header: Operator & PNR -->
+        <!-- Header: Operator & Draft Status -->
         <div class="ticket-header-row">
           <div class="ticket-airline-brand">
             <i class="bi {% if 'FLIGHT' in t_mode or 'AIR' in t_mode %}bi-airplane-engines-fill{% elif 'TRAIN' in t_mode %}bi-train-front-fill{% else %}bi-bus-front-fill{% endif %} text-turquoise fs-5"></i>
-            <span class="ticket-brand-text">YATRIKA EXPEDITION BOARDING PASS</span>
-            <span class="ticket-carrier-pill">✓ IRCTC / RTC VERIFIED</span>
+            <span class="ticket-brand-text">YATRIKA TRIP ITINERARY</span>
+            <span class="ticket-carrier-pill">ESTIMATED PLAN</span>
           </div>
           <div class="ticket-pnr-badge">
-            <span class="pnr-lbl">PNR</span>
-            <span class="pnr-code">YTR-{{ trip.id * 1337 + 104200 }}</span>
+            <span class="pnr-lbl">STATUS</span>
+            <span class="pnr-code">DRAFT #{{ trip.id }}</span>
           </div>
         </div>
 
@@ -651,14 +651,14 @@
               <rect x="26" y="30" width="3" height="2"/>
             </svg>
           </div>
-          <div class="stub-pnr-micro font-monospace">VERIFIED PASS</div>
+          <div class="stub-pnr-micro font-monospace">TRIP SUMMARY</div>
         </div>
 
         <!-- Fare Block -->
         <div class="stub-fare-block">
           <div class="stub-fare-lbl">1-PERSON FARE</div>
           <div class="stub-fare-val" id="stubPerPersonFare">₹{{ "{:,.0f}".format(per_person_fare) }}</div>
-          <div class="stub-fare-group">Group Total: <span id="stubTotalFare">₹{{ "{:,.0f}".format(budget_sum|float) }}</span> ({{ trav }} pax)</div>
+          <div class="stub-fare-group">Per person rate (individual pass)</div>
         </div>
 
         <!-- Quick Action Dock: 3 Essential High-Priority Actions -->
@@ -736,7 +736,7 @@
             🛡️ Safety Index: {{ stay_safety }}/10
           </span>
           <span class="fw-bold text-success">
-            ₹{{ stay_price }}<span class="text-muted small">/nt</span>
+            ₹{{ ((stay_price|int) / (trav or 1))|round|int }}<span class="text-muted small"> / person / day</span>
           </span>
         </div>
         <div class="mt-2 pt-2 border-top d-flex gap-2 flex-wrap">
@@ -811,12 +811,12 @@
             {{ attractions|length if attractions else trip.num_days * 3 }} Verified Sights
           </div>
           <div class="bento-card-desc mb-2">
-            Stay-grounded clustering (&lt; 45 km radius) with 0 backtracking loops.
+            Grouped by proximity to your selected stay.
           </div>
         </div>
         <div class="bento-card-footer">
-          <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">10,025 Spot Dataset</span>
-          <span class="fw-bold small" style="color: #8B5CF6;">Smart Cost Verified</span>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">Curated Local Spots</span>
+          <span class="fw-bold small" style="color: #8B5CF6;">Estimated Costs</span>
         </div>
       </div>
     </section>
@@ -872,7 +872,8 @@
                   <div class="small text-muted"><i class="bi bi-pin-map me-1"></i>{{ stay_addr }}</div>
                 </div>
                 <div class="text-end">
-                  <div class="fs-5 fw-extrabold text-turquoise">₹{{ stay_price }}<span class="small text-muted fw-normal">/night</span></div>
+                  <div class="fs-5 fw-extrabold text-turquoise">₹{{ ((stay_price|int) / (trav or 1))|round|int }}<span class="small text-muted fw-normal"> / person / day</span></div>
+                  <div class="extra-small text-muted mb-1">₹{{ stay_price }} / day room</div>
                   <span class="badge bg-success-subtle text-success border border-success-subtle extra-small fw-bold">✓ Safety Score: {{ stay_safety }}</span>
                 </div>
               </div>
@@ -1496,8 +1497,9 @@
               <div class="small" style="color: #64748B;"><i class="bi bi-geo-alt me-1 text-turquoise"></i>{{ base_stay.address }}</div>
             </div>
             <div class="text-end">
-              <div class="fs-4 fw-extrabold text-turquoise">₹{{ base_stay.price_per_night or 2800 }}</div>
-              <div class="extra-small" style="color: #64748B;">per night</div>
+              <div class="fs-4 fw-extrabold text-turquoise">₹{{ (((base_stay.price_per_night or 2800)|int) / (trav or 1))|round|int }}</div>
+              <div class="extra-small" style="color: #64748B;">/ person / day</div>
+              <div class="extra-small text-muted">₹{{ base_stay.price_per_night or 2800 }} / day room</div>
             </div>
           </div>
           <p class="small mt-2 mb-3" style="color: #334155;">{{ base_stay.description or 'Centrally positioned base camp stay with verified security and high-speed Wi-Fi, optimized for daily sightseeing loops.' }}</p>

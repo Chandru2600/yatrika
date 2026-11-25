@@ -17,28 +17,25 @@
   if (global.PlanetRunnerEngineActive) return;
   global.PlanetRunnerEngineActive = true;
 
-  const DEFAULT_ATTRACTIONS_POOL = [
-    { name: "Abbey Falls & Mist Valleys", category: "Waterfalls & Nature", icon: "🌊" },
-    { name: "Raja's Seat Sunset Pavilion", category: "Scenic Viewpoint", icon: "🌅" },
-    { name: "Dubare Elephant Camp & River", category: "Wildlife Sanctuary", icon: "🐘" },
-    { name: "Golden Temple (Namdroling)", category: "Spiritual & Heritage", icon: "🛕" },
-    { name: "Talacauvery Sacred River Origin", category: "Sacred Pilgrimage", icon: "⛰️" },
-    { name: "Mandalpatti Peak 4x4 Trail", category: "High Altitude Adventure", icon: "🚙" },
-    { name: "Coffee Plantation Heritage Walk", category: "Agro-Tourism", icon: "☕" },
-    { name: "Madikeri Fort & Palace Museum", category: "Historic Landmark", icon: "🏰" },
-    { name: "Iruppu Cascades & Brahmagiri", category: "Trekking Trail", icon: "🌿" },
-    { name: "Nagarhole Tiger Reserve", category: "National Park Safari", icon: "🐅" },
-    { name: "Om Beach Cliff Trails", category: "Coastal Wonder", icon: "🏖️" },
-    { name: "Hampi Stone Chariot Complex", category: "UNESCO World Heritage", icon: "🏛️" }
-  ];
+  function buildDefaultStages(destination) {
+    const dest = destination || "your destination";
+    return [
+      { name: `Checking stays in ${dest}`, category: "Accommodation", icon: "🏨" },
+      { name: "Resolving local distances", category: "Routing", icon: "🗺️" },
+      { name: "Comparing nightly rates", category: "Pricing", icon: "💳" },
+      { name: `Mapping routes around ${dest}`, category: "Navigation", icon: "🧭" },
+      { name: "Loading transit connections", category: "Transport", icon: "🚆" },
+      { name: "Preparing trip summary", category: "Itinerary", icon: "📋" }
+    ];
+  }
 
   class PlanetRunnerInstance {
     constructor(container, options = {}) {
       this.container = container;
-      this.destination = options.destination || "Karnataka";
-      this.attractionsList = (options.attractions && options.attractions.length > 0) 
-        ? options.attractions.map(a => typeof a === 'string' ? { name: a, category: 'Attraction', icon: '📍' } : a)
-        : DEFAULT_ATTRACTIONS_POOL;
+      this.destination = options.destination || "your destination";
+      this.attractionsList = (options.attractions && options.attractions.length > 0)
+        ? options.attractions.map(a => typeof a === 'string' ? { name: a, category: 'Explore', icon: '📍' } : a)
+        : buildDefaultStages(this.destination);
       this.onComplete = options.onComplete || null;
 
       this.running = true;
@@ -46,6 +43,7 @@
       this.selectedCount = 0;
       this.targetSelectTotal = Math.min(this.attractionsList.length, 8);
       this.lastPinSelectTime = 0;
+      this.onWindowResize = this.onWindowResize.bind(this);
 
       this.initDOM();
       this.initThree();
@@ -64,20 +62,17 @@
         <div class="planet-runner-hud-top">
           <div class="planet-runner-badge">
             <span class="planet-runner-pulse-dot"></span>
-            <span>Scouting ${this.destination}</span>
-          </div>
-          <div class="planet-runner-counter" id="prCounter">
-            Selected: <span id="prSelCount">0</span> / ${this.targetSelectTotal}
+            <span>Exploring ${this.destination}</span>
           </div>
         </div>
         <div class="planet-runner-toast" id="prToast">
-          <div class="planet-runner-toast-icon" id="prToastIcon">🏃</div>
+          <div class="planet-runner-toast-icon" id="prToastIcon">🧭</div>
           <div class="planet-runner-toast-content">
-            <div class="planet-runner-toast-label">Autonomous Scout Running</div>
-            <div class="planet-runner-toast-name" id="prToastName">Exploring ${this.destination} landscape…</div>
+            <div class="planet-runner-toast-label">Finding local options</div>
+            <div class="planet-runner-toast-name" id="prToastName">Scanning stays &amp; routes in ${this.destination}…</div>
           </div>
         </div>
-        <div class="planet-runner-hint">Drag to rotate the world</div>
+        <div class="planet-runner-hint">Drag to rotate</div>
       `;
     }
 
@@ -86,9 +81,10 @@
       const H = this.container.clientHeight || 380;
 
       this.scene = new THREE.Scene();
-      this.camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
-      this.camera.position.set(0, 1.2, 5.8);
-      this.camera.lookAt(0, 0.1, 0);
+      this.camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
+      // 3/4 side-front angle so the running stride, backpack & oncoming pins read clearly
+      this.camera.position.set(1.85, 1.32, 4.85);
+      this.camera.lookAt(0, 0.14, 0);
 
       this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       this.renderer.setSize(W, H);
@@ -96,21 +92,21 @@
       this.renderer.domElement.className = "planet-runner-canvas";
       this.container.appendChild(this.renderer.domElement);
 
-      // Lights
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
-      this.scene.add(ambientLight);
+      // Balanced studio-style lighting for natural 3D depth
+      const hemiLight = new THREE.HemisphereLight(0xe0f2fe, 0x0f172a, 0.95);
+      this.scene.add(hemiLight);
 
-      const sunLight = new THREE.DirectionalLight(0xfff5e6, 2.2);
+      const sunLight = new THREE.DirectionalLight(0xfff7ed, 1.85);
       sunLight.position.set(4, 6, 5);
       this.scene.add(sunLight);
 
-      const rimLight = new THREE.DirectionalLight(0x00A896, 1.4);
-      rimLight.position.set(-4, -2, -4);
+      const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.85);
+      rimLight.position.set(-4, -1, -4);
       this.scene.add(rimLight);
 
-      // Star particles in background
+      // Subtle starfield
       const starGeo = new THREE.BufferGeometry();
-      const starCount = 80;
+      const starCount = 70;
       const starPos = new Float32Array(starCount * 3);
       for (let i = 0; i < starCount * 3; i += 3) {
         starPos[i] = (Math.random() - 0.5) * 16;
@@ -118,11 +114,11 @@
         starPos[i + 2] = -4 - Math.random() * 8;
       }
       starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
-      const starMat = new THREE.PointsMaterial({ color: 0x93c5fd, size: 0.04, transparent: true, opacity: 0.6 });
+      const starMat = new THREE.PointsMaterial({ color: 0xcbd5e1, size: 0.035, transparent: true, opacity: 0.45 });
       this.stars = new THREE.Points(starGeo, starMat);
       this.scene.add(this.stars);
 
-      window.addEventListener("resize", this.onWindowResize.bind(this));
+      window.addEventListener("resize", this.onWindowResize);
     }
 
     createPlanetTexture() {
@@ -131,38 +127,47 @@
       c.height = 512;
       const ctx = c.getContext("2d");
 
-      // Deep stylized ocean
+      // Rich deep ocean gradient
       const oceanGrad = ctx.createLinearGradient(0, 0, 0, c.height);
-      oceanGrad.addColorStop(0, "#0b2545");
-      oceanGrad.addColorStop(0.5, "#134074");
-      oceanGrad.addColorStop(1, "#0b2545");
+      oceanGrad.addColorStop(0, "#0b1d36");
+      oceanGrad.addColorStop(0.5, "#13345e");
+      oceanGrad.addColorStop(1, "#0b1d36");
       ctx.fillStyle = oceanGrad;
       ctx.fillRect(0, 0, c.width, c.height);
 
-      // Continents & landmass islands
-      ctx.fillStyle = "#1e5f74";
-      for (let i = 0; i < 22; i++) {
-        const x = (i * 47) % c.width;
-        const y = 80 + ((i * 31) % (c.height - 160));
-        const r = 35 + (i % 5) * 18;
+      // Soft organic landmass silhouettes with subtle coastal shelf
+      const drawLandBlob = (cx, cy, rx, ry, rot, color) => {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rot);
+        ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
         ctx.fill();
+        ctx.restore();
+      };
+
+      for (let i = 0; i < 20; i++) {
+        const x = (i * 53 + 20) % c.width;
+        const y = 90 + ((i * 37) % (c.height - 180));
+        const rx = 48 + (i % 4) * 20;
+        const ry = 25 + (i % 3) * 12;
+        drawLandBlob(x, y, rx + 8, ry + 5, (i * 0.6) % Math.PI, "rgba(56, 189, 248, 0.14)");
+        drawLandBlob(x, y, rx, ry, (i * 0.6) % Math.PI, "rgba(30, 88, 102, 0.78)");
       }
 
-      // Emerald vibrant Karnataka / India greenery patches
-      ctx.fillStyle = "#00A896";
+      // Warm sage / emerald terrain highlights
       for (let i = 0; i < 18; i++) {
-        const x = (i * 59 + 30) % c.width;
-        const y = 100 + ((i * 27) % (c.height - 200));
-        ctx.beginPath();
-        ctx.arc(x, y, 16 + (i % 4) * 8, 0, Math.PI * 2);
-        ctx.fill();
+        const x = (i * 61 + 40) % c.width;
+        const y = 105 + ((i * 29) % (c.height - 210));
+        const rx = 24 + (i % 4) * 10;
+        const ry = 13 + (i % 3) * 6;
+        drawLandBlob(x, y, rx, ry, (i * 0.9) % Math.PI, "rgba(45, 138, 110, 0.82)");
       }
 
-      // Latitude grid lines
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-      ctx.lineWidth = 1.5;
+      // Faint subtle latitude lines
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.035)";
+      ctx.lineWidth = 1;
       for (let y = 64; y < c.height; y += 64) {
         ctx.beginPath();
         ctx.moveTo(0, y);
@@ -176,26 +181,66 @@
       return tex;
     }
 
+    createCloudTexture() {
+      const c = document.createElement("canvas");
+      c.width = 512;
+      c.height = 256;
+      const ctx = c.getContext("2d");
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      for (let i = 0; i < 28; i++) {
+        const x = (i * 41 + 15) % c.width;
+        const y = 30 + ((i * 29) % (c.height - 60));
+        const rx = 22 + (i % 4) * 12;
+        const ry = 7 + (i % 3) * 4;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate((i * 0.4) % Math.PI);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.28)";
+        ctx.beginPath();
+        ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.ClampToEdgeWrapping;
+      return tex;
+    }
+
     initPlanet() {
       this.planetGroup = new THREE.Group();
       this.planetRadius = 1.85;
 
-      const planetGeo = new THREE.SphereGeometry(this.planetRadius, 48, 36);
+      const planetGeo = new THREE.SphereGeometry(this.planetRadius, 56, 42);
       const planetMat = new THREE.MeshStandardMaterial({
         map: this.createPlanetTexture(),
-        roughness: 0.72,
-        metalness: 0.1
+        roughness: 0.78,
+        metalness: 0.08
       });
       this.planetMesh = new THREE.Mesh(planetGeo, planetMat);
       this.planetGroup.add(this.planetMesh);
 
-      // Atmosphere rim glow mesh
-      const atmoGeo = new THREE.SphereGeometry(this.planetRadius * 1.025, 36, 24);
-      const atmoMat = new THREE.MeshBasicMaterial({
-        color: 0x02c39a,
+      // Drifting translucent cloud layer
+      const cloudGeo = new THREE.SphereGeometry(this.planetRadius * 1.016, 40, 28);
+      const cloudMat = new THREE.MeshStandardMaterial({
+        map: this.createCloudTexture(),
         transparent: true,
-        opacity: 0.15,
-        wireframe: true
+        opacity: 0.5,
+        depthWrite: false,
+        roughness: 0.9
+      });
+      this.cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
+      this.planetGroup.add(this.cloudMesh);
+
+      // Smooth translucent atmospheric halo (no harsh wireframe grid)
+      const atmoGeo = new THREE.SphereGeometry(this.planetRadius * 1.032, 40, 28);
+      const atmoMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.08,
+        side: THREE.BackSide
       });
       const atmoMesh = new THREE.Mesh(atmoGeo, atmoMat);
       this.planetGroup.add(atmoMesh);
@@ -206,68 +251,120 @@
     }
 
     initCharacter() {
-      // Build a 3D stylized Courier / Explorer Character
+      // Build a smooth, two-segment jointed 3D Traveler Character
       this.runner = new THREE.Group();
 
-      const skinMat = new THREE.MeshStandardMaterial({ color: 0xffd1b3, roughness: 0.5 });
-      const outfitMat = new THREE.MeshStandardMaterial({ color: 0x00A896, roughness: 0.4 }); // Turquoise jacket
-      const darkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 }); // Pants & boots
-      const bagMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.3 }); // Orange/Gold courier bag
-      const hatMat = new THREE.MeshStandardMaterial({ color: 0x0B1F33, roughness: 0.5 });
+      const skinMat = new THREE.MeshStandardMaterial({ color: 0xf3c6a5, roughness: 0.55 });
+      const jacketMat = new THREE.MeshStandardMaterial({ color: 0x1e4e79, roughness: 0.48 });
+      const pantsMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.65 });
+      const shoeMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 });
+      const bagMat = new THREE.MeshStandardMaterial({ color: 0xe07a5f, roughness: 0.42 });
+      const hatMat = new THREE.MeshStandardMaterial({ color: 0x0f2942, roughness: 0.5 });
 
-      // Torso
-      this.torso = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.08, 0.28, 8), outfitMat);
+      // Soft ground contact shadow on the globe surface
+      const shadowGeo = new THREE.CircleGeometry(0.16, 20);
+      const shadowMat = new THREE.MeshBasicMaterial({
+        color: 0x020617,
+        transparent: true,
+        opacity: 0.35,
+        depthWrite: false
+      });
+      const shadowDisc = new THREE.Mesh(shadowGeo, shadowMat);
+      shadowDisc.rotation.x = -Math.PI / 2;
+      shadowDisc.position.y = -0.05;
+      this.runner.add(shadowDisc);
+
+      // Rounded Torso (tapered cylinder + spherical shoulder/hip caps)
+      this.torso = new THREE.Group();
+      const torsoCore = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.072, 0.22, 16), jacketMat);
+      const shoulderCap = new THREE.Mesh(new THREE.SphereGeometry(0.086, 16, 12), jacketMat);
+      shoulderCap.position.y = 0.11;
+      const hipCap = new THREE.Mesh(new THREE.SphereGeometry(0.072, 14, 10), jacketMat);
+      hipCap.position.y = -0.11;
+      this.torso.add(torsoCore, shoulderCap, hipCap);
       this.torso.position.y = 0.28;
       this.runner.add(this.torso);
 
-      // Head
-      this.head = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 10), skinMat);
-      this.head.position.y = 0.48;
+      // Head + Visor Cap
+      this.head = new THREE.Group();
+      const headSphere = new THREE.Mesh(new THREE.SphereGeometry(0.082, 18, 14), skinMat);
+      const capCrown = new THREE.Mesh(
+        new THREE.SphereGeometry(0.086, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.52),
+        hatMat
+      );
+      capCrown.position.y = 0.01;
+      const capVisor = new THREE.Mesh(new THREE.CylinderGeometry(0.082, 0.082, 0.015, 14, 1, false, -0.7, 1.4), hatMat);
+      capVisor.position.set(0, 0.012, 0.035);
+      this.head.add(headSphere, capCrown, capVisor);
+      this.head.position.y = 0.49;
       this.runner.add(this.head);
 
-      // Explorer Cap
-      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.04, 8), hatMat);
-      cap.position.y = 0.54;
-      this.runner.add(cap);
-
-      // Courier Bag / Backpack
-      this.bag = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.18, 0.12), bagMat);
-      this.bag.position.set(0, 0.28, -0.12);
+      // Rounded Backpack
+      this.bag = new THREE.Group();
+      const bagBody = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.072, 0.16, 14), bagMat);
+      bagBody.scale.set(1.1, 1, 0.72);
+      const bagTop = new THREE.Mesh(new THREE.SphereGeometry(0.068, 14, 10), bagMat);
+      bagTop.scale.set(1.1, 0.7, 0.72);
+      bagTop.position.y = 0.08;
+      this.bag.add(bagBody, bagTop);
+      this.bag.position.set(0, 0.29, -0.105);
       this.runner.add(this.bag);
 
-      // Left Leg
-      this.leftLeg = new THREE.Group();
-      const leftLegMesh = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.22, 0.06), darkMat);
-      leftLegMesh.position.y = -0.11;
-      this.leftLeg.add(leftLegMesh);
-      this.leftLeg.position.set(-0.06, 0.16, 0);
-      this.runner.add(this.leftLeg);
+      // Two-segment leg (hip -> thigh -> knee -> shin -> shoe)
+      const buildLeg = (xOffset) => {
+        const legGroup = new THREE.Group();
+        const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.033, 0.028, 0.105, 12), pantsMat);
+        thigh.position.y = -0.052;
 
-      // Right Leg
-      this.rightLeg = new THREE.Group();
-      const rightLegMesh = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.22, 0.06), darkMat);
-      rightLegMesh.position.y = -0.11;
-      this.rightLeg.add(rightLegMesh);
-      this.rightLeg.position.set(0.06, 0.16, 0);
-      this.runner.add(this.rightLeg);
+        const kneeGroup = new THREE.Group();
+        kneeGroup.position.y = -0.105;
+        const kneeJoint = new THREE.Mesh(new THREE.SphereGeometry(0.027, 10, 10), pantsMat);
+        const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.027, 0.022, 0.095, 12), pantsMat);
+        shin.position.y = -0.048;
+        const shoe = new THREE.Mesh(new THREE.SphereGeometry(0.033, 12, 10), shoeMat);
+        shoe.scale.set(0.95, 0.72, 1.35);
+        shoe.position.set(0, -0.102, 0.012);
 
-      // Left Arm
-      this.leftArm = new THREE.Group();
-      const leftArmMesh = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.2, 0.05), outfitMat);
-      leftArmMesh.position.y = -0.1;
-      this.leftArm.add(leftArmMesh);
-      this.leftArm.position.set(-0.13, 0.38, 0);
-      this.runner.add(this.leftArm);
+        kneeGroup.add(kneeJoint, shin, shoe);
+        legGroup.add(thigh, kneeGroup);
+        legGroup.position.set(xOffset, 0.165, 0);
+        legGroup.userData.knee = kneeGroup;
+        return legGroup;
+      };
 
-      // Right Arm
-      this.rightArm = new THREE.Group();
-      const rightArmMesh = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.2, 0.05), outfitMat);
-      rightArmMesh.position.y = -0.1;
-      this.rightArm.add(rightArmMesh);
-      this.rightArm.position.set(0.13, 0.38, 0);
-      this.runner.add(this.rightArm);
+      // Two-segment arm (shoulder -> upperArm -> elbow -> forearm -> hand)
+      const buildArm = (xOffset) => {
+        const armGroup = new THREE.Group();
+        const shoulder = new THREE.Mesh(new THREE.SphereGeometry(0.028, 10, 10), jacketMat);
+        const upperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.022, 0.088, 12), jacketMat);
+        upperArm.position.y = -0.044;
 
-      // Position runner right on the north pole top of the planet sphere
+        const elbowGroup = new THREE.Group();
+        elbowGroup.position.y = -0.088;
+        const elbowJoint = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 10), jacketMat);
+        const forearm = new THREE.Mesh(new THREE.CylinderGeometry(0.021, 0.018, 0.082, 12), jacketMat);
+        forearm.position.y = -0.041;
+        const hand = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 10), skinMat);
+        hand.position.y = -0.086;
+
+        elbowGroup.add(elbowJoint, forearm, hand);
+        armGroup.add(shoulder, upperArm, elbowGroup);
+        armGroup.position.set(xOffset, 0.37, 0);
+        armGroup.userData.elbow = elbowGroup;
+        return armGroup;
+      };
+
+      this.leftLeg = buildLeg(-0.048);
+      this.rightLeg = buildLeg(0.048);
+      this.leftArm = buildArm(-0.112);
+      this.rightArm = buildArm(0.112);
+
+      this.runner.add(this.leftLeg, this.rightLeg, this.leftArm, this.rightArm);
+
+      // Face along +X (running direction) with a slight forward lean
+      this.runner.rotation.order = "YXZ";
+      this.runner.rotation.y = Math.PI / 2;
+      this.runner.rotation.x = 0.13;
       this.runner.position.set(0, 0.22, 0);
       this.scene.add(this.runner);
     }
@@ -302,16 +399,14 @@
         ring.position.y = 0.02;
         pinGroup.add(ring);
 
-        // Distribute pins along equator & mid-latitudes around the sphere
+        // Distribute pins along the XY great circle so they rise from the right horizon
+        // and pass directly under the runner at the north pole
         const angle = (i / count) * Math.PI * 2;
-        const lat = (Math.sin(i * 1.8) * 0.45); // slight latitude variance
-        const phi = Math.PI / 2 - lat;
-        const theta = angle;
-
-        const r = this.planetRadius;
-        const x = r * Math.sin(phi) * Math.cos(theta);
-        const y = r * Math.cos(phi);
-        const z = r * Math.sin(phi) * Math.sin(theta);
+        const lateral = Math.sin(i * 1.7) * 0.22;
+        const rOrbit = Math.sqrt(Math.max(0.1, this.planetRadius * this.planetRadius - lateral * lateral));
+        const x = rOrbit * Math.cos(angle);
+        const y = rOrbit * Math.sin(angle);
+        const z = lateral;
 
         pinGroup.position.set(x, y, z);
         pinGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(x, y, z).normalize());
@@ -374,14 +469,10 @@
       pin.userData.selected = true;
       this.selectedCount++;
 
-      // Pulse pin colors to golden turquoise
+      // Pulse pin colors to warm amber
       pin.userData.headMat.color.setHex(0xf59e0b);
       pin.userData.headMat.emissive.setHex(0xf59e0b);
       pin.userData.ring.scale.set(2.4, 2.4, 2.4);
-
-      // Update counter UI
-      const selEl = document.getElementById("prSelCount");
-      if (selEl) selEl.textContent = this.selectedCount;
 
       // Show toast
       const toast = document.getElementById("prToast");
@@ -391,12 +482,12 @@
       if (toast && name) {
         const item = pin.userData.attraction;
         if (icon) icon.textContent = item.icon || "📍";
-        name.innerHTML = `<strong>${item.name}</strong> <span class="text-white-50">(${item.category || 'Must-Visit'})</span>`;
-        toast.style.transform = "translateX(-50%) translateY(-6px)";
-        toast.style.borderColor = "#00A896";
+        const cat = item.category ? ` <span style="color:#94a3b8;font-weight:500;">(${item.category})</span>` : "";
+        name.innerHTML = `<strong>${item.name}</strong>${cat}`;
+        toast.style.transform = "translateX(-50%) translateY(-4px)";
         setTimeout(() => {
           if (toast) toast.style.transform = "translateX(-50%) translateY(0px)";
-        }, 300);
+        }, 280);
       }
 
       if (this.selectedCount >= this.targetSelectTotal && this.onComplete) {
@@ -412,39 +503,60 @@
 
       this.time += 0.05;
 
-      // 1. Rotate Planet to simulate runner moving forward across the globe
-      this.planetGroup.rotation.y += this.planetSpinVelocity;
-      this.stars.rotation.y += 0.0004;
+      // 1. Spin planet under the runner's feet (+Y moves toward -X while runner faces +X)
+      this.planetMesh.rotation.z += this.planetSpinVelocity;
+      if (this.cloudMesh) {
+        this.cloudMesh.rotation.z += this.planetSpinVelocity * 0.45;
+        this.cloudMesh.rotation.y += 0.0012;
+      }
+      this.stars.rotation.y += 0.00035;
 
-      // 2. Character Running Stride Animation (legs pumping, arms swinging, torso bobbing)
+      // 2. Two-segment running stride (hips, knees, shoulders, elbows)
       const strideFreq = 7.5;
       const stride = Math.sin(this.time * strideFreq);
       const strideCos = Math.cos(this.time * strideFreq);
 
-      // Legs swing back and forth
-      this.leftLeg.rotation.x = stride * 0.72;
-      this.rightLeg.rotation.x = -stride * 0.72;
+      this.leftLeg.rotation.x = stride * 0.68;
+      this.rightLeg.rotation.x = -stride * 0.68;
+      if (this.leftLeg.userData.knee) {
+        this.leftLeg.userData.knee.rotation.x = Math.max(0.12, -strideCos * 0.85 + 0.25);
+      }
+      if (this.rightLeg.userData.knee) {
+        this.rightLeg.userData.knee.rotation.x = Math.max(0.12, strideCos * 0.85 + 0.25);
+      }
 
-      // Arms swing opposite to legs
-      this.leftArm.rotation.x = -stride * 0.65;
-      this.rightArm.rotation.x = stride * 0.65;
+      this.leftArm.rotation.x = -stride * 0.58;
+      this.rightArm.rotation.x = stride * 0.58;
+      if (this.leftArm.userData.elbow) {
+        this.leftArm.userData.elbow.rotation.x = -0.85 - Math.abs(stride) * 0.22;
+      }
+      if (this.rightArm.userData.elbow) {
+        this.rightArm.userData.elbow.rotation.x = -0.85 - Math.abs(stride) * 0.22;
+      }
 
       // Torso bobs vertically and slightly rolls
-      this.runner.position.y = 0.22 + Math.abs(strideCos) * 0.035;
-      this.torso.rotation.z = stride * 0.05;
-      this.head.rotation.y = Math.sin(this.time * 2.0) * 0.12;
+      this.runner.position.y = 0.22 + Math.abs(strideCos) * 0.032;
+      this.torso.rotation.z = stride * 0.04;
+      this.head.rotation.y = Math.sin(this.time * 2.0) * 0.1;
 
-      // Bag jiggles with delay
-      this.bag.rotation.x = stride * 0.2;
-      this.bag.rotation.y = stride * 0.1;
+      // Bag jiggles slightly with stride
+      this.bag.rotation.x = stride * 0.15;
+      this.bag.rotation.y = stride * 0.08;
 
-      // 3. Check proximity of pins to the north pole runner position
+      // 3. Check proximity of pins to the north pole runner position and loop cleanly
       const worldPinPos = new THREE.Vector3();
       const runnerPos = new THREE.Vector3(0, 0.25, 0);
 
       this.pins.forEach((pin) => {
         pin.getWorldPosition(worldPinPos);
         const dist = worldPinPos.distanceTo(runnerPos);
+
+        // Reset pins once they pass below the horizon so long searches keep looping
+        if (pin.userData.selected && worldPinPos.y < -0.6) {
+          pin.userData.selected = false;
+          pin.userData.headMat.color.setHex(0xffffff);
+          pin.userData.headMat.emissive.setHex(0x00A896);
+        }
 
         // When pin passes close under/near the runner
         if (dist < 1.15 && !pin.userData.selected) {
@@ -465,6 +577,20 @@
       this.running = false;
       if (this.rafId) cancelAnimationFrame(this.rafId);
       window.removeEventListener("resize", this.onWindowResize);
+
+      if (this.scene) {
+        this.scene.traverse((obj) => {
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) {
+            const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+            mats.forEach((mat) => {
+              if (mat.map) mat.map.dispose();
+              mat.dispose();
+            });
+          }
+        });
+      }
+
       if (this.renderer && this.renderer.domElement) {
         this.renderer.domElement.remove();
         this.renderer.dispose();
@@ -485,7 +611,7 @@
       modal.className = "planet-runner-global-modal";
       modal.setAttribute("role", "dialog");
       modal.setAttribute("aria-modal", "true");
-      modal.setAttribute("aria-label", "AI Scout Loading");
+      modal.setAttribute("aria-label", "Route and stay search progress");
       modal.innerHTML = `
         <div class="planet-runner-modal-card">
           <button type="button" class="planet-runner-modal-close" id="globalPlanetRunnerClose" title="Dismiss loading preview">&times;</button>
@@ -494,10 +620,10 @@
             <div style="flex-grow: 1;">
               <div class="planet-runner-modal-msg">
                 <span class="planet-runner-pulse-dot"></span>
-                <span id="globalPlanetRunnerTitle">Scouting Karnataka &amp; All-India Journey...</span>
+                <span id="globalPlanetRunnerTitle">Searching stays &amp; routes...</span>
               </div>
               <div class="planet-runner-modal-sub" id="globalPlanetRunnerSub">
-                Smart itinerary engine synthesizing stay-first routes &amp; attractions
+                Loading local stays, route distances &amp; transit options
               </div>
             </div>
           </div>
@@ -680,9 +806,9 @@
       const dest = destEl ? (destEl.textContent || destEl.value || "").trim() : "Karnataka & All-India";
 
       global.PlanetRunner.showModal(
-        "Generating Verified PDF Itinerary...",
+        "Preparing PDF Itinerary...",
         dest,
-        "Assembling offline booking tables, weather tips & QR code voucher"
+        "Assembling booking tables, weather tips & trip summary"
       );
 
       // Safe dismiss window after download dispatch
@@ -705,9 +831,9 @@
       if (action.includes("/planner/new") || action.includes("/planner/wizard") || form.dataset.planetLoader === "true") {
         const dest = form.querySelector("input[name='destination']")?.value || "India";
         global.PlanetRunner.showModal(
-          `Scouting & Generating Itinerary for ${dest}...`,
+          `Preparing Itinerary for ${dest}...`,
           dest,
-          "Smart itinerary engine synthesizing stay-first anchors & verified transit"
+          "Finding local stays, transit routes & sights"
         );
       }
     });

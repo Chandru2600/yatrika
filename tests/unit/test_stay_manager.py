@@ -215,3 +215,64 @@ class TestExactPlaceImages:
         assert ("Raja's Seat", "Coorg") in results
         assert results[("Abbey Falls", "Coorg")]["img"] is not None
         assert results[("Raja's Seat", "Coorg")]["img"] is not None
+
+
+class TestV3AuditRegressions:
+    """Regression suite for v3 audit fixes: no fake PNRs, distance-gated flights, days consistency, budget flags."""
+
+    def test_no_fake_pnr_or_verified_claims_on_stay_summary(self, app_client):
+        resp = app_client.get(
+            "/stay-manager/summary?destination=Infosys+Electronic+City,+Bengaluru&source=Bengaluru"
+            "&num_days=3&travelers=2&stay_name=Test+Stay&stay_price=2400&stay_pppd=1200"
+            "&transit_mode=bus&transit_title=City+Shuttle&transit_fare=120"
+        )
+        assert resp.status_code == 200
+        html = resp.data.decode("utf-8")
+        assert "YTR-" not in html
+        assert "IRCTC / RTC VERIFIED" not in html
+        assert "VERIFIED PASS" not in html
+        assert "CONFIRMED STAY" not in html
+        assert "Per-Person Total:" in html
+        assert "Group Total (2 guests):" in html
+
+    def test_no_intra_city_or_short_distance_flight(self):
+        from backend.services.transit.flight_api import fetch_flight_fares
+        res = fetch_flight_fares("Bengaluru", "Electronic City", dist_km=25.0, travelers=2)
+        assert res["available"] is False
+        assert res["schedules"] == []
+
+    def test_stay_manager_days_match_checkin_checkout(self):
+        with patch("backend.services.stay.stay_service.is_ibm_configured", return_value=False):
+            res = find_managed_stays(
+                source="Bengaluru",
+                destination="Coorg",
+                checkin="2026-11-27",
+                checkout="2026-11-30",
+                budget=2500,
+                travelers=2,
+                num_days=3
+            )
+            assert res["days"] == 3
+            assert res["nights"] == 3
+
+    def test_stay_manager_over_budget_flag_and_clean_address(self):
+        mock_stays = [
+            {
+                "name": "Luxury Stay",
+                "price_per_night": 6000,
+                "address": "Prestige ShantiniketanWhitefieldBangalore 560048",
+                "lat": 12.8452,
+                "lon": 77.6602,
+            }
+        ]
+        with patch("backend.services.stay.stay_service.is_ibm_configured", return_value=True), \
+             patch("backend.services.stay.stay_service._query_ibm_granite_for_stays", return_value=mock_stays):
+            res = find_managed_stays(
+                source="Bengaluru",
+                destination="Infosys Electronic City, Bengaluru",
+                budget=2500,
+                travelers=2
+            )
+            stay = res["stays"][0]
+            assert stay["over_budget"] is True
+            assert "Whitefield, Bangalore" in stay["address"]

@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+
+{% block title %}Select Mode of Transport — Yatrika Stay Manager{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/stay_manager.css') }}" rel="stylesheet" />
+<style>
+  .transport-tabs-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .transport-mode-tab {
+    flex: 1 1 140px;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+  }
+  .transport-mode-tab:hover {
+    border-color: #14b8a6;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+  }
+  .transport-mode-tab.active {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border-color: #2dd4bf;
+    color: #ffffff;
+    box-shadow: 0 8px 22px rgba(20, 184, 166, 0.22);
+  }
+  .transport-mode-tab.active .tab-sub {
+    color: #94a3b8 !important;
+  }
+  .ticket-option-card {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 18px 22px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .ticket-option-card:hover {
+    border-color: #14b8a6;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  }
+  .ticket-option-card.is-selected {
+    border-color: #14b8a6;
+    background: linear-gradient(to right, #ffffff, #f0fdfa);
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.25);
+  }
+  .class-pill-btn {
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 4px 10px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #0f172a;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .class-pill-btn.active {
+    background: #0f172a;
+    border-color: #2dd4bf;
+    color: #2dd4bf;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stay-manager-page results-mode-page pb-5">
+
+  <!-- ── 1. Header & 3-Step Progress Tracker ─────────────────────── -->
+  <section class="stay-results-topbar">
+    <div class="container py-3">
+      <div class="d-flex align-items-center justify-content-center mb-3">
+        <div class="stay-step-tracker">
+          <a href="{{ url_for('stay_routes.stay_results_view', source=source, destination=destination, num_days=num_days, budget=budget, checkin=checkin, travelers=travelers) }}"
+             class="step-pill text-success text-decoration-none">
+            <span class="step-number bg-success text-white">✓</span>
+            <span class="step-title">Office &amp; Stays</span>
+          </a>
+          <div class="step-connector"></div>
+          <div class="step-pill step-active">
+            <span class="step-number">2</span>
+            <span class="step-title">Transport Mode</span>
+          </div>
+          <div class="step-connector"></div>
+          <div class="step-pill">
+            <span class="step-number">3</span>
+            <span class="step-title">Stay Summary</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <a href="{{ url_for('stay_routes.stay_results_view', source=source, destination=destination, num_days=num_days, budget=budget, checkin=checkin, travelers=travelers) }}"
+             class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 extra-small fw-bold">
+            <i class="bi bi-arrow-left me-1"></i> Change Stay
+          </a>
+          <div>
+            <h1 class="fs-5 fw-bold text-navy mb-0">
+              Select Mode of Transport: <span class="text-turquoise">{{ source }}</span> ➔ <span class="text-coral">{{ destination }}</span>
+            </h1>
+            <div class="extra-small text-muted">
+              Showing strictly <strong>1-person fare</strong> per ticket • {{ num_days }} Days • {{ travelers }} Guest{{ 's' if travelers|int > 1 else '' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 2. Main Content ─────────────────────────────────────────── -->
+  <section class="py-4">
+    <div class="container">
+
+      <!-- Locked Selected Stay Banner -->
+      <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="border-left: 5px solid #14b8a6 !important;">
+        <div class="card-body p-3 d-flex align-items-center justify-content-between flex-wrap gap-3">
+          <div class="d-flex align-items-center gap-3">
+            <img src="{{ stay.img or 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=300&q=80' }}"
+                 alt="{{ stay.name }}" class="rounded-3" style="width: 68px; height: 58px; object-fit: cover;" />
+            <div>
+              <span class="badge bg-success-subtle text-success border border-success-subtle extra-small fw-bold mb-1">
+                ✓ Selected Stay Accommodation
+              </span>
+              <h2 class="fs-6 fw-bold text-navy mb-0">{{ stay.name }}</h2>
+              <div class="extra-small text-muted">
+                <i class="bi bi-geo-alt-fill text-turquoise"></i> {{ stay.distance_km }} km (~{{ stay.drive_mins }} mins to office) • {{ stay.address }}
+              </div>
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="fs-5 fw-extrabold text-turquoise">₹{{ "{:,}".format(stay.price_per_person_day|int) }}</div>
+            <div class="extra-small text-muted">/ person / day (₹{{ "{:,}".format(stay.price_per_night|int) }} / day room)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode Selector Tabs -->
+      <div class="transport-tabs-bar mb-4" id="transportTabs">
+        <button type="button" class="transport-mode-tab active" data-mode="train" onclick="loadTransportMode('train', this)">
+          <span class="fs-3">🚆</span>
+          <div>
+            <div class="fw-bold small">Train (IRCTC)</div>
+            <div class="extra-small text-muted tab-sub">Express &amp; Superfast Rail</div>
+          </div>
+        </button>
+        <button type="button" class="transport-mode-tab" data-mode="bus" onclick="loadTransportMode('bus', this)">
+          <span class="fs-3">🚌</span>
+          <div>
+            <div class="fw-bold small">Bus &amp; Sleeper</div>
+            <div class="extra-small text-muted tab-sub">RTC &amp; AC Volvo Fleet</div>
+          </div>
+        </button>
+        <button type="button" class="transport-mode-tab" data-mode="car" onclick="loadTransportMode('car', this)">
+          <span class="fs-3">🚗</span>
+          <div>
+            <div class="fw-bold small">Cab / Drive</div>
+            <div class="extra-small text-muted tab-sub">Direct Doorstep Pickup</div>
+          </div>
+        </button>
+        <button type="button" class="transport-mode-tab" data-mode="flight" onclick="loadTransportMode('flight', this)">
+          <span class="fs-3">✈️</span>
+          <div>
+            <div class="fw-bold small">Flight</div>
+            <div class="extra-small text-muted tab-sub">Fastest Air Transit</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Schedules List Container -->
+      <div id="transportOptionsContainer" class="d-flex flex-column gap-3 mb-5">
+        <div class="text-center py-5 bg-white rounded-4 border">
+          <div class="spinner-border text-turquoise mb-2" role="status"></div>
+          <div class="small fw-semibold text-muted">Fetching live transport options from {{ source }} to {{ destination }}...</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── 3. Sticky Bottom Action Dock ────────────────────────────── -->
+  <div id="stickyTransportDock" class="sticky-stay-dock shadow-lg d-none">
+    <div class="container d-flex align-items-center justify-content-between flex-wrap gap-3 py-2 px-3">
+      <div>
+        <span class="badge bg-success text-dark extra-small fw-bold">✓ Transport Selected</span>
+        <div id="dockTransportTitle" class="fs-6 fw-bold text-white mt-1">Train / Bus</div>
+        <div id="dockTransportTiming" class="extra-small text-turquoise">06:30 ➔ 12:15</div>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <div class="text-end">
+          <div id="dockTransportFare" class="fs-5 fw-extrabold text-turquoise">₹850</div>
+          <div class="extra-small text-white-50">/ person (1 seat)</div>
+        </div>
+        <button type="button" class="btn btn-launch-gradient px-4 py-2 fw-bold text-white shadow" onclick="proceedToStaySummary()">
+          <span>Continue to Stay Summary</span>
+          <i class="bi bi-arrow-right ms-1"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const STAY_CTX = {
+  source: {{ source|tojson }},
+  destination: {{ destination|tojson }},
+  checkin: {{ checkin|tojson }},
+  checkout: {{ checkout|tojson }},
+  num_days: {{ num_days|tojson }},
+  travelers: {{ travelers|tojson }},
+  budget: {{ budget|tojson }},
+  stay: {{ stay|tojson }}
+};
+
+let activeMode = 'train';
+let selectedTransport = null;
+let cachedTransitResponse = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadTransportMode('train', document.querySelector('.transport-mode-tab[data-mode="train"]'));
+});
+
+async function loadTransportMode(mode, btnEl) {
+  activeMode = mode;
+  document.querySelectorAll('.transport-mode-tab').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+
+  if (cachedTransitResponse) {
+    renderTransportOptions(mode, cachedTransitResponse);
+    return;
+  }
+
+  const container = document.getElementById('transportOptionsContainer');
+  container.innerHTML = `
+    <div class="text-center py-5 bg-white rounded-4 border">
+      <div class="spinner-border text-turquoise mb-2" role="status"></div>
+      <div class="small fw-semibold text-muted">Loading ${mode.toUpperCase()} options...</div>
+    </div>
+  `;
+
+  try {
+    const res = await fetch('/planner/api/transit/calculate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source: STAY_CTX.source,
+        destination: STAY_CTX.destination,
+        selected_mode: mode,
+        travelers: parseInt(STAY_CTX.travelers) || 1
+      })
+    });
+    const data = await res.json();
+    cachedTransitResponse = data;
+    renderTransportOptions(mode, data);
+  } catch (err) {
+    container.innerHTML = `
+      <div class="alert alert-warning rounded-4">
+        Unable to fetch live schedules right now. Please try another mode or retry.
+      </div>
+    `;
+  }
+}
+
+function renderTransportOptions(mode, data) {
+  const container = document.getElementById('transportOptionsContainer');
+  const modeData = data?.all_options?.[mode] || data?.[mode] || data?.chosen_details || {};
+  const schedules = modeData.schedules || [];
+  const distKm = parseFloat(data?.distance_km || modeData.distance_km || 0);
+  const trav = Math.max(1, parseInt(STAY_CTX.travelers) || 1);
+
+  // Hide Flight tab if intra-city / short route (< 160 km)
+  const flightTab = document.querySelector('.transport-mode-tab[data-mode="flight"]');
+  if (flightTab && distKm > 0 && distKm < 160) {
+    flightTab.style.display = 'none';
+  }
+
+  if (modeData.available === false) {
+    container.innerHTML = `
+      <div class="alert alert-info rounded-4 border-0 shadow-sm p-4">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <strong>Not available for this route:</strong> ${escapeHtml(modeData.location_notice || 'No direct service for this distance. Please choose Bus, Train, or Cab.')}
+      </div>
+    `;
+    return;
+  }
+
+  if (!schedules.length) {
+    // Distance-aware fallback if a mode has no schedules
+    const effectiveDist = distKm > 0 ? distKm : 150;
+    const isLocal = effectiveDist < 50;
+    const speedKmh = mode === 'flight' ? 550 : mode === 'train' ? 58 : mode === 'car' ? (isLocal ? 28 : 55) : 45;
+    const hrs = Math.max(0.4, effectiveDist / speedKmh);
+    const durStr = hrs < 1 ? `${Math.round(hrs * 60)}m` : `${Math.floor(hrs)}h ${Math.round((hrs % 1) * 60)}m`;
+    const fare = mode === 'flight' ? Math.max(2800, Math.round(effectiveDist * 7.5))
+      : mode === 'car' ? Math.max(150, Math.round((effectiveDist * 16 + 150) / trav))
+      : mode === 'bus' ? Math.max(45, Math.round(effectiveDist * 2.1))
+      : Math.max(35, Math.round(effectiveDist * 1.45));
+    const title = isLocal
+      ? (mode === 'car' ? 'City AC Cab (Direct Pickup)' : mode === 'bus' ? 'City AC Express / Volvo Shuttle' : 'Local Suburban / Metro Rail')
+      : (mode === 'flight' ? `${STAY_CTX.source} ➔ ${STAY_CTX.destination.split(',')[0]} Direct Flight`
+        : mode === 'car' ? 'Outstation AC Sedan (Direct Pickup)'
+        : mode === 'bus' ? 'Express AC Sleeper Coach'
+        : 'Inter-City Express Rail');
+    renderCardsHtml([{
+      title,
+      departure: '07:00',
+      arrival: hrs < 1 ? `07:${String(Math.round(hrs * 60)).padStart(2, '0')}` : `${String((7 + Math.floor(hrs)) % 24).padStart(2, '0')}:${String(Math.round((hrs % 1) * 60)).padStart(2, '0')}`,
+      duration: durStr,
+      fare,
+      details: `${effectiveDist} km • ${mode.toUpperCase()} Connection`
+    }], mode);
+    return;
+  }
+
+  const normalized = schedules.map(item => {
+    let fare = item.fare_per_seat || item.price_per_seat || modeData.min_fare_per_seat || 650;
+    if (mode === 'car') {
+      fare = Math.round(fare / trav);
+    }
+    const label = item.train_name
+      ? `${item.train_name}${item.train_number ? ' (' + item.train_number + ')' : ''}`
+      : (item.operator || item.airline || `${mode.toUpperCase()} Option`);
+    return {
+      title: label,
+      departure: item.departure || modeData.departure_time || '07:00',
+      arrival: item.arrival || modeData.arrival_time || '12:00',
+      duration: item.duration || modeData.travel_duration || '4h 30m',
+      fare: Math.round(fare),
+      details: item.type || item.vehicle_model || item.details || `${distKm} km • Verified Carrier`
+    };
+  });
+
+  renderCardsHtml(normalized, mode);
+}
+
+function renderCardsHtml(items, mode) {
+  const container = document.getElementById('transportOptionsContainer');
+  const icon = mode === 'train' ? '🚆' : mode === 'bus' ? '🚌' : mode === 'flight' ? '✈️' : '🚗';
+
+  container.innerHTML = items.map((item, idx) => `
+    <div class="ticket-option-card" id="tCard_${idx}" onclick="selectTransportOption(${idx}, '${mode}', '${escapeAttr(item.title)}', ${item.fare}, '${escapeAttr(item.departure)}', '${escapeAttr(item.arrival)}', '${escapeAttr(item.duration)}', '${escapeAttr(item.details)}')">
+      <div class="d-flex align-items-center gap-3">
+        <span class="fs-2">${icon}</span>
+        <div>
+          <div class="fw-bold text-navy">${escapeHtml(item.title)}</div>
+          <div class="extra-small text-muted">${escapeHtml(item.details)} • Duration: <strong>${escapeHtml(item.duration)}</strong></div>
+          <div class="small fw-semibold text-turquoise mt-1">${escapeHtml(item.departure)} ➔ ${escapeHtml(item.arrival)}</div>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-3 ms-auto">
+        <div class="text-end">
+          <div class="fs-4 fw-extrabold text-navy">₹${Number(item.fare).toLocaleString('en-IN')}</div>
+          <div class="extra-small text-muted">/ person (1 seat)</div>
+        </div>
+        <button type="button" class="btn btn-sm btn-gradient-select-stay text-white fw-bold rounded-pill px-3 py-2">
+          Select ➔
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectTransportOption(idx, mode, title, fare, dep, arr, dur, details) {
+  selectedTransport = { mode, title, fare, departure: dep, arrival: arr, duration: dur, details };
+
+  document.querySelectorAll('.ticket-option-card').forEach(c => c.classList.remove('is-selected'));
+  const card = document.getElementById(`tCard_${idx}`);
+  if (card) card.classList.add('is-selected');
+
+  document.getElementById('dockTransportTitle').textContent = `${mode.toUpperCase()} • ${title}`;
+  document.getElementById('dockTransportTiming').textContent = `${dep} ➔ ${arr} (${dur})`;
+  document.getElementById('dockTransportFare').textContent = `₹${Number(fare).toLocaleString('en-IN')}`;
+  document.getElementById('stickyTransportDock').classList.remove('d-none');
+}
+
+function proceedToStaySummary() {
+  if (!selectedTransport) return;
+
+  const s = STAY_CTX.stay;
+  const url = `/stay-manager/summary?source=${encodeURIComponent(STAY_CTX.source)}` +
+    `&destination=${encodeURIComponent(STAY_CTX.destination)}` +
+    `&checkin=${encodeURIComponent(STAY_CTX.checkin)}` +
+    `&checkout=${encodeURIComponent(STAY_CTX.checkout)}` +
+    `&num_days=${encodeURIComponent(STAY_CTX.num_days)}` +
+    `&travelers=${encodeURIComponent(STAY_CTX.travelers)}` +
+    `&budget=${encodeURIComponent(STAY_CTX.budget)}` +
+    `&stay_id=${encodeURIComponent(s.id)}` +
+    `&stay_name=${encodeURIComponent(s.name)}` +
+    `&stay_price=${encodeURIComponent(s.price_per_night)}` +
+    `&stay_pppd=${encodeURIComponent(s.price_per_person_day)}` +
+    `&stay_lat=${encodeURIComponent(s.lat)}` +
+    `&stay_lon=${encodeURIComponent(s.lon)}` +
+    `&stay_img=${encodeURIComponent(s.img)}` +
+    `&stay_address=${encodeURIComponent(s.address)}` +
+    `&stay_dist=${encodeURIComponent(s.distance_km)}` +
+    `&stay_mins=${encodeURIComponent(s.drive_mins)}` +
+    `&transit_mode=${encodeURIComponent(selectedTransport.mode)}` +
+    `&transit_title=${encodeURIComponent(selectedTransport.title)}` +
+    `&transit_fare=${encodeURIComponent(selectedTransport.fare)}` +
+    `&transit_dep=${encodeURIComponent(selectedTransport.departure)}` +
+    `&transit_arr=${encodeURIComponent(selectedTransport.arrival)}` +
+    `&transit_dur=${encodeURIComponent(selectedTransport.duration)}` +
+    `&transit_details=${encodeURIComponent(selectedTransport.details)}`;
+
+  window.location.href = url;
+}
+
+function escapeHtml(str) {
+  return String(str || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+}
+function escapeAttr(str) {
+  return String(str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+</script>
+{% endblock %}
+
+{% block footer %}
+<!-- No global footer in Stay Manager -->
+{% endblock %}

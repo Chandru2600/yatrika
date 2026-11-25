@@ -110,15 +110,23 @@ def create_app(env: str = "development") -> Flask:
             "user_id":     session.get("user_id"),
         }
 
-    # ── Error handlers ──────────────────────────────────────
+    # ── Logging & Error handlers ────────────────────────────
+    import logging
+    logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s %(name)s: %(message)s")
+
     @app.errorhandler(404)
     def not_found(e):
-        from flask import render_template
+        from flask import render_template, jsonify
+        if request.path.startswith("/api/") or "/api/" in request.path or request.is_json:
+            return jsonify({"status": "error", "error": "Endpoint not found."}), 404
         return render_template("errors/404.html"), 404
 
     @app.errorhandler(500)
     def server_error(e):
-        from flask import render_template
+        from flask import render_template, jsonify
+        app.logger.exception("Unhandled 500 error on %s", request.path)
+        if request.path.startswith("/api/") or "/api/" in request.path or request.is_json:
+            return jsonify({"status": "error", "error": "Internal server error. Please try again."}), 500
         return render_template("errors/500.html"), 500
 
     return app
@@ -131,5 +139,6 @@ if __name__ == "__main__":
     application.run(
         host="0.0.0.0",
         port=int(os.environ.get("PORT", 5000)),
-        debug=(env == "development")
+        debug=(env == "development"),
+        threaded=True
     )

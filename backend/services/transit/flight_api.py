@@ -42,8 +42,34 @@ def fetch_flight_fares(source: str, dest: str, dist_km: float, travelers: int = 
         except Exception:
             pass
 
+    # Gate out intra-city and short-distance routes (< 160 km) where commercial flights don't apply
+    if dist_km < 160:
+        return {
+            "mode": "flight",
+            "available": False,
+            "mode_title": "No direct flights for this short-distance route",
+            "api_source": "Route Distance Gate",
+            "airline": "Not available",
+            "departure_airport": src_hub.get("nearest_airport_name", source),
+            "arrival_airport": dst_hub.get("nearest_airport_name", dest),
+            "departure_time": "—",
+            "arrival_time": "—",
+            "flight_duration": "—",
+            "total_transit_hours": 0,
+            "selected_class": flight_class,
+            "fare_per_traveler": 0,
+            "min_fare_per_seat": 0,
+            "total_cost": 0,
+            "class_tiers": [],
+            "schedules": [],
+            "location_notice": f"No commercial flights needed/available for a {dist_km} km route.",
+            "has_direct_hub": False,
+            "details_summary": "No commercial flights available for short-distance route"
+        }
+
     air_dist = max(dist_km * 0.72, 120)
     flight_hours = round(0.8 + (air_dist / 680.0), 1)
+    flight_mins = int(round(flight_hours * 60))
 
     # Indian Domestic Aviation Fare Engine
     if air_dist < 400:
@@ -61,42 +87,40 @@ def fetch_flight_fares(source: str, dest: str, dist_km: float, travelers: int = 
     transfer_cab_fee = dst_hub.get("airport_transfer_cab_cost", 0) if not dst_hub["has_airport"] else 0
     total_cost = (fare_per_seat * travelers) + transfer_cab_fee
 
+    dur_str = f"{flight_mins // 60}h {flight_mins % 60:02d}m"
     schedules = [
         {
-            "airline": f"IndiGo 6E-{(abs(hash(source+dest))%700)+100}",
+            "airline": f"IndiGo ({src_iata} ➔ {dst_iata})",
             "airline_code": "6E",
             "type": "Non-stop",
             "departure": "08:30",
-            "arrival": f"{(8*60+30 + int(flight_hours*60)+120)//60 % 24:02d}:{(8*60+30 + int(flight_hours*60)+120)%60:02d}",
-            "duration": f"{int(flight_hours)}h {int((flight_hours % 1) * 60)}m",
+            "arrival": f"{(8*60+30 + flight_mins)//60 % 24:02d}:{(8*60+30 + flight_mins)%60:02d}",
+            "duration": dur_str,
             "price_per_seat": fare_per_seat,
             "total": (fare_per_seat * travelers) + transfer_cab_fee,
-            "baggage": "Cabin: 7kg, Check-in: 15kg included",
-            "seats_available": 19
+            "baggage": "Cabin: 7kg, Check-in: 15kg included"
         },
         {
-            "airline": f"Air India AI-{(abs(hash(dest+source))%700)+100}",
+            "airline": f"Air India ({src_iata} ➔ {dst_iata})",
             "airline_code": "AI",
             "type": "Non-stop",
             "departure": "14:15",
-            "arrival": f"{(14*60+15 + int(flight_hours*60)+120)//60 % 24:02d}:{(14*60+15 + int(flight_hours*60)+120)%60:02d}",
-            "duration": f"{int(flight_hours)}h {int((flight_hours % 1) * 60)}m",
+            "arrival": f"{(14*60+15 + flight_mins)//60 % 24:02d}:{(14*60+15 + flight_mins)%60:02d}",
+            "duration": dur_str,
             "price_per_seat": round(fare_per_seat * 1.06),
             "total": (round(fare_per_seat * 1.06) * travelers) + transfer_cab_fee,
-            "baggage": "Cabin: 7kg, Check-in: 20kg included (Full Service)",
-            "seats_available": 11
+            "baggage": "Cabin: 7kg, Check-in: 20kg included"
         },
         {
-            "airline": f"Akasa Air QP-{(abs(hash(source))%700)+1100}",
+            "airline": f"Akasa Air ({src_iata} ➔ {dst_iata})",
             "airline_code": "QP",
             "type": "Non-stop",
             "departure": "19:40",
-            "arrival": f"{(19*60+40 + int(flight_hours*60)+120)//60 % 24:02d}:{(19*60+40 + int(flight_hours*60)+120)%60:02d}",
-            "duration": f"{int(flight_hours)}h {int((flight_hours % 1) * 60)}m",
+            "arrival": f"{(19*60+40 + flight_mins)//60 % 24:02d}:{(19*60+40 + flight_mins)%60:02d}",
+            "duration": dur_str,
             "price_per_seat": round(fare_per_seat * 0.96),
             "total": (round(fare_per_seat * 0.96) * travelers) + transfer_cab_fee,
-            "baggage": "Cabin: 7kg, Check-in: 15kg included (Café Akasa)",
-            "seats_available": 14
+            "baggage": "Cabin: 7kg, Check-in: 15kg included"
         }
     ]
 

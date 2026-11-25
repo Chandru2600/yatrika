@@ -82,7 +82,19 @@
     { name: "Mahabaleshwar", cleanName: "Mahabaleshwar", state: "Maharashtra", cat: "hill", icon: "🍓", tag: "Strawberry Hills", tagline: "Arthur's Seat, Venna Lake & Western Ghats Vista", lat: 17.9237, lon: 73.6586, popular: false },
     { name: "Lonavala & Khandala", cleanName: "Lonavala", state: "Maharashtra", cat: "hill", icon: "🌧️", tag: "Monsoon Getaway", tagline: "Tiger's Leap, Bhushi Dam & Karla Caves", lat: 18.7557, lon: 73.4091, popular: false },
     { name: "Varanasi (Kashi)", cleanName: "Varanasi", state: "Uttar Pradesh", cat: "spiritual", icon: "🛕", tag: "Eternal City", tagline: "Dashashwamedh Ghat Aarti, Kashi Vishwanath & Ganga", lat: 25.3176, lon: 82.9739, popular: true },
-    { name: "Agra", cleanName: "Agra", state: "Uttar Pradesh", cat: "heritage", icon: "🕌", tag: "Wonders of the World", tagline: "Taj Mahal, Agra Fort & Mehtab Bagh", lat: 27.1767, lon: 78.0081, popular: true }
+    { name: "Agra", cleanName: "Agra", state: "Uttar Pradesh", cat: "heritage", icon: "🕌", tag: "Wonders of the World", tagline: "Taj Mahal, Agra Fort & Mehtab Bagh", lat: 27.1767, lon: 78.0081, popular: true },
+
+    // Office Hubs & Tech Parks (India Corporate & IT Hubs)
+    { name: "Infosys Electronic City, Bengaluru", cleanName: "Infosys Electronic City, Bengaluru", state: "Karnataka", cat: "work", icon: "🏢", tag: "Tech Park", tagline: "Electronic City Phase 1, Hosur Road, Bengaluru", lat: 12.8452, lon: 77.6602, popular: true },
+    { name: "Manyata Tech Park, Bengaluru", cleanName: "Manyata Tech Park, Bengaluru", state: "Karnataka", cat: "work", icon: "🏢", tag: "Tech Park", tagline: "Hebbal Outer Ring Road, Nagawara, Bengaluru", lat: 13.0487, lon: 77.6214, popular: true },
+    { name: "Whitefield (ITPB), Bengaluru", cleanName: "Whitefield, Bengaluru", state: "Karnataka", cat: "work", icon: "🏢", tag: "Tech Corridor", tagline: "International Tech Park Bangalore (ITPB), Whitefield", lat: 12.9863, lon: 77.7380, popular: true },
+    { name: "EcoSpace Business Park, Bellandur, Bengaluru", cleanName: "EcoSpace Bellandur, Bengaluru", state: "Karnataka", cat: "work", icon: "🏢", tag: "Tech Park", tagline: "Outer Ring Road, Bellandur, Bengaluru", lat: 12.9260, lon: 77.6830, popular: true },
+    { name: "Bandra Kurla Complex (BKC), Mumbai", cleanName: "BKC Mumbai", state: "Maharashtra", cat: "work", icon: "🏦", tag: "Financial Hub", tagline: "Bandra Kurla Commercial District, Mumbai", lat: 19.0657, lon: 72.8687, popular: true },
+    { name: "DLF Cyber City, Gurugram", cleanName: "DLF Cyber City, Gurugram", state: "Haryana", cat: "work", icon: "🏢", tag: "Business Hub", tagline: "DLF CyberHub & Cyber City, Gurugram (Delhi NCR)", lat: 28.4952, lon: 77.0895, popular: true },
+    { name: "HITEC City / Madhapur, Hyderabad", cleanName: "HITEC City, Hyderabad", state: "Telangana", cat: "work", icon: "🏢", tag: "Cyberabad IT Hub", tagline: "Madhapur, Mindspace & HITEC City, Hyderabad", lat: 17.4474, lon: 78.3762, popular: true },
+    { name: "EON Free Zone, Kharadi, Pune", cleanName: "EON IT Park Kharadi, Pune", state: "Maharashtra", cat: "work", icon: "🏢", tag: "Tech Park", tagline: "Kharadi IT Park & World Trade Center, Pune", lat: 18.5516, lon: 73.9535, popular: true },
+    { name: "Tidel Park / OMR IT Corridor, Chennai", cleanName: "OMR IT Corridor, Chennai", state: "Tamil Nadu", cat: "work", icon: "🏢", tag: "IT Corridor", tagline: "Taramani Tidel Park & Rajiv Gandhi Salai (OMR), Chennai", lat: 12.9897, lon: 80.2486, popular: true },
+    { name: "Sector 62 / Electronic City, Noida", cleanName: "Sector 62, Noida", state: "Uttar Pradesh", cat: "work", icon: "🏢", tag: "IT & Commercial", tagline: "Sector 62 Institutional & IT Area, Noida NCR", lat: 28.6253, lon: 77.3653, popular: true }
   ];
 
   // ── 2. Curated Indian Starting Transit Hubs (Origins) ──────────────
@@ -220,7 +232,8 @@
           d.cleanName.toLowerCase() === q || d.name.toLowerCase().includes(q)
         );
         if (found) {
-          const catLabel = found.cat === 'hill' ? 'Hill Station' :
+          const catLabel = found.cat === 'work' ? 'Office / Work' :
+                           found.cat === 'hill' ? 'Hill Station' :
                            found.cat === 'beach' ? 'Beach' :
                            found.cat === 'heritage' ? 'Heritage' :
                            found.cat === 'nature' ? 'Base Camp' : 'Spiritual';
@@ -354,7 +367,8 @@
 
       if (matched.length > 0) {
         matched.forEach((d, idx) => {
-          const badgeClass = d.cat === 'hill' ? 'badge-hill' :
+          const badgeClass = d.cat === 'work' ? 'badge-hub' :
+                             d.cat === 'hill' ? 'badge-hill' :
                              d.cat === 'beach' ? 'badge-beach' :
                              d.cat === 'heritage' ? 'badge-heritage' :
                              d.cat === 'nature' ? 'badge-nature' : 'badge-heritage';

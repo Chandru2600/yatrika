@@ -46,6 +46,7 @@
     pointer-events: none;
     z-index: 0;
   }
+
   .orb-coral {
     position: absolute;
     bottom: 12%;
@@ -66,6 +67,7 @@
     margin-bottom: 20px;
     max-width: 600px;
   }
+
   .launchpad-title {
     font-size: clamp(1.8rem, 3.2vw, 2.35rem);
     font-weight: 800;
@@ -74,11 +76,13 @@
     margin-bottom: 6px;
     line-height: 1.18;
   }
+
   .text-cyan-gradient {
     background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 50%, #38bdf8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
+
   .launchpad-sub {
     font-size: 0.9rem;
     color: #94a3b8;
@@ -93,6 +97,7 @@
     position: relative;
     z-index: 2;
   }
+
   .launchpad-card {
     background: var(--launch-card-bg);
     backdrop-filter: blur(28px);
@@ -104,6 +109,7 @@
     transition: transform 0.15s ease-out, box-shadow 0.25s ease;
     transform-style: preserve-3d;
   }
+
   .launchpad-card:hover {
     box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.75), 0 0 40px rgba(20, 184, 166, 0.2);
     border-color: rgba(45, 212, 191, 0.35);
@@ -116,6 +122,7 @@
     gap: 12px;
     margin-bottom: 12px;
   }
+
   @media (max-width: 640px) {
     .route-picker-row {
       grid-template-columns: 1fr;
@@ -139,6 +146,7 @@
     width: 100%;
     position: relative;
   }
+
   .place-autocomplete-container .place-input-box {
     background: rgba(255, 255, 255, 0.06);
     border: 1.5px solid rgba(255, 255, 255, 0.14);
@@ -149,11 +157,13 @@
     gap: 10px;
     transition: all 0.2s ease;
   }
+
   .place-autocomplete-container .place-input-box:focus-within {
     background: rgba(255, 255, 255, 0.1);
     border-color: #2dd4bf;
     box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
   }
+
   .place-autocomplete-container .place-text-input {
     background: transparent !important;
     border: none !important;
@@ -164,37 +174,10 @@
     outline: none !important;
     padding: 2px 0;
   }
+
   .place-autocomplete-container .place-text-input::placeholder {
     color: rgba(255, 255, 255, 0.4);
     font-weight: 400;
-  }
-
-  /* ── Quick Popular Pills ───────────────────────────────────── */
-  .quick-hubs-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-    padding-bottom: 2px;
-  }
-  .quick-hub-pill {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #cbd5e1;
-    border-radius: 999px;
-    padding: 4px 11px;
-    font-size: 0.74rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.18s ease;
-  }
-  .quick-hub-pill:hover {
-    background: #14b8a6;
-    border-color: #14b8a6;
-    color: #ffffff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.35);
   }
 
   /* ── Compact Control Strip (Dates, Travelers, Budget) ──────── */
@@ -204,6 +187,7 @@
     gap: 10px;
     margin-bottom: 16px;
   }
+
   @media (max-width: 640px) {
     .trip-controls-strip {
       grid-template-columns: 1fr;
@@ -216,10 +200,12 @@
     border-radius: 14px;
     padding: 8px 12px;
   }
+
   .strip-box:focus-within {
     border-color: #2dd4bf;
     background: rgba(255, 255, 255, 0.08);
   }
+
   .strip-input {
     background: transparent;
     border: none;
@@ -229,6 +215,7 @@
     width: 100%;
     outline: none;
   }
+
   .strip-input::-webkit-calendar-picker-indicator {
     filter: invert(1);
     cursor: pointer;
@@ -249,6 +236,7 @@
     cursor: pointer;
     transition: all 0.15s ease;
   }
+
   .stepper-mini-btn:hover {
     background: #14b8a6;
     border-color: #14b8a6;
@@ -262,6 +250,7 @@
     padding: 10px 14px;
     margin-bottom: 20px;
   }
+
   .budget-slider {
     width: 100%;
     height: 5px;
@@ -279,6 +268,7 @@
     grid-template-columns: 1fr 1fr;
     gap: 12px;
   }
+
   @media (max-width: 640px) {
     .launch-action-grid {
       grid-template-columns: 1fr;
@@ -305,6 +295,7 @@
     border-color: rgba(45, 212, 191, 0.5);
     box-shadow: 0 4px 16px rgba(20, 184, 166, 0.2);
   }
+
   .btn-engine-express:hover {
     background: linear-gradient(135deg, rgba(20, 184, 166, 0.4) 0%, rgba(13, 148, 136, 0.5) 100%);
     border-color: #2dd4bf;
@@ -318,6 +309,7 @@
     border-color: rgba(251, 146, 60, 0.45);
     box-shadow: 0 4px 16px rgba(249, 115, 22, 0.18);
   }
+
   .btn-engine-studio:hover {
     background: linear-gradient(135deg, rgba(249, 115, 22, 0.38) 0%, rgba(234, 88, 12, 0.46) 100%);
     border-color: #fb923c;
@@ -334,6 +326,7 @@
     gap: 6px;
     margin-bottom: 2px;
   }
+
   .engine-btn-sub {
     font-size: 0.74rem;
     color: rgba(255, 255, 255, 0.7);
@@ -350,6 +343,7 @@
     margin-top: 18px;
     transition: color 0.18s ease;
   }
+
   .dashboard-pill-link:hover {
     color: #2dd4bf;
   }
@@ -360,7 +354,7 @@
 <section class="launchpad-viewport" id="launchpadViewport">
   <!-- 3D Interactive Canvas Background -->
   <canvas id="launchpad3DCanvas"></canvas>
-  
+
   <!-- Ambient Atmospheric Light Glows -->
   <div class="orb-cyan"></div>
   <div class="orb-coral"></div>
@@ -379,7 +373,7 @@
   <div class="card-3d-wrapper" id="card3DWrapper">
     <div class="launchpad-card" id="launchpadCard">
       <form id="masterTripForm" method="POST" action="{{ url_for('planner.new_trip') }}">
-        
+
         <!-- Row 1: Source & Destination with Place Autocomplete -->
         <div class="route-picker-row">
           <!-- Origin -->
@@ -390,8 +384,11 @@
             <div class="place-autocomplete-container" data-type="origin" id="originContainer">
               <div class="place-input-box origin-box">
                 <i class="bi bi-geo-alt text-muted"></i>
-                <input type="text" name="source" id="tripSource" class="place-text-input" placeholder="e.g. Bengaluru, Mumbai, Delhi..." value="{{ source or 'Bengaluru' }}" autocomplete="off" required />
-                <button type="button" class="place-clear-btn d-none" title="Clear city"><i class="bi bi-x-lg"></i></button>
+                <input type="text" name="source" id="tripSource" class="place-text-input"
+                  placeholder="e.g. Bengaluru, Mumbai, Delhi..." value="{{ source or 'Bengaluru' }}" autocomplete="off"
+                  required />
+                <button type="button" class="place-clear-btn d-none" title="Clear city"><i
+                    class="bi bi-x-lg"></i></button>
                 <div class="place-indicator-chip d-none"><span class="place-chip-badge"></span></div>
               </div>
               <div class="place-rec-dropdown d-none"></div>
@@ -406,8 +403,11 @@
             <div class="place-autocomplete-container" data-type="destination" id="destContainer">
               <div class="place-input-box">
                 <i class="bi bi-pin-map text-turquoise"></i>
-                <input type="text" name="destination" id="tripDestination" class="place-text-input" placeholder="Search destination (e.g. Coorg, Ooty, Hampi)..." value="{{ destination or 'Coorg' }}" autocomplete="off" required />
-                <button type="button" class="place-clear-btn d-none" title="Clear destination"><i class="bi bi-x-lg"></i></button>
+                <input type="text" name="destination" id="tripDestination" class="place-text-input"
+                  placeholder="Search destination (e.g. Coorg, Ooty, Hampi)..." value="{{ destination or 'Coorg' }}"
+                  autocomplete="off" required />
+                <button type="button" class="place-clear-btn d-none" title="Clear destination"><i
+                    class="bi bi-x-lg"></i></button>
                 <div class="place-indicator-chip d-none"><span class="place-chip-badge"></span></div>
               </div>
               <div class="place-rec-dropdown d-none"></div>
@@ -415,29 +415,20 @@
           </div>
         </div>
 
-        <!-- Quick Destination Pills -->
-        <div class="quick-hubs-bar">
-          <span class="small fw-bold text-uppercase me-1" style="font-size: 0.68rem; color: #64748b; letter-spacing: 0.05em;">POPULAR:</span>
-          <button type="button" class="quick-hub-pill" onclick="selectQuickHub('Coorg', 'Bengaluru')">🌿 Coorg</button>
-          <button type="button" class="quick-hub-pill" onclick="selectQuickHub('Ooty', 'Bengaluru')">🌸 Ooty</button>
-          <button type="button" class="quick-hub-pill" onclick="selectQuickHub('Chikmagalur', 'Bengaluru')">☕ Chikmagalur</button>
-          <button type="button" class="quick-hub-pill" onclick="selectQuickHub('Hampi', 'Bengaluru')">🏛️ Hampi</button>
-          <button type="button" class="quick-hub-pill" onclick="selectQuickHub('South Goa', 'Mumbai')">🏖️ Goa</button>
-          <button type="button" class="quick-hub-pill" onclick="selectQuickHub('Munnar', 'Bengaluru')">🫖 Munnar</button>
-        </div>
-
         <!-- Row 2: Dates & Travelers in Compact Strip -->
         <div class="trip-controls-strip">
           <!-- Start Date -->
           <div class="strip-box">
             <label class="compact-input-label"><i class="bi bi-calendar-event text-muted"></i> Start Date</label>
-            <input type="date" name="start_date" id="tripStartDate" class="strip-input" onchange="calculateDuration()" />
+            <input type="date" name="start_date" id="tripStartDate" class="strip-input"
+              onchange="calculateDuration()" />
           </div>
 
           <!-- Return Date -->
           <div class="strip-box">
             <label class="compact-input-label">
-              <i class="bi bi-calendar-check text-muted"></i> End Date (<span id="durationBadge" class="text-turquoise">3 Days</span>)
+              <i class="bi bi-calendar-check text-muted"></i> End Date (<span id="durationBadge"
+                class="text-turquoise">3 Days</span>)
             </label>
             <input type="date" name="end_date" id="tripEndDate" class="strip-input" onchange="calculateDuration()" />
             <input type="hidden" name="num_days" id="tripDays" value="3" />
@@ -464,7 +455,8 @@
               <span class="text-white-50 extra-small ms-1" id="perPersonDisplay">(₹15,000/person)</span>
             </div>
           </div>
-          <input type="range" class="budget-slider" id="budgetRange" min="5000" max="200000" step="5000" value="30000" oninput="updateBudget(this.value)" />
+          <input type="range" class="budget-slider" id="budgetRange" min="5000" max="200000" step="5000" value="30000"
+            oninput="updateBudget(this.value)" />
           <input type="hidden" name="budget" id="tripBudget" value="30000" />
         </div>
 
@@ -507,22 +499,27 @@
 
 {% block modals %}
 <!-- ── Express AI Transit Mode Selection Modal ── -->
-<div class="modal fade" id="expressTransitModal" tabindex="-1" aria-labelledby="expressTransitModalLabel" aria-hidden="true" style="z-index: 1060;">
+<div class="modal fade" id="expressTransitModal" tabindex="-1" aria-labelledby="expressTransitModalLabel"
+  aria-hidden="true" style="z-index: 1060;">
   <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; overflow: hidden; background: #0B1F33; color: #ffffff; border: 1.5px solid rgba(45, 212, 191, 0.4) !important;">
+    <div class="modal-content border-0 shadow-lg"
+      style="border-radius: 24px; overflow: hidden; background: #0B1F33; color: #ffffff; border: 1.5px solid rgba(45, 212, 191, 0.4) !important;">
       <div class="modal-header border-0 pb-0 pt-4 px-4 px-md-5">
         <div>
-          <span class="badge rounded-pill bg-turquoise text-dark fw-bold px-3 py-1 mb-2" style="font-size: 0.72rem;">EXPRESS AUTO-PILOT</span>
+          <span class="badge rounded-pill bg-turquoise text-dark fw-bold px-3 py-1 mb-2"
+            style="font-size: 0.72rem;">EXPRESS AUTO-PILOT</span>
           <h4 class="modal-title fw-extrabold text-white" id="expressTransitModalLabel">
             How would you like to travel to <span id="modalExpressDest" class="text-turquoise">Destination</span>?
           </h4>
-          <p class="text-white-50 small mb-0">Select your preferred transport mode below for direct AI itinerary generation:</p>
+          <p class="text-white-50 small mb-0">Select your preferred transport mode below for direct AI itinerary
+            generation:</p>
         </div>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      
+
       <div class="modal-body p-4 p-md-5">
-        <div class="p-3 mb-4 rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-2" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+        <div class="p-3 mb-4 rounded-3 d-flex flex-wrap align-items-center justify-content-between gap-2"
+          style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
           <div class="small text-white-50">
             <i class="bi bi-shield-check text-turquoise me-1"></i> Locked Parameters:
             <span class="text-white fw-bold ms-1" id="lockedTripSummary">Loading parameters…</span>
@@ -533,41 +530,55 @@
         <div class="row g-3">
           <!-- 1: Train -->
           <div class="col-sm-6 col-lg-3">
-            <div class="p-3 rounded-4 text-center h-100 cursor-pointer" style="background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.14); cursor: pointer;" onclick="executeExpressGeneration('train')">
+            <div class="p-3 rounded-4 text-center h-100 cursor-pointer"
+              style="background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.14); cursor: pointer;"
+              onclick="executeExpressGeneration('train')">
               <div class="fs-1 mb-1">🚆</div>
               <h6 class="fw-bold text-white mb-1">Train</h6>
-              <span class="badge bg-secondary-subtle text-white-50 extra-small mb-2" style="font-size: 0.68rem;">IRCTC Rail</span>
-              <p class="extra-small text-white-50 mb-0">Scenic train journey with confirmed berths &amp; station buffer.</p>
+              <span class="badge bg-dark text-turquoise border border-secondary extra-small mb-2" style="font-size: 0.68rem;">IRCTC
+                Rail</span>
+              <p class="extra-small text-white-50 mb-0">Scenic train journey with confirmed berths &amp; station buffer.
+              </p>
             </div>
           </div>
 
           <!-- 2: Bus -->
           <div class="col-sm-6 col-lg-3">
-            <div class="p-3 rounded-4 text-center h-100 cursor-pointer" style="background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.14); cursor: pointer;" onclick="executeExpressGeneration('bus')">
+            <div class="p-3 rounded-4 text-center h-100 cursor-pointer"
+              style="background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.14); cursor: pointer;"
+              onclick="executeExpressGeneration('bus')">
               <div class="fs-1 mb-1">🚌</div>
               <h6 class="fw-bold text-white mb-1">Bus</h6>
-              <span class="badge bg-secondary-subtle text-white-50 extra-small mb-2" style="font-size: 0.68rem;">KSRTC / Sleeper</span>
+              <span class="badge bg-dark text-turquoise border border-secondary extra-small mb-2" style="font-size: 0.68rem;">KSRTC /
+                Sleeper</span>
               <p class="extra-small text-white-50 mb-0">Direct overnight coach straight to Base Camp.</p>
             </div>
           </div>
 
           <!-- 3: Flight -->
           <div class="col-sm-6 col-lg-3">
-            <div class="p-3 rounded-4 text-center h-100 cursor-pointer" style="background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.14); cursor: pointer;" onclick="executeExpressGeneration('flight')">
+            <div class="p-3 rounded-4 text-center h-100 cursor-pointer"
+              style="background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.14); cursor: pointer;"
+              onclick="executeExpressGeneration('flight')">
               <div class="fs-1 mb-1">✈️</div>
               <h6 class="fw-bold text-white mb-1">Airplane</h6>
-              <span class="badge bg-secondary-subtle text-white-50 extra-small mb-2" style="font-size: 0.68rem;">Airways + Cab</span>
+              <span class="badge bg-dark text-turquoise border border-secondary extra-small mb-2" style="font-size: 0.68rem;">Airways
+                + Cab</span>
               <p class="extra-small text-white-50 mb-0">Fastest arrival time with seamless airport pickup transfers.</p>
             </div>
           </div>
 
           <!-- 4: Car / Cab -->
           <div class="col-sm-6 col-lg-3">
-            <div class="p-3 rounded-4 text-center h-100 cursor-pointer" style="background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.14); cursor: pointer;" onclick="executeExpressGeneration('car')">
+            <div class="p-3 rounded-4 text-center h-100 cursor-pointer"
+              style="background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.14); cursor: pointer;"
+              onclick="executeExpressGeneration('car')">
               <div class="fs-1 mb-1">🚗</div>
               <h6 class="fw-bold text-white mb-1">Car / Cab</h6>
-              <span class="badge bg-secondary-subtle text-white-50 extra-small mb-2" style="font-size: 0.68rem;">Private Drive</span>
-              <p class="extra-small text-white-50 mb-0">Complete freedom with scenic ghat viewpoints &amp; flexible stops.</p>
+              <span class="badge bg-dark text-turquoise border border-secondary extra-small mb-2" style="font-size: 0.68rem;">Private
+                Drive</span>
+              <p class="extra-small text-white-50 mb-0">Complete freedom with scenic ghat viewpoints &amp; flexible
+                stops.</p>
             </div>
           </div>
         </div>

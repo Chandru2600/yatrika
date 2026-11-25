@@ -267,7 +267,7 @@ function applyStayFilters() {
     } else if (currentSort === 'rating') {
       return ratingB - ratingA; // Highest Rated
     }
-    return 0; // AI Recommended (server default)
+    return (parseInt(a.dataset.order) || 0) - (parseInt(b.dataset.order) || 0); // AI Recommended (server default)
   });
 
   visibleCards.forEach(c => container.appendChild(c));
@@ -413,7 +413,9 @@ async function renderFloatingMapMarkersAndRoute(hotelLat, hotelLon, hotelName, p
   // 2. Selected Hotel Marker
   const pinEl = document.createElement('div');
   pinEl.className = 'custom-hotel-pin active-pin';
-  pinEl.innerHTML = `₹${Number(price).toLocaleString('en-IN')}`;
+  const travelersCount = currentStayData?.travelers || 1;
+  const perPersonPrice = Math.round(Number(price) / Math.max(1, travelersCount));
+  pinEl.innerHTML = `₹${perPersonPrice.toLocaleString('en-IN')}/person/day`;
 
   const hotelMarker = new maplibregl.Marker({ element: pinEl })
     .setLngLat([hotelLon, hotelLat])
@@ -422,9 +424,10 @@ async function renderFloatingMapMarkersAndRoute(hotelLat, hotelLon, hotelName, p
         <img src="${img}" style="width: 100%; height: 95px; object-fit: cover; border-radius: 6px; margin-bottom: 6px;" />
         <div class="fw-bold small text-navy leading-tight mb-1">${hotelName}</div>
         <div class="d-flex justify-content-between align-items-center extra-small text-muted mb-1">
-          <span class="fw-bold text-success">₹${Number(price).toLocaleString('en-IN')}/nt</span>
+          <span class="fw-bold text-success">₹${perPersonPrice.toLocaleString('en-IN')} / person / day</span>
           <span>📍 ${distKm} km</span>
         </div>
+        <div class="extra-small text-muted mb-1">Room: ₹${Number(price).toLocaleString('en-IN')} / day</div>
         <div class="extra-small text-turquoise fw-semibold">🚗 ~${driveMins} mins to office</div>
       </div>
     `))
@@ -475,4 +478,100 @@ async function renderFloatingMapMarkersAndRoute(hotelLat, hotelLon, hotelName, p
   } catch (err) {
     console.warn('[StayManager] Route fetch failed:', err);
   }
+}
+
+// ==============================================================================
+// 4. Stay Selection & Navigation to Transport Mode
+// ==============================================================================
+let selectedStayObj = null;
+
+function selectStayCard(stayId, stayName, pricePerNight, pricePerPersonDay, lat, lon, img, address, distKm, driveMins) {
+  selectedStayObj = {
+    id: stayId,
+    name: stayName,
+    price_per_night: pricePerNight,
+    price_per_person_day: pricePerPersonDay,
+    lat: lat,
+    lon: lon,
+    img: img,
+    address: address,
+    distance_km: distKm,
+    drive_mins: driveMins
+  };
+
+  // 1. Highlight selected card
+  document.querySelectorAll('.stay-grid-card').forEach(c => {
+    if (c.id === `card_${stayId}`) {
+      c.classList.add('is-selected');
+    } else {
+      c.classList.remove('is-selected');
+    }
+  });
+
+  // 2. Populate and display sticky bottom selection dock
+  const dock = document.getElementById('stickyStaySelectionDock');
+  const dockImg = document.getElementById('dockStayImg');
+  const dockName = document.getElementById('dockStayName');
+  const dockCommute = document.getElementById('dockStayCommute');
+  const dockPrice = document.getElementById('dockStayPrice');
+
+  if (dock) {
+    if (dockImg) dockImg.src = img || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=300&q=80';
+    if (dockName) dockName.textContent = stayName;
+    if (dockCommute) dockCommute.textContent = `🚗 ${distKm} km • ~${driveMins}m to office`;
+    if (dockPrice) dockPrice.textContent = `₹${Number(pricePerPersonDay).toLocaleString('en-IN')}`;
+    dock.classList.remove('d-none');
+  }
+}
+
+function proceedToTransportMode() {
+  if (!selectedStayObj && currentStayData?.stays?.length > 0) {
+    const first = currentStayData.stays[0];
+    selectedStayObj = {
+      id: first.id,
+      name: first.name,
+      price_per_night: first.price_per_night,
+      price_per_person_day: first.price_per_person_day || first.price_per_night,
+      lat: first.lat,
+      lon: first.lon,
+      img: first.img,
+      address: first.address,
+      distance_km: first.distance_km,
+      drive_mins: first.drive_mins
+    };
+  }
+
+  if (!selectedStayObj) {
+    alert('Please select a stay first.');
+    return;
+  }
+
+  const dest = currentStayData?.destination || 'Destination';
+  const source = currentStayData?.source || 'Bengaluru';
+  const days = currentStayData?.days || 3;
+  const travelers = currentStayData?.travelers || 2;
+  const budget = currentStayData?.budget_per_night || 2500;
+  const checkin = currentStayData?.checkin || '';
+  const checkout = currentStayData?.checkout || '';
+
+  // Navigate to dedicated Stay Manager Step 2 (Transport Mode Selection)
+  const url = `/stay-manager/transport?destination=${encodeURIComponent(dest)}` +
+    `&source=${encodeURIComponent(source)}` +
+    `&num_days=${encodeURIComponent(days)}` +
+    `&travelers=${encodeURIComponent(travelers)}` +
+    `&budget=${encodeURIComponent(budget)}` +
+    `&checkin=${encodeURIComponent(checkin)}` +
+    `&checkout=${encodeURIComponent(checkout)}` +
+    `&stay_id=${encodeURIComponent(selectedStayObj.id)}` +
+    `&stay_name=${encodeURIComponent(selectedStayObj.name)}` +
+    `&stay_price=${encodeURIComponent(selectedStayObj.price_per_night)}` +
+    `&stay_pppd=${encodeURIComponent(selectedStayObj.price_per_person_day)}` +
+    `&stay_lat=${encodeURIComponent(selectedStayObj.lat)}` +
+    `&stay_lon=${encodeURIComponent(selectedStayObj.lon)}` +
+    `&stay_img=${encodeURIComponent(selectedStayObj.img)}` +
+    `&stay_address=${encodeURIComponent(selectedStayObj.address)}` +
+    `&stay_dist=${encodeURIComponent(selectedStayObj.distance_km)}` +
+    `&stay_mins=${encodeURIComponent(selectedStayObj.drive_mins)}`;
+
+  window.location.href = url;
 }

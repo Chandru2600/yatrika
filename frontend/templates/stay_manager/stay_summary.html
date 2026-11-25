@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+
+{% block title %}Stay &amp; Transit Summary — {{ destination }} | Yatrika Stay Manager{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/stay_manager.css') }}" rel="stylesheet" />
+<style>
+  .summary-hero-pass {
+    background: linear-gradient(135deg, #0b1626 0%, #0f243d 100%);
+    color: #ffffff;
+    border-radius: 22px;
+    border: 1.5px solid rgba(45, 212, 191, 0.35);
+    box-shadow: 0 20px 45px -12px rgba(11, 22, 38, 0.45);
+    overflow: hidden;
+  }
+  .summary-section-card {
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1.5px solid #e2e8f0;
+    padding: 20px 24px;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
+  }
+  .rec-mini-card {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 14px;
+    height: 100%;
+    transition: all 0.2s ease;
+  }
+  .rec-mini-card:hover {
+    border-color: #14b8a6;
+    background: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stay-manager-page results-mode-page pb-5">
+
+  <!-- ── 1. Header & 3-Step Progress Tracker ─────────────────────── -->
+  <section class="stay-results-topbar">
+    <div class="container py-3">
+      <div class="d-flex align-items-center justify-content-center mb-3">
+        <div class="stay-step-tracker">
+          <a href="{{ url_for('stay_routes.stay_results_view', source=source, destination=destination, num_days=num_days, budget=budget, checkin=checkin, travelers=travelers) }}"
+             class="step-pill text-success text-decoration-none">
+            <span class="step-number bg-success text-white">✓</span>
+            <span class="step-title">Office &amp; Stays</span>
+          </a>
+          <div class="step-connector"></div>
+          <a href="javascript:history.back()" class="step-pill text-success text-decoration-none">
+            <span class="step-number bg-success text-white">✓</span>
+            <span class="step-title">Transport Mode</span>
+          </a>
+          <div class="step-connector"></div>
+          <div class="step-pill step-active">
+            <span class="step-number">3</span>
+            <span class="step-title">Stay Summary</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+          <h1 class="fs-5 fw-bold text-navy mb-0">
+            Stay &amp; Commute Summary: <span class="text-coral">{{ destination }}</span>
+          </h1>
+          <div class="extra-small text-muted">
+            Ready-to-book accommodation &amp; transport plan • All prices shown per person / per day
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <a href="{{ url_for('stay_routes.stay_manager_view', modify=1, source=source, destination=destination, num_days=num_days, budget=budget, checkin=checkin) }}"
+             class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fw-bold extra-small">
+            <i class="bi bi-arrow-repeat me-1"></i> New Stay Search
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-4">
+    <div class="container">
+
+      <!-- ── 2. Executive Confirmation Pass ──────────────────────────── -->
+      <div class="summary-hero-pass p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pb-3 mb-3 border-bottom border-white border-opacity-10">
+          <div>
+            <span class="badge bg-turquoise text-dark fw-bold px-3 py-1 rounded-pill mb-2 extra-small">
+              STAY &amp; TRANSIT SUMMARY (DRAFT)
+            </span>
+            <h2 class="fs-4 fw-extrabold text-white mb-0">
+              {{ source }} <i class="bi bi-arrow-right text-turquoise mx-2"></i> {{ destination }}
+            </h2>
+          </div>
+          <div class="d-flex gap-3 text-end flex-wrap">
+            <div class="px-3 py-2 rounded-3" style="background: rgba(255,255,255,0.06);">
+              <div class="extra-small text-white-50">Duration</div>
+              <div class="fw-bold text-white small">{{ num_days }} Days</div>
+            </div>
+            <div class="px-3 py-2 rounded-3" style="background: rgba(255,255,255,0.06);">
+              <div class="extra-small text-white-50">Guests</div>
+              <div class="fw-bold text-white small">{{ travelers }} Guest{{ 's' if travelers > 1 else '' }}</div>
+            </div>
+            {% if checkin %}
+            <div class="px-3 py-2 rounded-3" style="background: rgba(255,255,255,0.06);">
+              <div class="extra-small text-white-50">Check-in</div>
+              <div class="fw-bold text-turquoise small">{{ checkin }}</div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <!-- Selected Stay Card -->
+          <div class="col-lg-6">
+            <div class="p-3 rounded-4 h-100" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(45,212,191,0.3);">
+              <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <div class="extra-small text-turquoise fw-bold text-uppercase mb-1">🏨 Selected Stay Accommodation</div>
+                  <h3 class="fs-6 fw-bold text-white mb-1">{{ stay.name }}</h3>
+                  <div class="extra-small text-white-50">{{ stay.address }}</div>
+                </div>
+                <div class="text-end text-nowrap">
+                  <div class="fs-4 fw-extrabold text-turquoise">₹{{ "{:,}".format(stay.price_per_person_day) }}</div>
+                  <div class="extra-small text-white-50">/ person / day</div>
+                  <div class="extra-small text-white-50">₹{{ "{:,}".format(stay.price_per_night) }} / day room</div>
+                </div>
+              </div>
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-2 border-top border-white border-opacity-10">
+                <span class="extra-small text-white-50">
+                  <i class="bi bi-geo-alt-fill text-turquoise me-1"></i>
+                  <strong class="text-white">{{ stay.distance_km }} km</strong> to office (~{{ stay.drive_mins }} mins drive)
+                </span>
+                <div class="d-flex gap-1">
+                  <a href="{{ stay.booking_links.agoda }}" target="_blank" rel="noopener noreferrer"
+                     class="btn btn-sm btn-outline-light py-1 px-2 extra-small fw-semibold">Agoda ↗</a>
+                  <a href="{{ stay.booking_links.booking_com }}" target="_blank" rel="noopener noreferrer"
+                     class="btn btn-sm btn-success py-1 px-2 extra-small fw-semibold">Book Stay ↗</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selected Transport Mode Card -->
+          <div class="col-lg-6">
+            <div class="p-3 rounded-4 h-100" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);">
+              <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <div class="extra-small text-warning fw-bold text-uppercase mb-1">🚆 Selected Mode of Transport ({{ transit.mode }})</div>
+                  <h3 class="fs-6 fw-bold text-white mb-1">{{ transit.title }}</h3>
+                  <div class="extra-small text-white-50">{{ transit.details }}</div>
+                </div>
+                <div class="text-end text-nowrap">
+                  <div class="fs-4 fw-extrabold text-warning">₹{{ "{:,}".format(transit.fare_per_person) }}</div>
+                  <div class="extra-small text-white-50">/ person (1 seat)</div>
+                </div>
+              </div>
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-2 border-top border-white border-opacity-10">
+                <span class="extra-small text-white-50">
+                  <strong class="text-white">{{ transit.departure }}</strong> ➔ <strong class="text-success">{{ transit.arrival }}</strong>
+                  ({{ transit.duration }})
+                </span>
+                <span class="badge bg-dark text-turquoise border border-secondary extra-small">1-Person Fare</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estimated Cost Breakdown & Totals (Single Source of Truth) -->
+        {% set stay_pp_total = stay.price_per_person_day * num_days %}
+        {% set stay_room_total = stay.price_per_night * num_days %}
+        {% set transit_group_total = transit.fare_per_person * travelers %}
+        {% set pp_grand_total = stay_pp_total + transit.fare_per_person %}
+        {% set group_grand_total = stay_room_total + transit_group_total %}
+        <div class="mt-3 p-3 rounded-4" style="background: rgba(20, 184, 166, 0.1); border: 1px solid rgba(45, 212, 191, 0.35);">
+          <div class="row g-2 align-items-center">
+            <div class="col-md-8">
+              <div class="extra-small text-turquoise fw-bold text-uppercase mb-1">Estimated Cost Breakdown ({{ num_days }} Days, {{ travelers }} Guest{{ 's' if travelers > 1 else '' }})</div>
+              <div class="extra-small text-white-50">
+                Stay: ₹{{ "{:,}".format(stay.price_per_person_day) }}/person/day × {{ num_days }} days = <strong class="text-white">₹{{ "{:,}".format(stay_pp_total) }}/person</strong>
+                (Room: ₹{{ "{:,}".format(stay.price_per_night) }} × {{ num_days }} = ₹{{ "{:,}".format(stay_room_total) }})
+                &nbsp;+&nbsp;
+                Transport: <strong class="text-white">₹{{ "{:,}".format(transit.fare_per_person) }}/person</strong>
+                (Group: ₹{{ "{:,}".format(transit_group_total) }})
+              </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+              <div class="extra-small text-white-50">Per-Person Total: <strong class="fs-5 text-turquoise">₹{{ "{:,}".format(pp_grand_total) }}</strong></div>
+              <div class="extra-small text-white-50">Group Total ({{ travelers }} guests): <strong class="text-white">₹{{ "{:,}".format(group_grand_total) }}</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 3. Recommendations at Bottom: Nearby Sights & Hotels ────── -->
+      <div class="row g-4">
+
+        <!-- Recommended Nearby Sights -->
+        <div class="col-lg-6">
+          <div class="summary-section-card h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h3 class="fs-6 fw-bold text-navy mb-0">
+                <i class="bi bi-compass-fill text-coral me-1"></i> Recommended Nearby Sights &amp; Places
+              </h3>
+              <span class="badge bg-light text-dark border extra-small">Near {{ destination.split(',')[0] }}</span>
+            </div>
+            {% if nearby_sights %}
+              <div class="row g-2">
+                {% for sg in nearby_sights %}
+                <div class="col-sm-6">
+                  <div class="rec-mini-card d-flex flex-column justify-content-between">
+                    <div>
+                      <div class="d-flex align-items-center gap-2 mb-1">
+                        <span>{{ sg.icon or '📍' }}</span>
+                        <div class="fw-bold small text-navy text-truncate" title="{{ sg.name }}">{{ sg.name }}</div>
+                      </div>
+                      <div class="extra-small text-muted">{{ sg.category or sg.cat or 'Local Highlight' }}</div>
+                      {% if sg.best_time %}
+                      <div class="extra-small text-turquoise fw-semibold mt-1"><i class="bi bi-clock me-1"></i>{{ sg.best_time }}</div>
+                      {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top extra-small">
+                      <span class="text-warning fw-bold">★ {{ sg.rating or '4.5' }} · <span class="text-muted fw-normal">{{ sg.distance_km or sg.dist or '3.5' }} km</span></span>
+                      {% if sg.maps_url %}
+                      <a href="{{ sg.maps_url }}" target="_blank" rel="noopener noreferrer" class="text-primary fw-semibold text-decoration-none">Maps ↗</a>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="text-muted small py-3">
+                Explore nearby cafes, local parks, and dining hubs around {{ destination }} during your free hours.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Recommended Alternative Hotels Nearby -->
+        <div class="col-lg-6">
+          <div class="summary-section-card h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h3 class="fs-6 fw-bold text-navy mb-0">
+                <i class="bi bi-building-check text-turquoise me-1"></i> Recommended Hotels Nearby
+              </h3>
+              <span class="badge bg-light text-dark border extra-small">Backup Options</span>
+            </div>
+            {% if nearby_stays %}
+              <div class="row g-2">
+                {% for alt in nearby_stays %}
+                <div class="col-sm-6">
+                  <div class="rec-mini-card d-flex flex-column justify-content-between">
+                    <div>
+                      <div class="d-flex justify-content-between align-items-start gap-1 mb-1">
+                        <div class="fw-bold small text-navy text-truncate" title="{{ alt.name }}">{{ alt.name }}</div>
+                        <span class="text-warning extra-small text-nowrap">★ {{ alt.rating }}</span>
+                      </div>
+                      <div class="extra-small text-muted mb-1">
+                        <i class="bi bi-geo-alt-fill text-turquoise"></i> {{ alt.distance_km }} km (~{{ alt.drive_mins }}m to office)
+                      </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                      <div>
+                        <span class="fw-extrabold text-turquoise small">₹{{ "{:,}".format(alt.price_per_person_day) }}</span>
+                        <span class="extra-small text-muted">/person/day</span>
+                      </div>
+                      <a href="{{ alt.booking_links.booking_com }}" target="_blank" rel="noopener noreferrer"
+                         class="btn btn-xs btn-outline-success py-0 px-2 extra-small fw-semibold">Book ↗</a>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="text-muted small py-3">
+                Your selected stay ({{ stay.name }}) is the top-ranked verified accommodation near {{ destination }}.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── 4. Save & Share Stay Summary Bar ──────────────────────── -->
+      <div class="summary-section-card mt-4 d-print-none">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+          <div>
+            <h3 class="fs-6 fw-bold text-navy mb-1">
+              <i class="bi bi-bookmark-check-fill text-turquoise me-1"></i> Save or Share Your Stay Summary
+            </h3>
+            <p class="extra-small text-muted mb-0">
+              Save this stay &amp; transport plan for quick access, download/print as PDF, or share it directly.
+            </p>
+          </div>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <button type="button" id="btnSaveStaySummary" class="btn btn-sm btn-gradient-select-stay text-white fw-bold rounded-pill px-3 py-2" onclick="saveStaySummary()">
+              <i class="bi bi-bookmark-plus me-1"></i><span>Save Stay Summary</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-dark fw-bold rounded-pill px-3 py-2" onclick="downloadStaySummary()">
+              <i class="bi bi-download me-1"></i>Download Summary
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary fw-bold rounded-pill px-3 py-2" onclick="window.print()">
+              <i class="bi bi-printer me-1"></i>Print
+            </button>
+            <button type="button" class="btn btn-sm btn-success fw-bold rounded-pill px-3 py-2" onclick="shareOnWhatsApp()">
+              <i class="bi bi-whatsapp me-1"></i>Share on WhatsApp
+            </button>
+            <button type="button" id="btnCopyShareLink" class="btn btn-sm btn-outline-primary fw-bold rounded-pill px-3 py-2" onclick="copyShareLink()">
+              <i class="bi bi-link-45deg me-1"></i><span>Copy Link</span>
+            </button>
+          </div>
+        </div>
+        <div id="saveSummaryFeedback" class="alert alert-success py-2 px-3 mt-3 mb-0 extra-small fw-semibold d-none">
+          <i class="bi bi-check-circle-fill me-1"></i> Stay Summary saved! You can also print/save as PDF or share the link above.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function saveStaySummary() {
+  const summaryData = {
+    source: {{ source|tojson }},
+    destination: {{ destination|tojson }},
+    checkin: {{ checkin|tojson }},
+    checkout: {{ checkout|tojson }},
+    num_days: {{ num_days|tojson }},
+    travelers: {{ travelers|tojson }},
+    stay: {{ stay|tojson }},
+    transit: {{ transit|tojson }},
+    url: window.location.href,
+    saved_at: new Date().toISOString()
+  };
+
+  try {
+    const existing = JSON.parse(localStorage.getItem('yatrika_saved_stays') || '[]');
+    const filtered = existing.filter(item => item.url !== summaryData.url);
+    filtered.unshift(summaryData);
+    localStorage.setItem('yatrika_saved_stays', JSON.stringify(filtered.slice(0, 20)));
+  } catch (e) {}
+
+  const btn = document.getElementById('btnSaveStaySummary');
+  if (btn) {
+    btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i><span>Saved!</span>';
+    btn.classList.add('btn-success');
+  }
+  const fb = document.getElementById('saveSummaryFeedback');
+  if (fb) fb.classList.remove('d-none');
+}
+
+function downloadStaySummary() {
+  const txt = `YATRIKA STAY & COMMUTE SUMMARY\n` +
+    `Route: {{ source }} -> {{ destination }}\n` +
+    `Duration: {{ num_days }} Days | Guests: {{ travelers }}\n` +
+    `Stay: {{ stay.name }} (Rs. {{ "{:,}".format(stay.price_per_person_day) }}/person/day | Room Rs. {{ "{:,}".format(stay.price_per_night) }}/day)\n` +
+    `Office Commute: {{ stay.distance_km }} km (~{{ stay.drive_mins }} mins)\n` +
+    `Transport ({{ transit.mode }}): {{ transit.title }} - Rs. {{ "{:,}".format(transit.fare_per_person) }}/person ({{ transit.departure }} -> {{ transit.arrival }})\n` +
+    `Link: ${window.location.href}\n`;
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `yatrika-stay-summary-${Date.now()}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function shareOnWhatsApp() {
+  const text = `🏨 *Yatrika Stay & Commute Summary*\n` +
+    `📍 *Route:* {{ source }} ➔ {{ destination }}\n` +
+    `📅 *Duration:* {{ num_days }} Days ({{ travelers }} Guest{{ 's' if travelers > 1 else '' }})\n` +
+    `🏨 *Stay:* {{ stay.name }} (₹{{ "{:,}".format(stay.price_per_person_day) }}/person/day)\n` +
+    `🚗 *Office Commute:* {{ stay.distance_km }} km (~{{ stay.drive_mins }} mins)\n` +
+    `🚆 *Transport ({{ transit.mode }}):* {{ transit.title }} — ₹{{ "{:,}".format(transit.fare_per_person) }}/person\n` +
+    `🔗 *View Summary:* ${window.location.href}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+}
+
+function copyShareLink() {
+  const url = window.location.href;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => showCopiedState());
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = url;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showCopiedState();
+  }
+}
+
+function showCopiedState() {
+  const btn = document.getElementById('btnCopyShareLink');
+  if (!btn) return;
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="bi bi-check2 me-1"></i><span>Link Copied!</span>';
+  setTimeout(() => { btn.innerHTML = orig; }, 2200);
+}
+</script>
+{% endblock %}
+
+{% block footer %}
+<!-- No global footer in Stay Manager -->
+{% endblock %}

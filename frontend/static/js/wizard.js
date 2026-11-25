@@ -416,8 +416,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // Restore saved state only if URL did not specify a different destination
   const urlParams = new URLSearchParams(window.location.search);
   const urlDest = urlParams.get('destination');
+  const urlStayName = urlParams.get('stay_name');
+  const urlStayId = urlParams.get('stay_id');
+  const urlStayPrice = urlParams.get('stay_price');
+  const urlStayLat = urlParams.get('stay_lat');
+  const urlStayLon = urlParams.get('stay_lon');
+  const urlStayImg = urlParams.get('stay_img');
+  const urlStayAddress = urlParams.get('stay_address');
+  const urlSource = urlParams.get('source');
+  const urlDays = urlParams.get('days');
+  const urlTravelers = urlParams.get('travelers');
+  const urlBudget = urlParams.get('budget');
+  const urlStep = urlParams.get('step');
+
   const saved = loadStateFromLS();
-  if (saved && saved.dest && (!urlDest || urlDest.toLowerCase().trim() === saved.dest.toLowerCase().trim())) {
+  if (saved && saved.dest && (!urlDest || urlDest.toLowerCase().trim() === saved.dest.toLowerCase().trim()) && !urlStayName) {
     const srcEl = document.getElementById('w_source');
     const dstEl = document.getElementById('w_dest');
     if (srcEl) srcEl.value = State.source;
@@ -435,15 +448,33 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast(`✅ Restored your last session: ${State.dest.split(',')[0]}`, 'success');
   } else if (urlDest) {
     State.dest = urlDest.trim();
+    if (urlSource) State.source = urlSource.trim();
+    if (urlDays) State.days = parseInt(urlDays) || 3;
+    if (urlTravelers) State.travelers = parseInt(urlTravelers) || 2;
+    if (urlBudget) State.budget = parseInt(urlBudget) || 15000;
+
     const coords = resolveDestinationCoords(State.dest);
     State.destLat = coords.lat;
     State.destLon = coords.lon;
-    State.selectedStay = null;
     State.liveAttractions = [];
     State.selectedAttractions = [];
     State.loadedAttractionsDest = '';
     cachedAttractionsDest = '';
     cachedInstantAttractions = [];
+
+    if (urlStayName) {
+      State.selectedStay = {
+        id: urlStayId || 'stay_sel',
+        name: urlStayName,
+        price_per_night: parseInt(urlStayPrice) || 2400,
+        lat: parseFloat(urlStayLat) || State.destLat,
+        lon: parseFloat(urlStayLon) || State.destLon,
+        img: urlStayImg || '',
+        address: urlStayAddress || (State.dest + ', India')
+      };
+    } else {
+      State.selectedStay = null;
+    }
   }
 
   // Source & Destination placeSelected bindings
@@ -524,8 +555,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-
   initScrollReveal();
+
+  // URL step routing: if user came with selected stay, jump to Step 2: Transit
+  if (urlStep === 'transit' || urlStayName) {
+    saveStateToLS();
+    updatePreviewCard();
+    fetchInterCityTransit();
+    setTimeout(() => {
+      goToStep(2);
+      if (urlStayName) {
+        showToast(`🏡 Locked Base Camp: ${urlStayName}. Now choose your Mode of Transport!`, 'success');
+      }
+    }, 450);
+  } else {
+    updatePreviewCard();
+    fetchDestinationStays(State.dest || 'Coorg');
+    if (urlStep === 'stay') {
+      setTimeout(() => {
+        goToStep(1);
+      }, 300);
+    }
+  }
 });
 
 /* ── Date helpers ────────────────────────────────────────────────── */
@@ -604,27 +655,26 @@ function updatePreviewCard() {
     setText('pc_stay_cost', '₹0 / person');
   }
 
-  // 2. Inter-City Transit Cost (Per Person Share / Ticket)
+  // 2. Inter-City Transit Cost (Per Person Share / Ticket) — 0 until selected
   let transitCostPerPerson = 0;
-  if (State.transitCostPerPerson && State.transitCostPerPerson > 0) {
-    transitCostPerPerson = State.transitCostPerPerson;
-  } else if (State.transitCost && State.transitCost > 0) {
-    transitCostPerPerson = Math.round(State.transitCost / trav);
+  if (State.transitDetails) {
+    if (State.transitCostPerPerson && State.transitCostPerPerson > 0) {
+      transitCostPerPerson = State.transitCostPerPerson;
+    } else if (State.transitCost && State.transitCost > 0) {
+      transitCostPerPerson = Math.round(State.transitCost / trav);
+    }
+    setText('pc_transit_name', `${State.transitDetails.mode_title || State.transport}`);
+    setText('pc_transit_cost', fmtINR(transitCostPerPerson) + ' / person');
   } else {
-    const fuel = State.routeData?.fuelCost || (State.transport === 'bike' ? 1200 : 3500);
-    transitCostPerPerson = Math.round(fuel / trav);
+    setText('pc_transit_name', 'Pick transit in Stage 2');
+    setText('pc_transit_cost', '₹0 / person');
   }
-  setText('pc_transit_name', `${State.transitDetails?.mode_title || State.transport}`);
-  setText('pc_transit_cost', fmtINR(transitCostPerPerson) + ' / person');
 
   // 3. Sightseeing Entry Fees (Per Person)
   const sightseeingCostPerPerson = (State.selectedAttractions || []).reduce((s, a) => s + (a.fee || 0), 0);
 
-  // 4. Food & Daily Dining Buffer (Per Person)
-  const foodCostPerPerson = (State.days || 1) * 600;
-
-  // 5. Total Spent for 1 Person & Live Budget Dial
-  const singlePersonSpent = stayCostPerPerson + transitCostPerPerson + sightseeingCostPerPerson + foodCostPerPerson;
+  // 4. Total Spent for 1 Person = Exact Sum of Visible Line Items
+  const singlePersonSpent = stayCostPerPerson + transitCostPerPerson + sightseeingCostPerPerson;
   const singlePersonBudget = State.budget || 15000;
   const pct = Math.min(100, Math.round((singlePersonSpent / singlePersonBudget) * 100));
   const remaining = singlePersonBudget - singlePersonSpent;
@@ -1085,8 +1135,10 @@ async function goToStep(logicalStep) {
     if (hotelTxt) hotelTxt.textContent = State.selectedStay ? State.selectedStay.name : 'Your Base Camp';
     if (tStayName && State.selectedStay) tStayName.textContent = State.selectedStay.name;
     if (tStayCost && State.selectedStay) {
-      const nights = Math.max(1, (State.days || 3) - 1);
-      tStayCost.textContent = `₹${(State.selectedStay.price_per_night * nights).toLocaleString('en-IN')} total stay`;
+      const trav = State.travelers || 1;
+      const stayRate = State.selectedStay.price_per_night || 0;
+      const stayPerPersonDay = Math.round(stayRate / Math.max(1, trav));
+      tStayCost.textContent = `₹${stayPerPersonDay.toLocaleString('en-IN')} / person / day`;
     }
     await fetchInterCityTransit();
   }
@@ -3082,16 +3134,16 @@ function renderOverview() {
     <div class="dossier-boarding-pass shadow-2xl" id="dossierTicket">
       <!-- Left: Main Boarding Pass (72%) -->
       <div class="ticket-main-body">
-        <!-- Header: Operator & PNR -->
+        <!-- Header: Operator & Draft Status -->
         <div class="ticket-header-row">
           <div class="ticket-airline-brand">
             <i class="bi ${transitMode === 'FLIGHT' ? 'bi-airplane-engines-fill' : (transitMode === 'TRAIN' ? 'bi-train-front-fill' : 'bi-bus-front-fill')} text-turquoise fs-5"></i>
-            <span class="ticket-brand-text">YATRIKA EXPEDITION BOARDING PASS</span>
-            <span class="ticket-carrier-pill">✓ IRCTC / RTC VERIFIED</span>
+            <span class="ticket-brand-text">YATRIKA TRIP ITINERARY</span>
+            <span class="ticket-carrier-pill">ESTIMATED PLAN</span>
           </div>
           <div class="ticket-pnr-badge">
-            <span class="pnr-lbl">PNR</span>
-            <span class="pnr-code">YTR-${Math.floor(100000 + Math.random() * 900000)}</span>
+            <span class="pnr-lbl">STATUS</span>
+            <span class="pnr-code">UNBOOKED DRAFT</span>
           </div>
         </div>
 
@@ -3210,7 +3262,7 @@ function renderOverview() {
               <rect x="26" y="30" width="3" height="2"/>
             </svg>
           </div>
-          <div class="stub-pnr-micro font-monospace">VERIFIED PASS</div>
+          <div class="stub-pnr-micro font-monospace">TRIP SUMMARY</div>
         </div>
 
         <!-- Fare Block -->
@@ -3309,15 +3361,15 @@ function renderOverview() {
             <i class="bi bi-compass-fill text-purple" style="color: #8B5CF6;"></i> Curated Sight Loops
           </div>
           <div class="bento-card-val">
-            ${sel.length} Verified Sights
+            ${sel.length} Selected Sights
           </div>
           <div class="bento-card-desc mb-2">
-            Stay-grounded clustering (&lt; 45 km radius) with 0 backtracking loops.
+            Grouped by proximity to your selected stay.
           </div>
         </div>
         <div class="bento-card-footer">
-          <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">10,025 Spot Dataset</span>
-          <span class="fw-bold small" style="color: #8B5CF6;">Smart Cost Verified</span>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">Curated Local Spots</span>
+          <span class="fw-bold small" style="color: #8B5CF6;">Estimated Costs</span>
         </div>
       </div>
     </section>
@@ -3485,6 +3537,42 @@ function renderOverview() {
                 `).join('')}
               </div>
             </div>
+
+            <!-- Recommended Nearby Stays & Base Camps -->
+            <div class="dossier-section-card mt-4">
+              <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h3 class="dossier-section-title mb-0">
+                  <i class="bi bi-building-check text-turquoise"></i> Recommended Stays &amp; Base Camps Nearby
+                </h3>
+                <span class="badge bg-light text-dark border small fw-bold">Verified Base Camps</span>
+              </div>
+              <div class="row g-3">
+                ${(State.availableStays && State.availableStays.length > 0) ? State.availableStays.slice(0, 3).map(h => {
+                  const pppd = Math.round((h.price_per_night || 2200) / Math.max(1, State.travelers || 1));
+                  return `
+                    <div class="col-sm-6 col-lg-4">
+                      <div class="p-3 rounded-4 h-100 d-flex flex-column justify-content-between" style="background: #F8FAFC; border: 1.5px solid #E2E8F0;">
+                        <div>
+                          <div class="d-flex justify-content-between align-items-start gap-1 mb-1">
+                            <div class="fw-bold text-navy small text-truncate" title="${h.name}">${h.name}</div>
+                            <span class="text-warning extra-small">★ ${h.rating || 4.5}</span>
+                          </div>
+                          <div class="extra-small text-muted text-truncate mb-2">${h.address || destCity}</div>
+                        </div>
+                        <div class="pt-2 border-top d-flex justify-content-between align-items-center">
+                          <span class="fw-extrabold text-turquoise small">₹${pppd.toLocaleString('en-IN')}<span class="extra-small text-muted fw-normal">/person/day</span></span>
+                          <span class="badge bg-secondary-subtle text-dark extra-small">Verified</span>
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                }).join('') : `
+                  <div class="col-12 text-muted small">
+                    Base Camp anchored at <strong>${stayName}</strong> with full verified amenities.
+                  </div>
+                `}
+              </div>
+            </div>
           </div>
 
           <!-- Right: Trip Statistics & Helplines -->
@@ -3512,8 +3600,8 @@ function renderOverview() {
                 <div class="col-6">
                   <div class="stat-grid-card">
                     <div class="stat-icon">💰</div>
-                    <div class="stat-val text-truncate text-warning">₹${totalSpend.toLocaleString('en-IN')}</div>
-                    <div class="stat-lbl">Projected Spend</div>
+                    <div class="stat-val text-truncate text-warning">₹${perPersonSpend.toLocaleString('en-IN')}</div>
+                    <div class="stat-lbl">Per Person Spend</div>
                   </div>
                 </div>
                 <div class="col-6">
@@ -3778,8 +3866,8 @@ function renderOverview() {
               <div class="text-white-50 small"><i class="bi bi-geo-alt me-1 text-turquoise"></i>${stayAddress}</div>
             </div>
             <div class="text-end">
-              <div class="fs-4 fw-extrabold text-turquoise">₹${stayPrice.toLocaleString('en-IN')}</div>
-              <div class="text-white-50 extra-small">per night (${nights} nights = ₹${stayCost.toLocaleString('en-IN')})</div>
+              <div class="fs-4 fw-extrabold text-turquoise">₹${Math.round(stayPrice / Math.max(1, State.travelers || 1)).toLocaleString('en-IN')}</div>
+              <div class="text-white-50 extra-small">/ person / day (₹${stayPrice.toLocaleString('en-IN')} / day room)</div>
             </div>
           </div>
           <div class="d-flex gap-3 align-items-center mt-3">
@@ -3802,7 +3890,7 @@ function renderOverview() {
                 <div class="p-3 rounded-4 h-100 d-flex flex-column" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);">
                   <div class="d-flex justify-content-between align-items-start mb-2">
                     <h6 class="fw-bold text-white mb-0 text-truncate" title="${h.name}">${h.name}</h6>
-                    <span class="text-turquoise fw-bold small ms-2">₹${h.price_per_night || 2400}<span class="text-white-50 extra-small">/nt</span></span>
+                    <span class="text-turquoise fw-bold small ms-2">₹${Math.round((h.price_per_night || 2400) / Math.max(1, State.travelers || 1))}<span class="text-white-50 extra-small"> / person / day</span></span>
                   </div>
                   <div class="text-white-50 extra-small mb-2 text-truncate">${h.address || destCity}</div>
                   <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top border-white border-opacity-10">
@@ -4184,22 +4272,57 @@ async function fetchDestinationStays(dest) {
   const container = document.getElementById('staysListContainer');
   if (!container || !dest) return;
 
+  const dName = dest.split(',')[0].trim();
   container.innerHTML = `
-    <div class="col-12 py-3 text-center text-muted small">
-      <span class="spinner-border spinner-border-sm me-2 text-primary" role="status"></span>
-      Searching verified base camps &amp; homestays in ${dest}...
+    <div id="stayPlanetRunnerContainer" class="mb-2" style="grid-column: 1 / -1; width: 100%; min-height: 240px;"></div>
+    <div class="col-12 py-2 text-center text-muted small" style="grid-column: 1 / -1;">
+      <i class="bi bi-compass text-turquoise me-1"></i> Scout is running around ${dName} — finding stays &amp; per-person rates...
     </div>
   `;
 
+  let stayRunner = null;
+  const runnerBox = document.getElementById('stayPlanetRunnerContainer');
+  if (runnerBox && window.PlanetRunner) {
+    try {
+      stayRunner = window.PlanetRunner.mount(runnerBox, {
+        destination: dName,
+        attractions: [
+          { name: `${dName} Heritage Stays`, category: "Boutique", icon: "🏡" },
+          { name: `${dName} Resorts & Villas`, category: "Luxury", icon: "🏨" },
+          { name: `${dName} Budget Homestays`, category: "Value", icon: "🛏️" }
+        ]
+      });
+    } catch (_) {}
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
   try {
-    const res = await fetch(`/planner/api/stays/search?destination=${encodeURIComponent(dest)}`);
+    const res = await fetch(`/planner/api/stays/search?destination=${encodeURIComponent(dest)}&source=${encodeURIComponent(State.source || 'Bengaluru')}&travelers=${encodeURIComponent(State.travelers || 2)}`, {
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    if (stayRunner && typeof stayRunner.destroy === 'function') {
+      try { stayRunner.destroy(); } catch (_) {}
+    }
     if (res.ok) {
       const stays = await res.json();
       State.availableStays = stays || [];
-      renderDestinationStays(stays);
+      if (!State.availableStays.length) {
+        container.innerHTML = `<div class="col-12 py-3 text-center text-muted small">No stays found for ${dest}. <button type="button" class="btn btn-sm btn-outline-primary ms-2" onclick="fetchDestinationStays('${dest.replace(/'/g, "\\'")}')">Retry</button></div>`;
+      } else {
+        renderDestinationStays(stays);
+      }
+    } else {
+      throw new Error(`HTTP ${res.status}`);
     }
   } catch (e) {
+    clearTimeout(timeoutId);
+    if (stayRunner && typeof stayRunner.destroy === 'function') {
+      try { stayRunner.destroy(); } catch (_) {}
+    }
     console.warn('Failed to fetch destination stays:', e);
+    container.innerHTML = `<div class="col-12 py-3 text-center text-danger small">Could not load stays right now. <button type="button" class="btn btn-sm btn-outline-primary ms-2" onclick="fetchDestinationStays('${dest.replace(/'/g, "\\'")}')">Retry Search</button></div>`;
   }
 }
 
@@ -4505,45 +4628,36 @@ function updateTransitUI(data) {
 
 /* ── Multi-Class Helpers (GN, 2S, SL, 3A, 2A, 1A & Bus/Flight tiers) ── */
 function getFullTrainClasses(baseFare, rawClasses) {
-  const defaults = [
-    { code: 'GN', name: 'General', mult: 0.45, defaultStatus: 'GN-AVL' },
-    { code: '2S', name: '2nd Sitting', mult: 0.65, defaultStatus: 'AVL 54' },
-    { code: 'SL', name: 'Sleeper', mult: 1.25, defaultStatus: 'AVL 38' },
-    { code: '3A', name: '3-Tier AC', mult: 3.20, defaultStatus: 'AVL 22' },
-    { code: '2A', name: '2-Tier AC', mult: 4.60, defaultStatus: 'RAC 04' },
-    { code: '1A', name: '1st AC', mult: 7.50, defaultStatus: 'WL 06' }
-  ];
-
-  const map = {};
-  if (Array.isArray(rawClasses)) {
-    rawClasses.forEach(c => {
-      if (c && c.code) map[c.code.toUpperCase()] = c;
+  if (Array.isArray(rawClasses) && rawClasses.length > 0) {
+    return rawClasses.map(c => {
+      const status = c.status || 'Check IRCTC';
+      let tag = 'avl';
+      if (status.includes('WL')) tag = 'wl';
+      else if (status.includes('RAC')) tag = 'rac';
+      return {
+        code: (c.code || 'CC').toUpperCase(),
+        name: c.name || c.code || 'Class',
+        fare: Math.round(Number(c.fare || baseFare)),
+        status: status,
+        tag: tag
+      };
     });
   }
 
-  return defaults.map(d => {
-    const existing = map[d.code];
-    let fare = existing && existing.fare ? existing.fare : Math.round(baseFare * d.mult);
-    if (d.code === 'GN') fare = Math.max(65, fare);
-    if (d.code === '2S') fare = Math.max(120, fare);
-    if (d.code === 'SL') fare = Math.max(260, fare);
-    if (d.code === '3A') fare = Math.max(680, fare);
-    if (d.code === '2A') fare = Math.max(980, fare);
-    if (d.code === '1A') fare = Math.max(1650, fare);
+  const defaults = [
+    { code: '2S', name: '2nd Sitting', mult: 0.65 },
+    { code: 'SL', name: 'Sleeper', mult: 1.25 },
+    { code: '3A', name: '3-Tier AC', mult: 3.20 },
+    { code: '2A', name: '2-Tier AC', mult: 4.60 }
+  ];
 
-    const status = existing?.status || d.defaultStatus;
-    let tag = 'avl';
-    if (status.includes('WL')) tag = 'wl';
-    else if (status.includes('RAC')) tag = 'rac';
-
-    return {
-      code: d.code,
-      name: d.name,
-      fare: fare,
-      status: status,
-      tag: tag
-    };
-  });
+  return defaults.map(d => ({
+    code: d.code,
+    name: d.name,
+    fare: Math.max(85, Math.round(baseFare * d.mult)),
+    status: 'Est. Fare',
+    tag: 'avl'
+  }));
 }
 
 function getBusClasses(baseFare) {
@@ -5331,7 +5445,7 @@ function selectSpecificTransit(mode, title, singlePersonFare, arrivalTime, detai
   const tTrName = document.getElementById('tSummaryTransitName');
   const tTrCost = document.getElementById('tSummaryTransitCost');
   if (tTrName) tTrName.textContent = title;
-  if (tTrCost) tTrCost.textContent = `₹${State.transitCostPerPerson.toLocaleString('en-IN')} / person (₹${State.transitCost.toLocaleString('en-IN')} group)`;
+  if (tTrCost) tTrCost.textContent = `₹${State.transitCostPerPerson.toLocaleString('en-IN')} / person`;
 
   // Update Transfer Milestones in Right Panel
   const tLegs = document.getElementById('tSummaryLegsList');

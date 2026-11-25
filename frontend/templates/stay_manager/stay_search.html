@@ -3,6 +3,7 @@
 {% block title %}Stay Manager — Find Stays Near Your Office | Yatrika AI{% endblock %}
 
 {% block extra_css %}
+<link href="{{ url_for('static', filename='css/place_autocomplete.css') }}" rel="stylesheet" />
 <link href="{{ url_for('static', filename='css/stay_manager.css') }}" rel="stylesheet" />
 {% endblock %}
 
@@ -17,10 +18,6 @@
     <div class="container d-flex flex-column align-items-center">
       <!-- Title Header -->
       <div class="launchpad-header text-center mb-4">
-        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-dark-slate border border-teal-subtle mb-2">
-          <span class="fs-6">🏨</span>
-          <span class="extra-small fw-bold text-turquoise text-uppercase tracking-wider">Universal Stay & Office Proximity Intelligence</span>
-        </div>
         <h1 class="launchpad-title">
           Where is your <span class="text-cyan-gradient">Office or Work</span>?
         </h1>
@@ -34,18 +31,23 @@
         <div class="launchpad-card" id="stayLaunchpadCard">
           <form id="staySearchForm" method="GET" action="{{ url_for('stay_routes.stay_results_view') }}">
             
-            <!-- Row 1: Source & Exact Office / Destination -->
+            <!-- Row 1: Source & Exact Office / Destination with Autocomplete -->
             <div class="route-picker-row">
               <!-- Source -->
               <div>
                 <label class="compact-input-label">
                   <i class="bi bi-geo-alt-fill text-muted"></i> From (Origin City)
                 </label>
-                <div class="glass-input-box">
-                  <i class="bi bi-geo-alt text-muted fs-6"></i>
-                  <input type="text" name="source" id="tripSource" class="glass-text-input"
-                         placeholder="e.g. Bengaluru, Mumbai, Delhi, Hyderabad..."
-                         value="{{ source or 'Bengaluru' }}" autocomplete="off" required />
+                <div class="place-autocomplete-container" data-type="origin" id="originContainer">
+                  <div class="glass-input-box place-input-box origin-box">
+                    <i class="bi bi-geo-alt text-muted fs-6"></i>
+                    <input type="text" name="source" id="tripSource" class="glass-text-input place-text-input"
+                           placeholder="e.g. Bengaluru, Mumbai, Delhi, Hyderabad..."
+                           value="{{ source or 'Bengaluru' }}" autocomplete="off" required />
+                    <button type="button" class="place-clear-btn d-none" title="Clear city"><i class="bi bi-x-lg"></i></button>
+                    <div class="place-indicator-chip d-none"><span class="place-chip-badge"></span></div>
+                  </div>
+                  <div class="place-rec-dropdown d-none"></div>
                 </div>
               </div>
 
@@ -54,26 +56,18 @@
                 <label class="compact-input-label">
                   <i class="bi bi-building-fill text-turquoise"></i> To (Exact Office / Work Landmark Inside City)
                 </label>
-                <div class="glass-input-box office-input-box">
-                  <i class="bi bi-pin-map-fill text-coral fs-6"></i>
-                  <input type="text" name="destination" id="tripDestination" class="glass-text-input fw-semibold text-white"
-                         placeholder="e.g. Infosys Electronic City, Bengaluru or BKC Mumbai..."
-                         value="{{ destination or 'Infosys Electronic City, Bengaluru' }}" autocomplete="off" required />
+                <div class="place-autocomplete-container" data-type="destination" id="destContainer">
+                  <div class="glass-input-box office-input-box place-input-box">
+                    <i class="bi bi-pin-map-fill text-coral fs-6"></i>
+                    <input type="text" name="destination" id="tripDestination" class="glass-text-input place-text-input fw-semibold text-white"
+                           placeholder="e.g. Infosys Electronic City, Bengaluru or BKC Mumbai..."
+                           value="{{ destination or 'Infosys Electronic City, Bengaluru' }}" autocomplete="off" required />
+                    <button type="button" class="place-clear-btn d-none" title="Clear destination"><i class="bi bi-x-lg"></i></button>
+                    <div class="place-indicator-chip d-none"><span class="place-chip-badge"></span></div>
+                  </div>
+                  <div class="place-rec-dropdown d-none"></div>
                 </div>
               </div>
-            </div>
-
-            <!-- Quick Office & Business Hubs Bar -->
-            <div class="quick-hubs-bar">
-              <span class="small fw-bold text-uppercase me-1" style="font-size: 0.68rem; color: #64748b; letter-spacing: 0.05em;">POPULAR HUBS:</span>
-              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('Infosys, Electronic City, Bengaluru', 'Bengaluru')">🏢 Electronic City</button>
-              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('Whitefield, Bengaluru', 'Bengaluru')">🏢 Whitefield</button>
-              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('Manyata Tech Park, Bengaluru', 'Bengaluru')">🏢 Manyata Tech Park</button>
-              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('Bandra Kurla Complex (BKC), Mumbai', 'Mumbai')">🏢 BKC Mumbai</button>
-              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('Hitec City, Hyderabad', 'Hyderabad')">🏢 Hitec City</button>
-              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('DLF Cyber City, Gurgaon', 'Delhi')">🏢 Cyber City</button>
-              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('Coorg, Karnataka', 'Bengaluru')">🌿 Coorg</button>
-              <button type="button" class="quick-hub-pill" onclick="selectQuickOffice('Munnar, Kerala', 'Kochi')">🫖 Munnar</button>
             </div>
 
             <!-- Row 2: Dates, Days Stepper, Travelers, Budget -->
@@ -90,9 +84,9 @@
                   <i class="bi bi-clock-history text-muted"></i> Number of Days
                 </label>
                 <div class="d-flex align-items-center justify-content-between pt-1">
-                  <button type="button" class="stepper-mini-btn" onclick="changeDays(-1)">−</button>
+                  <button type="button" class="stepper-mini-btn" aria-label="Decrease number of days" onclick="changeDays(-1)">−</button>
                   <span id="daysCountBadge" class="fw-bold text-turquoise" style="font-size: 0.95rem;">{{ num_days or 3 }} Days</span>
-                  <button type="button" class="stepper-mini-btn" onclick="changeDays(1)">+</button>
+                  <button type="button" class="stepper-mini-btn" aria-label="Increase number of days" onclick="changeDays(1)">+</button>
                 </div>
                 <input type="hidden" name="num_days" id="tripDays" value="{{ num_days or 3 }}" />
                 <input type="hidden" name="checkout" id="tripEndDate" value="{{ checkout }}" />
@@ -102,9 +96,9 @@
               <div class="strip-box">
                 <label class="compact-input-label"><i class="bi bi-people text-muted"></i> Guests</label>
                 <div class="d-flex align-items-center justify-content-between pt-1">
-                  <button type="button" class="stepper-mini-btn" onclick="changeTravelers(-1)">−</button>
+                  <button type="button" class="stepper-mini-btn" aria-label="Decrease number of guests" onclick="changeTravelers(-1)">−</button>
                   <span id="travelersCountBadge" class="fw-bold text-white" style="font-size: 0.95rem;">{{ travelers or 2 }} Guests</span>
-                  <button type="button" class="stepper-mini-btn" onclick="changeTravelers(1)">+</button>
+                  <button type="button" class="stepper-mini-btn" aria-label="Increase number of guests" onclick="changeTravelers(1)">+</button>
                 </div>
                 <input type="hidden" name="travelers" id="tripTravelers" value="{{ travelers or 2 }}" />
               </div>
@@ -149,5 +143,10 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/place_autocomplete.js') }}"></script>
 <script src="{{ url_for('static', filename='js/stay_manager.js') }}"></script>
+{% endblock %}
+
+{% block footer %}
+<!-- No global footer in Stay Manager -->
 {% endblock %}

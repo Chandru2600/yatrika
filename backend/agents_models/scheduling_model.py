@@ -72,7 +72,7 @@ def is_generic_or_placeholder_name(name: str) -> bool:
         return True
     if re.match(r'^[\d\s\-_#]+$', s) or re.match(r'^\d+[A-Za-z\-_]+$', s) or re.match(r'^[A-Za-z0-9\-_]{1,4}$', s):
         return True
-    if re.search(r'(?i)\b(?:H#|St\s*\d+|G\d+-\d+|Market ID|Plot No|Sector\s*\d+)\b', s):
+    if re.search(r'(?i)\b(?:H#|St\s*\d+|G\d+-\d+|Market ID|Plot No|Sector\s*\d+|Gate\s*\d+|Bus Stop|Traffic Signal|Police Station)\b', s):
         return True
     if s.lower() in BARE_GENERIC_NAMES:
         return True
@@ -156,11 +156,11 @@ class ItinerarySchedulingModel:
                     a = np.sin(dlat / 2.0) ** 2 + np.cos(np.radians(target_lat)) * np.cos(np.radians(df["Latitude"])) * np.sin(dlon / 2.0) ** 2
                     dists = 6371.0 * 2.0 * np.arcsin(np.sqrt(np.clip(a, 0, 1)))
 
-                    mask = dists <= 50.0
+                    mask = dists <= 35.0
                     sub = df[mask].copy()
                     sub["calc_dist"] = dists[mask]
                     if len(sub) < 4:
-                        mask = dists <= 80.0
+                        mask = dists <= 45.0
                         sub = df[mask].copy()
                         sub["calc_dist"] = dists[mask]
                     if len(sub) < 3:
@@ -169,18 +169,24 @@ class ItinerarySchedulingModel:
                         sub = df[name_mask].copy()
                         sub["calc_dist"] = 12.0
 
-                    sub = sub.sort_values(by=["Google Review Rating", "calc_dist"], ascending=[False, True]).head(35)
+                    sub = sub.sort_values(by=["Google Review Rating", "calc_dist"], ascending=[False, True]).head(45)
                 else:
                     mask = (df["City"].astype(str).str.lower().str.contains(dest_lower) |
                             df["Name"].astype(str).str.lower().str.contains(dest_lower))
                     sub = df[mask].copy()
                     sub["calc_dist"] = 10.0
-                    sub = sub.sort_values(by="Google Review Rating", ascending=False).head(35)
+                    sub = sub.sort_values(by="Google Review Rating", ascending=False).head(45)
 
+                seen_sight_keys = set()
                 for idx, (_, row) in enumerate(sub.iterrows()):
-                    nm = str(row["Name"])
+                    nm = str(row["Name"]).strip()
                     if is_generic_or_placeholder_name(nm):
                         continue
+                    import re as _re
+                    dedup_key = _re.sub(r"[^a-z0-9]", "", nm.lower().replace("irupu", "iruppu"))[:16]
+                    if dedup_key in seen_sight_keys:
+                        continue
+                    seen_sight_keys.add(dedup_key)
                     raw_type = str(row.get("Type", "Sightseeing"))
 
                     # Enrich with ML classifier if available
@@ -230,6 +236,18 @@ class ItinerarySchedulingModel:
                         "closed_days": closed_days,
                         "last_verified": last_verified
                     })
+
+                # Round-robin interleave by category so top results are diverse (not 5 temples/churches in a row)
+                if len(matched) > 4:
+                    buckets = {}
+                    for item in matched:
+                        buckets.setdefault(item["category"], []).append(item)
+                    diversified = []
+                    while any(buckets.values()):
+                        for cat_k in list(buckets.keys()):
+                            if buckets[cat_k]:
+                                diversified.append(buckets[cat_k].pop(0))
+                    matched = diversified
 
             except Exception as e:
                 print(f"[Agent 2] Dataset fetch error: {e}")

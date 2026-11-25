@@ -11,9 +11,29 @@
 {% block content %}
 <div class="stay-manager-page results-mode-page">
 
-  <!-- ── 1. Top Search Recap Bar & Actions ───────────────────────── -->
+  <!-- ── 1. Top Search Recap Bar & Stepper ──────────────────────── -->
   <section class="stay-results-topbar">
     <div class="container-fluid px-lg-4 py-3">
+      <!-- 3-Step Flow Progress Tracker -->
+      <div class="d-flex align-items-center justify-content-center mb-3">
+        <div class="stay-step-tracker">
+          <div class="step-pill step-active">
+            <span class="step-number">1</span>
+            <span class="step-title">Office &amp; Stays</span>
+          </div>
+          <div class="step-connector"></div>
+          <div class="step-pill">
+            <span class="step-number">2</span>
+            <span class="step-title">Transport Mode</span>
+          </div>
+          <div class="step-connector"></div>
+          <div class="step-pill">
+            <span class="step-number">3</span>
+            <span class="step-title">Stay Summary</span>
+          </div>
+        </div>
+      </div>
+
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
         <!-- Title & Location Info -->
         <div class="d-flex align-items-center gap-3">
@@ -41,9 +61,9 @@
         <div class="d-flex align-items-center gap-2">
           <div id="aiEngineStatusBadge" class="badge rounded-pill bg-dark-slate text-teal py-2 px-3 extra-small border border-teal-subtle">
             {% if initial_data.source_engine == 'ibm_granite' %}
-              <i class="bi bi-cpu-fill text-turquoise me-1"></i> IBM Granite 4-h-small Active
+              <i class="bi bi-cpu-fill text-turquoise me-1"></i> AI Stay Search
             {% else %}
-              <i class="bi bi-shield-check text-success me-1"></i> Agent 4 Accommodations Active
+              <i class="bi bi-building-check text-success me-1"></i> Local Stay Directory
             {% endif %}
           </div>
         </div>
@@ -82,7 +102,7 @@
         <div class="d-flex align-items-center gap-1 flex-wrap">
           <span class="filter-label">TIER:</span>
           <button type="button" class="btn-tier-pill active" data-tier="all" onclick="setTierFilter('all', this)">All</button>
-          <button type="button" class="btn-tier-pill" data-tier="Budget" onclick="setTierFilter('Budget', this)">Budget (&lt; ₹2.2k)</button>
+          <button type="button" class="btn-tier-pill" data-tier="Budget" onclick="setTierFilter('Budget', this)">Budget (&lt; ₹2.2k/person)</button>
           <button type="button" class="btn-tier-pill" data-tier="Mid-range" onclick="setTierFilter('Mid-range', this)">Mid-range</button>
           <button type="button" class="btn-tier-pill" data-tier="Luxury" onclick="setTierFilter('Luxury', this)">Luxury / Resorts</button>
         </div>
@@ -137,9 +157,11 @@
         {% for s in initial_data.stays %}
         <article class="stay-grid-card" id="card_{{ s.id }}"
                  data-id="{{ s.id }}"
+                 data-order="{{ loop.index }}"
                  data-lat="{{ s.lat }}"
                  data-lon="{{ s.lon }}"
-                 data-price="{{ s.price_per_night }}"
+                 data-price="{{ s.price_per_person_day or s.price_per_night }}"
+                 data-room-price="{{ s.price_per_night }}"
                  data-dist="{{ s.distance_km }}"
                  data-rating="{{ s.rating }}"
                  data-tier="{{ s.tier or 'Mid-range' }}"
@@ -158,10 +180,11 @@
             <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
               <h2 class="stay-grid-title text-navy mb-0" title="{{ s.name }}">{{ s.name }}</h2>
               <div class="text-end text-nowrap">
-                <span class="stay-grid-price">₹{{ "{:,}".format(s.price_per_night) }}</span>
-                <span class="stay-price-sub">/ nt</span>
-                {% if initial_data.nights > 1 and s.total_price %}
-                <div class="extra-small text-muted">₹{{ "{:,}".format(s.total_price) }} for {{ initial_data.nights }} nights</div>
+                <span class="stay-grid-price">₹{{ "{:,}".format(s.price_per_person_day or (s.price_per_night // (initial_data.travelers or 1))) }}</span>
+                <span class="stay-price-sub">/ person / day</span>
+                <div class="extra-small text-muted">Room ₹{{ "{:,}".format(s.price_per_night) }} / day</div>
+                {% if s.over_budget %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle extra-small mt-1">Over budget</span>
                 {% endif %}
               </div>
             </div>
@@ -182,22 +205,30 @@
               {% endfor %}
             </div>
 
-            <!-- Action Buttons: View on Map & Booking Links -->
+            <!-- Action Buttons: Select Stay, View on Map & Booking Links -->
             <div class="stay-card-footer pt-2 border-top d-flex align-items-center justify-content-between gap-2 mt-auto">
-              <!-- Floating Map Trigger -->
-              <button type="button" class="btn btn-sm btn-outline-primary btn-floating-map-trigger py-1 px-3 extra-small fw-semibold"
-                      onclick="openFloatingMap('{{ s.id }}', {{ s.lat }}, {{ s.lon }}, '{{ s.name|escape }}', '{{ s.price_per_night }}', '{{ s.img }}', '{{ s.distance_km }}', '{{ s.drive_mins }}')">
-                <i class="bi bi-map-fill me-1 text-primary"></i>View on Map
-              </button>
+              <div class="d-flex align-items-center gap-1.5">
+                <!-- Select Stay CTA -->
+                <button type="button" class="btn btn-sm btn-gradient-select-stay py-1 px-2.5 extra-small fw-bold text-white rounded-pill d-inline-flex align-items-center gap-1"
+                        onclick="event.stopPropagation(); selectStayCard('{{ s.id }}', '{{ s.name|escape }}', {{ s.price_per_night }}, {{ s.price_per_person_day or (s.price_per_night // (initial_data.travelers or 1)) }}, {{ s.lat }}, {{ s.lon }}, '{{ s.img }}', '{{ s.address|escape }}', '{{ s.distance_km }}', '{{ s.drive_mins }}')">
+                  <i class="bi bi-check2-circle"></i><span>Select Stay</span>
+                </button>
+
+                <!-- Floating Map Trigger -->
+                <button type="button" class="btn btn-sm btn-outline-primary btn-floating-map-trigger py-1 px-2 extra-small fw-semibold"
+                        onclick="event.stopPropagation(); openFloatingMap('{{ s.id }}', {{ s.lat }}, {{ s.lon }}, '{{ s.name|escape }}', '{{ s.price_per_night }}', '{{ s.img }}', '{{ s.distance_km }}', '{{ s.drive_mins }}')">
+                  <i class="bi bi-map-fill me-1"></i>Map
+                </button>
+              </div>
 
               <!-- Deep Links -->
               <div class="d-flex align-items-center gap-1">
                 <a href="{{ s.booking_links.agoda }}" target="_blank" rel="noopener noreferrer"
-                   class="btn btn-sm btn-light border py-1 px-2 extra-small text-dark fw-semibold" title="Compare on Agoda">
+                   class="btn btn-sm btn-light border py-1 px-2 extra-small text-dark fw-semibold" title="Compare on Agoda" onclick="event.stopPropagation()">
                   Agoda ↗
                 </a>
                 <a href="{{ s.booking_links.booking_com }}" target="_blank" rel="noopener noreferrer"
-                   class="btn btn-sm btn-success py-1 px-2 extra-small text-white fw-semibold" title="Book on Booking.com">
+                   class="btn btn-sm btn-success py-1 px-2 extra-small text-white fw-semibold" title="Book on Booking.com" onclick="event.stopPropagation()">
                   Book ↗
                 </a>
               </div>
@@ -272,6 +303,33 @@
     </div>
   </div>
 
+  <!-- ── 5. Sticky Bottom Action Dock (When Stay is Selected) ─────── -->
+  <div id="stickyStaySelectionDock" class="sticky-stay-dock shadow-lg d-none">
+    <div class="container d-flex align-items-center justify-content-between flex-wrap gap-3 py-2 px-3">
+      <div class="d-flex align-items-center gap-3">
+        <img id="dockStayImg" src="" alt="Selected Stay" class="dock-thumb rounded-3" />
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-success text-dark extra-small fw-bold">✓ Selected Stay</span>
+            <span id="dockStayCommute" class="extra-small text-turquoise">🚗 ~5 mins to office</span>
+          </div>
+          <h4 id="dockStayName" class="fs-6 fw-bold text-white mb-0 text-truncate" style="max-width: 320px;">Hotel Name</h4>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-3">
+        <div class="text-end">
+          <div id="dockStayPrice" class="fs-5 fw-extrabold text-turquoise">₹1,250</div>
+          <div class="extra-small text-white-50">/ person / day</div>
+        </div>
+        <button type="button" id="btnContinueToTransport" class="btn btn-launch-gradient px-4 py-2 fw-bold text-white shadow" onclick="proceedToTransportMode()">
+          <span>Continue to Transport Mode</span>
+          <i class="bi bi-arrow-right ms-1"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- Embedded Server State Data -->
@@ -284,4 +342,8 @@
 <!-- MapLibre GL JS -->
 <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 <script src="{{ url_for('static', filename='js/stay_manager.js') }}"></script>
+{% endblock %}
+
+{% block footer %}
+<!-- No global footer in Stay Manager -->
 {% endblock %}

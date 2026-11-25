@@ -43,7 +43,7 @@ def get_ibm_iam_token() -> str:
     return _token_cache["token"]
 
 
-def call_granite(prompt: str, max_tokens: int = 1200, greedy: bool = False) -> str:
+def call_granite(prompt: str, max_tokens: int = 1200, greedy: bool = False, timeout: int = 12) -> str:
     """Single Granite API call with optional greedy decoding for factual stability."""
     cfg   = get_config()
     token = get_ibm_iam_token()
@@ -65,7 +65,7 @@ def call_granite(prompt: str, max_tokens: int = 1200, greedy: bool = False) -> s
             "input":      prompt,
             "parameters": params
         },
-        timeout=25
+        timeout=timeout
     )
     resp.raise_for_status()
     return resp.json()["results"][0]["generated_text"].strip()
