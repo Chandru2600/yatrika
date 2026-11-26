@@ -265,24 +265,26 @@ def fetch_ksrtc_bus_fares(source: str, dest: str, dist_km: float, travelers: int
     })
 
     min_fare = min(s["fare_per_seat"] for s in schedules)
+    # State RTCs do not operate >600km cross-country routes; prefer Private Volvo/Sleeper as primary
+    primary_sched = schedules[2] if (dist_km > 600 and len(schedules) > 2) else schedules[0]
 
     return {
         "mode": "bus",
-        "mode_title": f"Bus Mode ({corp_display} RTC & RedBus Fleets)",
+        "mode_title": f"Bus Mode ({'Private Intercity Fleet' if dist_km > 600 else corp_display + ' RTC & RedBus Fleets'})",
         "api_source": "Authentic State RTC Tariffs & RedBus Fleet Network",
-        "operator": schedules[0]["operator"],
+        "operator": primary_sched["operator"],
         "boarding_point": src_hub["bus_terminal_name"],
         "dropoff_point": dst_hub["bus_terminal_name"],
-        "departure_time": schedules[0]["departure"],
-        "arrival_time": schedules[0]["arrival"],
-        "travel_duration": duration_str,
+        "departure_time": primary_sched["departure"],
+        "arrival_time": primary_sched["arrival"],
+        "travel_duration": primary_sched["duration"],
         "selected_class": bus_type,
-        "fare_per_traveler": fare_per_seat,
+        "fare_per_traveler": primary_sched["fare_per_seat"] if dist_km > 600 else fare_per_seat,
         "min_fare_per_seat": min_fare,
-        "total_cost": total_cost,
+        "total_cost": (primary_sched["fare_per_seat"] * travelers) if dist_km > 600 else total_cost,
         "class_tiers": classes_available,
         "schedules": schedules,
         "location_notice": f"Direct Inter-City Bus Service Available to {dst_hub['bus_terminal_name']}.",
         "has_direct_hub": True,
-        "details_summary": f"{schedules[0]['operator']} · Arrives {dst_hub['bus_terminal_name']} @ {schedules[0]['arrival']}"
+        "details_summary": f"{primary_sched['operator']} · Arrives {dst_hub['bus_terminal_name']} @ {primary_sched['arrival']}"
     }

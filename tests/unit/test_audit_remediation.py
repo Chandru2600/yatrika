@@ -125,3 +125,25 @@ def test_varanasi_train_and_no_12080_fallback():
 
     unmapped = calculate_intercity_transit("Bengaluru", "Guwahati", "train", 2)["chosen_details"]
     assert unmapped["train_number"] != "12080"
+
+
+def test_agra_long_bus_private_operator_and_no_impossible_transit_days():
+    from backend.services.itinerary.timeline_builder import build_timeline
+    bus = calculate_intercity_transit("Bengaluru", "Agra", "bus", 2)["chosen_details"]
+    assert "UPSRTC" not in bus["operator"]
+
+    tl = build_timeline({
+        "source": "Bengaluru",
+        "destination": "Agra",
+        "num_days": 4,
+        "num_travelers": 2,
+        "budget": 30000,
+        "transport": "bus",
+        "stay": {"name": "Maya Hotel", "price_per_night": 3000, "lat": 27.16, "lon": 78.04},
+        "transit": {"mode": "bus", "title": bus["operator"], "fare_per_person": 6000, "departure": "21:30", "duration_mins": 2393, "distance_km": 1917},
+        "selected_attractions": [{"id": "taj", "name": "Taj Mahal", "dur": 150, "fee": 50, "lat": 27.1751, "lon": 78.0421}],
+    })
+    assert "In Transit" in tl["days"][1]["events"][0]["title"]
+    assert len(tl["days"][1]["sights"]) == 0
+    day1_dinner = [e for e in tl["days"][0]["events"] if "Dinner" in e["title"]][0]
+    assert "19:00" in day1_dinner["start_time"] or "19:" in day1_dinner["start_time"]
