@@ -62,20 +62,32 @@ class MultiAgentCooperativePipeline:
             selected_mode=transport
         )
 
-        approx_distance = 280.0
-        legs = transit_info.get("legs", [])
-        if legs:
-            approx_distance = sum(float(l.get("distance_km", 60)) for l in legs)
+        approx_distance = float(transit_info.get("distance_km") or 0)
+        if not approx_distance:
+            legs = transit_info.get("legs", [])
+            if legs:
+                approx_distance = sum(float(l.get("distance_km", 0)) for l in legs)
 
-        fare_inr = int(float(transit_info.get("estimated_fare_inr", 1250)))
+        dur_str = transit_info.get("duration_str") or "4h 30m"
+        from backend.services.itinerary.timeline_builder import _parse_duration_mins, build_timeline
+        dur_mins = _parse_duration_mins(dur_str, 270)
+        dur_hours = round(dur_mins / 60.0, 1)
+
+        fare_inr = int(float(transit_info.get("estimated_fare_inr") or 0))
+        one_way_pp = int(float(transit_info.get("fare_per_person_one_way") or 0))
+        op_title = transit_info.get("mode_title") or f"{transport.title()}"
         transit_info.update({
             "origin": source.title(),
             "destination": dest.title(),
             "estimated_fare": fare_inr,
-            "direct_transit_mode": f"{transport.title()} Express Connector",
+            "direct_transit_mode": op_title,
             "distance_km": round(approx_distance, 1),
-            "duration_hours": round(approx_distance / 50.0, 1),
-            "description": f"Direct transit with reserved connector from {source.title()} directly to {base_camp_stay['name']}."
+            "duration_hours": dur_hours,
+            "duration_mins": dur_mins,
+            "description": transit_info.get("location_notice") or (
+                f"{op_title} from {transit_info.get('origin_station', source.title())} "
+                f"to {transit_info.get('dest_station', dest.title())} · {round(approx_distance, 1)} km ({dur_str})."
+            )
         })
 
         # Fetch tourist spots and compute distance matrix from Base Camp stay
@@ -93,9 +105,8 @@ class MultiAgentCooperativePipeline:
             travel_style=style
         )
 
-        # ── Step 4: Agent 3 (Budget & Expense Model) ─────────────────────
-        # Predict ML expected expense and compute itemized financial allocations
-        transit_fare = float(transit_info.get("estimated_fare_inr", 1250))
+        # ── Step 4: Budget & Expense Calculation ─────────────────────────
+        transit_fare = float(transit_info.get("estimated_fare_inr") or 0)
         budget_analysis = self.agent3_budget.calculate_stay_first_budget(
             total_budget=budget,
             travelers=travelers,
@@ -103,17 +114,6 @@ class MultiAgentCooperativePipeline:
             stay_info=base_camp_stay,
             transit_fare=transit_fare
         )
-
-        # ML model prediction comparison
-        ml_predicted_cost = self.agent3_budget.predict_expected_cost_ml(
-            days=days,
-            travelers=travelers,
-            distance_km=approx_distance,
-            transport_mode=transport,
-            hotel_tier=style
-        )
-        budget_analysis["ml_predicted_benchmark_inr"] = ml_predicted_cost
-        budget_analysis["ml_model_accuracy_benchmark"] = "90.92% (Random Forest Trained on 25k Trips)"
 
         # ── Selected Attractions List for Overview & Timeline ────────────
         selected_attractions = []
@@ -222,20 +222,42 @@ class MultiAgentCooperativePipeline:
                 "night": []
             }
 
+        # Build authoritative timeline (includes Day 1 arrival, return-to-hotel & Day N return leg)
+        authoritative_tl = build_timeline({
+            "source": source,
+            "destination": dest,
+            "start_date": start_date if start_date not in ("2026-09-15", "2026-12-02", "") else "",
+            "num_days": days,
+            "num_travelers": travelers,
+            "budget": budget,
+            "transport": transport,
+            "stay": base_camp_stay,
+            "transit": {
+                "mode": transport,
+                "title": op_title,
+                "fare_per_person": one_way_pp,
+                "departure": transit_info.get("departure_time", "06:00"),
+                "duration_mins": dur_mins,
+                "distance_km": round(approx_distance, 1),
+            },
+            "selected_attractions": selected_attractions,
+        })
+
         # ── Complete Itinerary Dictionary (matches view_trip.html bindings)
         unified_itinerary = {
-            "trip_title": f"{days}-Day {dest.title()} Experience (Base Camp: {base_camp_stay['name']})",
+            "trip_title": f"{days}-Day {dest.title()} Plan ({base_camp_stay['name']})",
             "destination": dest.title(),
             "duration_days": days,
             "travel_style": style.title(),
-            "overview": f"Authentic Indian journey anchored at {base_camp_stay['name']}, featuring door-to-door transit, curated local sightseeing loops, and verified regional dining.",
-            "trip_summary": f"A curated {days}-day {style} adventure to {dest.title()} anchored at {base_camp_stay['name']}. Features verified Base Camp lodging, door-to-door transit, conflict-free daily loops, and authentic regional dining.",
+            "overview": f"Plan to {dest.title()} anchored at {base_camp_stay['name']} via {op_title}.",
+            "trip_summary": f"{days}-day {style} plan to {dest.title()} anchored at {base_camp_stay['name']}.",
             "best_time_to_visit": "October to May",
-            "local_language": "Hindi, Regional & English",
+            "local_language": "Kannada, Hindi, English" if "karnataka" in dest.lower() or any(k in dest.lower() for k in ("coorg", "mysuru", "mysore", "hampi", "bengaluru")) else "Regional & English",
             "currency": "₹ INR (Indian Rupee)",
             "time_zone": "IST (UTC+05:30)",
             "base_camp_stay": base_camp_stay,
             "transit": transit_info,
+            "timeline": authoritative_tl,
             "selected_attractions": selected_attractions,
             "packing_checklist": packing_checklist,
             "days": daily_itinerary,
@@ -264,12 +286,12 @@ class MultiAgentCooperativePipeline:
             "hotels": tiered_hotels,
             "emergency_support": base_camp_stay.get("emergency_support", {}),
             "pipeline_metadata": {
-                "architecture": "4-Agent Cooperative Architecture",
+                "architecture": "Stay-First Multi-Agent Pipeline",
                 "agents_used": [
-                    "Agent 1: Geospatial & Transit",
-                    "Agent 2: Itinerary Scheduling (Random Forest 97.4% Accuracy)",
-                    "Agent 3: Budget & Expense (Random Forest 90.9% R2)",
-                    "Agent 4: Accommodations & Safety (K-Means Clustering)"
+                    "Geospatial & Transit",
+                    "Itinerary Scheduling",
+                    "Budget & Expense",
+                    "Accommodations & Proximity"
                 ]
             }
         }

@@ -30,8 +30,46 @@ class GeospatialTransitModel:
             travel_style="adventure"
         )
 
-        best_option = transit_calc.get("primary_mode", {})
-        all_modes = transit_calc.get("all_modes", {})
+        chosen = transit_calc.get("chosen_details", {})
+        all_modes = transit_calc.get("all_options", {})
+        schedules = chosen.get("schedules") or []
+        first_sched = schedules[0] if schedules else {}
+
+        dist_km = round(float(transit_calc.get("distance_km") or chosen.get("distance_km") or 0), 1)
+        dur_str = chosen.get("travel_duration") or chosen.get("flight_duration") or first_sched.get("duration") or "4h 30m"
+        one_way_pp = float(
+            chosen.get("fare_per_traveler")
+            or chosen.get("min_fare_per_seat")
+            or first_sched.get("fare_per_seat")
+            or first_sched.get("price_per_seat")
+            or round(float(chosen.get("total_cost") or 0) / max(1, travelers))
+        )
+        chosen_sched = first_sched
+        # Car total_cost is per-vehicle, not per-seat
+        if selected_mode.lower() == "car":
+            # Prefer Sedan cab schedule if available, else chosen min_fare
+            sedan_sched = next((s for s in schedules if "sedan" in (s.get("operator") or "").lower() or "sedan" in (s.get("type") or "").lower()), first_sched)
+            chosen_sched = sedan_sched
+            vehicle_one_way = float(sedan_sched.get("fare_per_seat") or chosen.get("total_cost") or 0)
+            one_way_pp = round(vehicle_one_way / max(1, travelers))
+            one_way_group = round(vehicle_one_way)
+        else:
+            one_way_group = round(one_way_pp * max(1, travelers))
+
+        round_trip_group = one_way_group * 2
+        round_trip_pp = round(one_way_pp * 2)
+
+        operator_title = (
+            chosen.get("train_name")
+            or chosen_sched.get("train_name")
+            or chosen_sched.get("operator")
+            or chosen_sched.get("airline")
+            or chosen.get("mode_title")
+            or selected_mode.title()
+        )
+        train_num = chosen.get("train_number") or chosen_sched.get("train_number") or ""
+        if train_num and train_num not in operator_title:
+            operator_title = f"{operator_title} ({train_num})"
 
         return {
             "source": source.title(),
@@ -39,16 +77,26 @@ class GeospatialTransitModel:
             "stay_name": stay_info.get("name", "Base Camp"),
             "stay_address": stay_info.get("address", ""),
             "selected_mode": selected_mode,
-            "estimated_fare_inr": best_option.get("total_fare", 1250),
-            "duration_str": best_option.get("total_duration", "5h 30m"),
-            "carbon_kg": best_option.get("carbon_kg", 24.5),
-            "legs": best_option.get("legs", []),
+            "available": chosen.get("available", True),
+            "mode_title": operator_title,
+            "operator": operator_title,
+            "train_number": train_num,
+            "origin_station": chosen.get("origin_station") or chosen.get("departure_airport") or source.title(),
+            "dest_station": chosen.get("dest_station") or chosen.get("arrival_airport") or destination.title(),
+            "departure_time": chosen.get("departure_time") or first_sched.get("departure") or "06:00",
+            "arrival_time": chosen.get("arrival_time") or first_sched.get("arrival") or "11:30",
+            "distance_km": dist_km,
+            "duration_str": dur_str,
+            "fare_per_person_one_way": round(one_way_pp),
+            "fare_per_person_round_trip": round_trip_pp,
+            "estimated_fare_inr": round_trip_group,
+            "one_way_fare_inr": one_way_group,
+            "location_notice": chosen.get("location_notice", ""),
+            "legs": chosen.get("multimodal_legs") or schedules[:2],
+            "schedules": schedules,
+            "class_tiers": chosen.get("class_tiers", []),
             "all_options": all_modes,
-            "fuel_and_tolls": {
-                "petrol_rate_inr": 102.86,
-                "estimated_tolls_inr": 340,
-                "highway_route": f"NH-75 / State Highway connecting to {destination.title()}"
-            }
+            "details_summary": chosen.get("details_summary", ""),
         }
 
     def compute_distance_km(self, lat1: float, lon1: float, lat2: float, lon2: float) -> float:
