@@ -716,10 +716,10 @@ def fetch_railway_ai_fares(source: str, dest: str, dist_km: float, travelers: in
     if selected_sched.get("classes_info"):
         class_tiers = [
             {
-                "code": ci["code"],
-                "name": f"{ci['name']} ({ci['code']})",
-                "price_per_seat": ci["fare"],
-                "total": (ci["fare"] * travelers) + transfer_cab_fee,
+                "code": ci.get("code", "CC"),
+                "name": f"{ci.get('name', ci.get('code', 'Class'))} ({ci.get('code', '')})".strip(),
+                "price_per_seat": ci.get("fare", fare_per_seat),
+                "total": (ci.get("fare", fare_per_seat) * travelers) + transfer_cab_fee,
                 "status": ci.get("status", "AVAILABLE"),
             }
             for ci in selected_sched["classes_info"]

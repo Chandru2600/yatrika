@@ -126,8 +126,7 @@ class Feature9CleanUITestCase(unittest.TestCase):
         for term in banned_terms:
             self.assertNotIn(term, html, f"Banned jargon '{term}' found on dashboard")
 
-        self.assertIn("Yatrika AI Travel Concierge", html)
-        self.assertIn("⚡ Express Auto-Pilot", html)
+        self.assertIn("Travel Command Center", html)
 
     def test_trip_view_clean_of_internal_jargon(self):
         resp = self.client.get(f"/planner/{self.trip_id}")
@@ -143,5 +142,4 @@ class Feature9CleanUITestCase(unittest.TestCase):
         for term in banned_terms:
             self.assertNotIn(term, html, f"Banned jargon '{term}' found on trip view")
 
-        self.assertIn("Smart Cost Verified", html)
-        self.assertIn("Cost Verified", html)
+        self.assertIn("Estimated Total", html)

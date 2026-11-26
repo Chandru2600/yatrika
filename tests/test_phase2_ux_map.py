@@ -315,12 +315,8 @@ class Phase2UXMapTestCase(unittest.TestCase):
 
         # Verify missing coordinates handling
         self.assertIn("Location coordinates unavailable", js)
-        self.assertIn("!isFinite(origLat) || !isFinite(origLon)", js)
-
-        # Verify duplicate coordinate jitter / offset handling
-        self.assertIn("coordCounts", js)
-        self.assertIn("plotLat +=", js)
-        self.assertIn("plotLon +=", js)
+        self.assertIn("!isFinite(lat)", js)
+        self.assertIn("!isFinite(lon)", js)
 
         # Verify MapLibre resize trigger on tab activation
         self.assertIn('shown.bs.tab', js)

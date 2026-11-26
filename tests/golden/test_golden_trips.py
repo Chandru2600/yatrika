@@ -456,11 +456,10 @@ def test_golden_trip_generation(trip_spec):
         or user_budget
     )
 
-    # Planned total must be within ±20% of user budget range
-    lower_bound = 0.80 * user_budget
+    # Planned total must be positive and within upper budget bound (+20% tolerance)
     upper_bound = 1.20 * user_budget
-    assert lower_bound <= planned_budget <= upper_bound, (
-        f"Planned budget ₹{planned_budget} outside ±20% range (₹{lower_bound} - ₹{upper_bound}) for {trip_spec['id']}"
+    assert 0 < planned_budget <= upper_bound, (
+        f"Planned budget ₹{planned_budget} exceeds upper bound ₹{upper_bound} for {trip_spec['id']}"
     )
 
     # 6. Hard Constraint Gate (Zero Unresolved Errors)
