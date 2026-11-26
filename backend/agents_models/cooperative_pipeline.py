@@ -243,6 +243,33 @@ class MultiAgentCooperativePipeline:
             "selected_attractions": selected_attractions,
         })
 
+        # Sync budget_analysis with single-source-of-truth calculate_trip_total
+        tl_b = authoritative_tl.get("budget") or {}
+        if tl_b:
+            denom = float(tl_b.get("budget_target") or budget or 1.0)
+            budget_analysis["stay_cost_inr"] = tl_b.get("stay_group", budget_analysis.get("stay_cost_inr", 0))
+            budget_analysis["transit_cost_inr"] = tl_b.get("transit_group", budget_analysis.get("transit_cost_inr", 0))
+            budget_analysis["food_cost_inr"] = tl_b.get("food_group", budget_analysis.get("food_cost_inr", 0))
+            budget_analysis["sightseeing_cost_inr"] = tl_b.get("entry_group", budget_analysis.get("sightseeing_cost_inr", 0))
+            budget_analysis["emergency_buffer_inr"] = tl_b.get("misc_group", budget_analysis.get("emergency_buffer_inr", 0))
+            budget_analysis["committed_total_inr"] = tl_b.get("group_total", budget_analysis.get("committed_total_inr", 0))
+            budget_analysis["per_person_total_inr"] = tl_b.get("per_person_total", 0)
+            budget_analysis["remaining_pocket_balance_inr"] = max(0, round(denom - float(budget_analysis["committed_total_inr"]), 2))
+            budget_analysis["is_feasible"] = not bool(tl_b.get("is_over_target", False))
+            budget_analysis["budget_status"] = "🟢 Within Target" if budget_analysis["is_feasible"] else "🟡 Over Target"
+            if isinstance(budget_analysis.get("breakdown"), dict):
+                for bk_key, amt_key in [
+                    ("accommodation", "stay_cost_inr"),
+                    ("transit", "transit_cost_inr"),
+                    ("food", "food_cost_inr"),
+                    ("sightseeing", "sightseeing_cost_inr"),
+                    ("emergency", "emergency_buffer_inr"),
+                ]:
+                    if bk_key in budget_analysis["breakdown"]:
+                        amt = float(budget_analysis[amt_key])
+                        budget_analysis["breakdown"][bk_key]["amount"] = amt
+                        budget_analysis["breakdown"][bk_key]["percentage"] = round((amt / denom) * 100, 1)
+
         # ── Complete Itinerary Dictionary (matches view_trip.html bindings)
         unified_itinerary = {
             "trip_title": f"{days}-Day {dest.title()} Plan ({base_camp_stay['name']})",

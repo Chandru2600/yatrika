@@ -809,10 +809,24 @@ def save_wizard():
             packing_list["documents"].extend(["Boarding pass", "Luggage tags"])
             packing_list["accessories"].append("Travel neck pillow")
 
+        d_low = destination.lower()
+        if any(k in d_low for k in ("coorg", "kodagu", "madikeri")):
+            local_lang = "Kannada (Kodava), English, Hindi"
+        elif any(k in d_low for k in ("mysuru", "mysore", "bengaluru", "bangalore", "hampi", "gokarna", "chikmagalur", "udupi")):
+            local_lang = "Kannada, English, Hindi"
+        elif any(k in d_low for k in ("munnar", "kochi", "alleppey", "wayanad", "varkala", "kerala")):
+            local_lang = "Malayalam, English, Hindi"
+        elif any(k in d_low for k in ("ooty", "kodaikanal", "chennai", "madurai", "pondicherry", "puducherry")):
+            local_lang = "Tamil, English, Hindi"
+        elif "goa" in d_low:
+            local_lang = "Konkani, Marathi, English, Hindi"
+        else:
+            local_lang = "Hindi, English"
+
         itinerary_json = {
             "trip_summary": f"Customized trip to {destination} planned via the Smart Travel Wizard.",
             "best_time_to_visit": "October to March",
-            "local_language": "Local Regional Language",
+            "local_language": local_lang,
             "currency": "INR (₹)",
             "time_zone": "IST (UTC+5:30)",
             "days": itinerary_days,
