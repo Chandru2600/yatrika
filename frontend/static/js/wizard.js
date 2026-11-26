@@ -31,13 +31,29 @@ const State = {
 const LS_KEY = 'wizard_state_v2';
 function saveStateToLS() {
   try {
+    const startDate = document.getElementById('w_travel_date')?.value || State.startDate || '';
+    const endDate = document.getElementById('w_return_date')?.value || State.endDate || '';
+    State.startDate = startDate;
+    State.endDate = endDate;
     const snap = {
       source: State.source, sourceLat: State.sourceLat, sourceLon: State.sourceLon,
       dest: State.dest, destLat: State.destLat, destLon: State.destLon,
       days: State.days, travelers: State.travelers, budget: State.budget,
+      budgetPerPerson: State.budgetPerPerson,
       transport: State.transport, style: State.style,
-      selectedIds: State.selectedAttractions.map(a => a.id),
+      transitMode: State.transitMode, transitCost: State.transitCost,
+      transitCostPerPerson: State.transitCostPerPerson,
+      transitClass: State.transitClass || '',
+      arrivalTime: State.arrivalTime,
+      transitDetails: State.transitDetails || null,
+      selectedStay: State.selectedStay || null,
+      selectedAttractions: State.selectedAttractions || [],
+      selectedIds: (State.selectedAttractions || []).map(a => a.id),
+      loadedAttractionsDest: State.loadedAttractionsDest || '',
+      startDate,
+      endDate,
       step: State.step,
+      activeTimelineDay: State.activeTimelineDay || 1,
       dayPlanner: State.dayPlanner || {},
       currentPlannerDay: State.currentPlannerDay || 1,
       customPoolActivities: State.customPoolActivities || [],
@@ -57,13 +73,30 @@ function loadStateFromLS() {
       budget: snap.budget || 15000,
       budgetPerPerson: snap.budgetPerPerson || snap.budget || 15000,
       transport: snap.transport||'car', style: snap.style||'Adventure',
+      transitMode: snap.transitMode || snap.transport || 'car',
+      transitCost: snap.transitCost || 0,
+      transitCostPerPerson: snap.transitCostPerPerson || 0,
+      transitClass: snap.transitClass || '',
+      arrivalTime: snap.arrivalTime || '10:30',
+      transitDetails: snap.transitDetails || null,
+      selectedStay: snap.selectedStay || null,
+      selectedAttractions: Array.isArray(snap.selectedAttractions) ? snap.selectedAttractions : [],
+      loadedAttractionsDest: snap.loadedAttractionsDest || '',
+      startDate: snap.startDate || '',
+      endDate: snap.endDate || '',
+      activeTimelineDay: snap.activeTimelineDay || 1,
       dayPlanner: snap.dayPlanner || {},
       currentPlannerDay: snap.currentPlannerDay || 1,
       customPoolActivities: snap.customPoolActivities || [],
     });
-    if (State.dayPlanner) {
+    const tdEl = document.getElementById('w_travel_date');
+    const rdEl = document.getElementById('w_return_date');
+    if (tdEl && State.startDate) tdEl.value = State.startDate;
+    if (rdEl && State.endDate) rdEl.value = State.endDate;
+    if (State.dayPlanner && (!State.selectedAttractions || !State.selectedAttractions.length)) {
       syncAttractionsOrderFromPlanner();
     }
+    updateSidebar();
     return snap;
   } catch(e) { return false; }
 }
@@ -444,7 +477,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (bel) { bel.value = State.budget; document.getElementById('w_budget_val').textContent='₹'+State.budget.toLocaleString('en-IN'); }
     }
     updatePreviewCard();
+    updateSidebar();
     fetchInterCityTransit();
+    if (saved.step && saved.step > 1 && saved.step <= 5) {
+      setTimeout(() => goToStep(saved.step), 50);
+    }
     showToast(`✅ Restored your last session: ${State.dest.split(',')[0]}`, 'success');
   } else if (urlDest) {
     State.dest = urlDest.trim();
@@ -1096,6 +1133,7 @@ async function goToStep(logicalStep) {
 
   State.step = stepNum;
   updateProgressBar(stepNum);
+  saveStateToLS();
 
   // Update Studio Toolbar Badge & Title
   const stgBadge = document.getElementById('studioStageBadge');
@@ -1235,8 +1273,11 @@ async function loadStep2() {
     return;
   }
 
-  State.selectedAttractions = [];
-  State.liveAttractions     = [];
+  // Preserve restored sight selections when reloading the same destination
+  if (State.loadedAttractionsDest && State.loadedAttractionsDest !== dName) {
+    State.selectedAttractions = [];
+  }
+  State.liveAttractions = [];
   updateSidebar();
 
   // There IS real loading time now! Mount 3D Orbit Runner: Person running around the globe scouting places
@@ -1267,10 +1308,12 @@ async function loadStep2() {
     }
   }
 
-  // Fetch verified attractions (80 km radius) AND Overpass in parallel (Real network loading)
-  const verifiedPromise = fetch(`/planner/api/attractions/search?destination=${encodeURIComponent(dName)}&lat=${State.destLat}&lon=${State.destLon}&radius_km=80`)
-    .then(r => r.ok ? r.json() : [])
-    .catch(() => []);
+  // Fetch verified attractions (60-80 km radius) with 9.5s timeout AND Overpass in parallel
+  const vCtrl = new AbortController();
+  const vTimer = setTimeout(() => vCtrl.abort(), 9500);
+  const verifiedPromise = fetch(`/planner/api/attractions/search?destination=${encodeURIComponent(dName)}&lat=${State.destLat}&lon=${State.destLon}&radius_km=60`, { signal: vCtrl.signal })
+    .then(r => { clearTimeout(vTimer); return r.ok ? r.json() : []; })
+    .catch(() => { clearTimeout(vTimer); return []; });
 
   const overpassPromise = fetchAttractions(State.destLat, State.destLon)
     .catch(() => []);
@@ -1321,6 +1364,7 @@ async function loadStep2() {
   }
 
   renderAttractionGrid(merged);
+  updateSidebar();
   renderMap();
 }
 
@@ -1328,7 +1372,13 @@ function renderAttractionGrid(attractions) {
   const grid = document.getElementById('attractionGrid');
   if (!grid) return;
   if (!attractions.length) {
-    grid.innerHTML = `<div class="text-center py-4 text-muted" style="grid-column:1/-1">No attractions match this filter.</div>`;
+    grid.innerHTML = `
+      <div class="text-center py-4 text-muted" style="grid-column:1/-1">
+        <div class="mb-2">Could not load sights for ${State.dest || 'this destination'} within 10s.</div>
+        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="State.loadedAttractionsDest=''; loadStep2();">
+          <i class="bi bi-arrow-clockwise me-1"></i>Retry
+        </button>
+      </div>`;
     return;
   }
   grid.innerHTML = attractions.map(a => buildAttractionCard(a)).join('');
@@ -1380,8 +1430,8 @@ function buildAttractionCard(a) {
         ${a.opening !== 'Check locally' ? `<div class="ac-meta-item"><i class="bi bi-door-open me-1"></i>${a.opening}</div>` : ''}
       </div>
       <div class="d-flex gap-2 mt-2">
-        <button class="btn btn-sm btn-outline-info" onclick="window.focusAttractionOnMap('${a.lat}', '${a.lon}', '${(a.name||'').replace(/'/g, "\\'")}'); event.stopPropagation();" style="font-size:0.75rem;" title="View on Map">
-          <i class="bi bi-geo-alt-fill"></i> Map
+        <button class="btn btn-sm rounded-pill d-inline-flex align-items-center gap-1" onclick="window.focusAttractionOnMap('${a.lat}', '${a.lon}', '${(a.name||'').replace(/'/g, "\\'")}'); event.stopPropagation();" style="font-size:0.75rem; background:#f0fdfa; color:#0f766e; border:1px solid #99f6e4; font-weight:600;" title="View on Map">
+          <i class="bi bi-map-fill"></i><span>Map</span>
         </button>
         <button class="btn btn-sm btn-outline-primary flex-grow-1" onclick="openDrawer('${a.id}'); event.stopPropagation();" style="font-size:0.75rem;"><i class="bi bi-info-circle"></i> Details</button>
         <button class="btn btn-sm ${sel ? 'btn-success' : 'btn-primary'} select-btn-explore" onclick="toggleSelection('${a.id}'); event.stopPropagation();" style="width: 80px; font-size:0.75rem; font-weight:600;">
@@ -1469,12 +1519,18 @@ function updateSidebar() {
   const sel = State.selectedAttractions || [];
   setText('selectedCount', sel.length + (sel.length === 1 ? ' Sight' : ' Sights'));
   const totalMins = sel.reduce((s, a) => s + (a.dur || 0), 0);
-  const totalDist = sel.reduce((s, a) => s + (a.dist || 0), 0);
-  const budgetEst = sel.reduce((s, a) => s + (a.fee || 0), 0) + totalDist * 4 + totalMins * 20;
+  const stay = State.selectedStay;
+  const hotelDistSum = sel.reduce((s, a) => {
+    if (stay && stay.lat && stay.lon && a.lat && a.lon) {
+      return s + haversineKm(stay.lat, stay.lon, a.lat, a.lon);
+    }
+    return s + (a.dist || 0);
+  }, 0);
+  const entryTotal = sel.reduce((s, a) => s + (a.fee || 0), 0);
   const avail     = (State.days * 8 * 60) - totalMins;
   setText('totalDuration', fmtHrs(totalMins));
-  setText('totalDistance', totalDist.toFixed(1) + ' km');
-  setText('estBudget', fmtINR(budgetEst));
+  setText('totalDistance', `${hotelDistSum.toFixed(1)} km (from hotel)`);
+  setText('estBudget', fmtINR(entryTotal));
   setText('timeLeft', avail > 0 ? fmtHrs(avail) : 'Full!');
 
   // Render ONLY the places the user has actually selected
@@ -1720,8 +1776,54 @@ function getDayPlanArray() {
 }
 window.getDayPlanArray = getDayPlanArray;
 
-/* ── STEP 5 — Smart Timeline (check-in 8:00, built from planner) ── */
-function renderTimeline() {
+function buildTripPayloadForTimeline() {
+  const startDate = document.getElementById('w_travel_date')?.value || State.startDate || '';
+  const endDate = document.getElementById('w_return_date')?.value || State.endDate || '';
+  const td = State.transitDetails || {};
+  return {
+    source: State.source || 'Bengaluru',
+    destination: State.dest || 'Coorg',
+    start_date: startDate,
+    end_date: endDate,
+    num_days: Math.max(1, State.days || 3),
+    num_travelers: Math.max(1, State.travelers || 1),
+    budget: State.budget || 15000,
+    transport: State.transitMode || State.transport || 'car',
+    stay: State.selectedStay || {},
+    transit: {
+      mode: State.transitMode || State.transport || 'car',
+      title: td.mode_title || td.title || State.transport || 'Cab',
+      fare_per_person: State.transitCostPerPerson || Math.round((State.transitCost || 0) / Math.max(1, State.travelers || 1)),
+      departure: td.departure_time || td.departure || '06:00',
+      duration_mins: td.duration_mins || (td.duration_hours ? Math.round(parseFloat(td.duration_hours) * 60) : 270),
+      distance_km: td.distance_km || 269.8,
+    },
+    selected_attractions: State.selectedAttractions || [],
+  };
+}
+
+async function syncAuthoritativeTimeline() {
+  try {
+    const res = await fetch('/planner/api/timeline/build', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildTripPayloadForTimeline()),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.status === 'success' && data.timeline) {
+        State.authoritativeTimeline = data.timeline;
+        return data.timeline;
+      }
+    }
+  } catch (e) {
+    console.warn('Timeline sync error:', e);
+  }
+  return null;
+}
+
+/* ── STEP 5 — Smart Timeline (Single Source of Truth) ──────────── */
+async function renderTimeline() {
   const sel  = State.selectedAttractions || [];
   const cont = document.getElementById('smartTimeline');
   if (!cont) return;
@@ -1756,41 +1858,78 @@ function renderTimeline() {
     return;
   }
 
-  const days_plan = getDayPlanArray();
-
-  const dayLabels = [
-    'Arrival & Explore', 'Deep Exploration', 'Adventure Day',
-    'Cultural Immersion', 'Leisure & Relax', 'Hidden Gems',
-    'Final Day & Departure'
-  ];
-
-  // Strictly show the active selected day (Day 1, Day 2, etc.)
-  const visibleDays = [];
+  const tl = await syncAuthoritativeTimeline();
   const activeDay = Math.max(1, Math.min(days, State.activeTimelineDay || 1));
-  const dIdx = activeDay - 1;
-  visibleDays.push({ d: dIdx, attrs: days_plan[dIdx] || [] });
 
-  let hasPlannerAssignments = false;
-  if (State.dayPlanner && State.dayPlanner[activeDay]) {
-    ['morning', 'afternoon', 'evening', 'night'].forEach(zone => {
-      if ((State.dayPlanner[activeDay][zone] || []).length > 0) hasPlannerAssignments = true;
-    });
-  }
+  if (tl && Array.isArray(tl.days) && tl.days[activeDay - 1]) {
+    const dayObj = tl.days[activeDay - 1];
+    const s4TotalDrive = document.getElementById('s4TotalDrive');
+    if (s4TotalDrive) {
+      s4TotalDrive.textContent = `${tl.total_distance_km} km · ${tl.total_drive_label}`;
+    }
 
-  cont.innerHTML = `
-    <div class="tl-days-wrap">
-      ${visibleDays.map(({ attrs, d }) => `
+    const warningsHtml = (tl.warnings && tl.warnings.length)
+      ? `<div class="alert alert-warning py-2 px-3 extra-small mb-2 rounded-3">
+           ${tl.warnings.map(w => `<div><i class="bi bi-exclamation-triangle-fill me-1"></i>${w}</div>`).join('')}
+         </div>`
+      : '';
+
+    const eventsHtml = dayObj.events.map(ev => buildEventCard({
+      time: `${ev.start_time}–${ev.end_time}`,
+      type: ev.type,
+      icon: ev.icon,
+      title: ev.title,
+      subtitle: ev.subtitle,
+      priority: ev.type === 'attraction' ? 'high' : 'medium',
+      duration: ev.duration_mins,
+    })).join('');
+
+    cont.innerHTML = `
+      ${warningsHtml}
+      <div class="tl-days-wrap">
         <div class="tl-day-col mb-2">
           <div class="tl-day-header">
-            <span class="tl-day-num">Day ${d+1}</span>
-            <span class="tl-day-label">${dayLabels[d] || ('Exploration Day '+(d+1))}</span>
-            <span class="tl-day-count">${attrs.length} stop${attrs.length === 1 ? '' : 's'}</span>
+            <span class="tl-day-num">Day ${dayObj.day}</span>
+            <span class="tl-day-label">${dayObj.date || 'Date not set'}</span>
+            <span class="tl-day-count">${dayObj.sights.length} stop${dayObj.sights.length === 1 ? '' : 's'}</span>
           </div>
           <div class="tl-events">
-            ${(hasPlannerAssignments ? buildPlannedDayEvents(d+1, days_plan.length) : buildSmartDayEvents(d+1, attrs, days_plan.length)).map(e => buildEventCard(e)).join('')}
+            ${eventsHtml}
+          </div>
+          <div class="tl-day-footer d-flex justify-content-between align-items-center px-3 py-2 bg-light border-top extra-small text-muted rounded-bottom">
+            <span><strong>Day ${dayObj.day}</strong> local drive: <strong>${dayObj.day_distance_km} km</strong> · ~${dayObj.day_drive_label}</span>
+            <span>Trip total: <strong>${tl.total_distance_km} km</strong> · ~${tl.total_drive_label}</span>
           </div>
         </div>
-      `).join('')}
+      </div>`;
+
+    // Sync map distance banner to exact timeline totals
+    const distText = document.getElementById('mapRouteDistText');
+    const timeText = document.getElementById('mapRouteTimeText');
+    const distBanner = document.getElementById('mapDistanceBanner');
+    if (distBanner && distText && timeText) {
+      distText.textContent = `Day ${dayObj.day}: ${dayObj.day_distance_km} km (Trip: ${tl.total_distance_km} km)`;
+      timeText.textContent = `~${dayObj.day_drive_label} drive`;
+      distBanner.style.display = 'block';
+    }
+    return;
+  }
+
+  const days_plan = getDayPlanArray();
+  const dIdx = activeDay - 1;
+  const attrs = days_plan[dIdx] || [];
+  cont.innerHTML = `
+    <div class="tl-days-wrap">
+      <div class="tl-day-col mb-2">
+        <div class="tl-day-header">
+          <span class="tl-day-num">Day ${activeDay}</span>
+          <span class="tl-day-label">Day ${activeDay} Schedule</span>
+          <span class="tl-day-count">${attrs.length} stop${attrs.length === 1 ? '' : 's'}</span>
+        </div>
+        <div class="tl-events">
+          ${buildSmartDayEvents(activeDay, attrs, days_plan.length).map(e => buildEventCard(e)).join('')}
+        </div>
+      </div>
     </div>`;
 }
 
@@ -2359,8 +2498,9 @@ function updateMapMarkersAndRoutes(map) {
   const dIdx = Math.max(0, (State.activeTimelineDay || 1) - 1);
   const activeDayAttrs = (State.step === 4 && daysPlan[dIdx]) ? daysPlan[dIdx] : sel;
 
-  // 2. Plot ALL Attractions as Interactive Pins
-  allPlaces.forEach(a => {
+  // 2. Plot Attractions as Interactive Pins (Stage 4: selected sights ONLY, never unselected 25 places)
+  const pinsToPlot = (State.step === 4) ? sel : allPlaces;
+  pinsToPlot.forEach(a => {
     if (!a.lat || !a.lon) return;
 
     const daySelIndex = activeDayAttrs.findIndex(x => x.id === a.id);
@@ -2462,11 +2602,19 @@ async function drawHighlightedRoadRoute(map, bounds) {
       const durMin = Math.round(route.duration / 60);
       const durHrs = durMin >= 60 ? `${Math.floor(durMin / 60)}h ${durMin % 60}m` : `${durMin} min`;
 
-      // Update Floating Distance Banner Overlay
+      // Update Floating Distance Banner Overlay (prefer authoritative timeline numbers when on Stage 4)
       if (distBanner && distText && timeText) {
-        const dayPrefix = (State.step === 4 && State.activeTimelineDay >= 1) ? `Day ${State.activeTimelineDay} · ` : '';
-        distText.textContent = `${dayPrefix}${distKm} km road`;
-        timeText.textContent = `~${durHrs} drive`;
+        const tl = State.authoritativeTimeline;
+        const activeDayIdx = Math.max(0, (State.activeTimelineDay || 1) - 1);
+        if (State.step === 4 && tl && tl.days && tl.days[activeDayIdx]) {
+          const dObj = tl.days[activeDayIdx];
+          distText.textContent = `Day ${dObj.day}: ${dObj.day_distance_km} km (Trip: ${tl.total_distance_km} km)`;
+          timeText.textContent = `~${dObj.day_drive_label} drive`;
+        } else {
+          const dayPrefix = (State.step === 4 && State.activeTimelineDay >= 1) ? `Day ${State.activeTimelineDay} · ` : '';
+          distText.textContent = `${dayPrefix}${distKm} km road`;
+          timeText.textContent = `~${durHrs} drive`;
+        }
         distBanner.style.display = 'block';
       }
 
@@ -2577,16 +2725,68 @@ function mapFlyToRoute() {
 }
 
 window.focusAttractionOnMap = function(lat, lon, name) {
-  if (State.mapInstance && lat && lon) {
-    const parsedLat = parseFloat(lat);
-    const parsedLon = parseFloat(lon);
-    if (!isNaN(parsedLat) && !isNaN(parsedLon)) {
-      State.mapInstance.flyTo({ center: [parsedLon, parsedLat], zoom: 14.5, speed: 1.4 });
-      new maplibregl.Popup({ offset: 15 })
-        .setLngLat([parsedLon, parsedLat])
-        .setHTML(`<div class="p-1 fw-bold extra-small text-navy">📍 ${name}</div>`)
-        .addTo(State.mapInstance);
+  const parsedLat = parseFloat(lat);
+  const parsedLon = parseFloat(lon);
+  if (isNaN(parsedLat) || isNaN(parsedLon)) {
+    showToast('📍 Map coordinates not available for this place', 'warning');
+    return;
+  }
+
+  // If currently on Stage 4 where #mapLibreMap is visible, fly directly on that map
+  if (State.step === 4 && State.mapInstance) {
+    State.mapInstance.flyTo({ center: [parsedLon, parsedLat], zoom: 14.5, speed: 1.4 });
+    new maplibregl.Popup({ offset: 15 })
+      .setLngLat([parsedLon, parsedLat])
+      .setHTML(`<div class="p-1 fw-bold extra-small text-navy">📍 ${name}</div>`)
+      .addTo(State.mapInstance);
+    return;
+  }
+
+  // Otherwise (Stage 1 Stays / Stage 3 Sights), open a clean Floating Map Modal
+  let modal = document.getElementById('wizardQuickMapModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'wizardQuickMapModal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:10050;background:rgba(11,31,51,0.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;';
+    modal.innerHTML = `
+      <div style="width:100%;max-width:680px;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.35);">
+        <div style="background:#0B1F33;color:#fff;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;">
+          <div class="fw-bold small" id="wizardQuickMapTitle">📍 Location Map</div>
+          <button type="button" id="wizardQuickMapClose" class="btn btn-sm btn-outline-light rounded-circle" style="width:30px;height:30px;padding:0;line-height:1;">&times;</button>
+        </div>
+        <div id="wizardQuickMapCanvas" style="width:100%;height:380px;"></div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    const closeQuickMap = () => { modal.style.display = 'none'; };
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeQuickMap(); });
+    document.getElementById('wizardQuickMapClose').addEventListener('click', closeQuickMap);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.style.display !== 'none') closeQuickMap(); });
+  }
+
+  document.getElementById('wizardQuickMapTitle').textContent = `📍 ${name || 'Location Preview'}`;
+  modal.style.display = 'flex';
+
+  if (typeof maplibregl !== 'undefined') {
+    if (window._wizardQuickMap) {
+      try { window._wizardQuickMap.remove(); } catch (_) {}
+      window._wizardQuickMap = null;
     }
+    const qMap = new maplibregl.Map({
+      container: 'wizardQuickMapCanvas',
+      style: 'https://tiles.openfreemap.org/styles/liberty',
+      center: [parsedLon, parsedLat],
+      zoom: 13.8
+    });
+    window._wizardQuickMap = qMap;
+    qMap.addControl(new maplibregl.NavigationControl(), 'top-right');
+    qMap.on('load', () => {
+      new maplibregl.Marker({ color: '#00A896' })
+        .setLngLat([parsedLon, parsedLat])
+        .setPopup(new maplibregl.Popup({ offset: 20 }).setHTML(`<div class="fw-bold small text-navy">${name}</div>`))
+        .addTo(qMap)
+        .togglePopup();
+    });
   }
 };
 
@@ -3002,13 +3202,14 @@ function renderAnalytics() {
 }
 
 /* ── STEP 10 / STAGE 5 — Luxury Travel Dossier & AI Final Overview ──── */
-function renderOverview() {
+async function renderOverview() {
   const sel  = State.selectedAttractions || [];
   const body = document.getElementById('overviewBody');
   const rd   = State.routeData || {};
   if (!body) return;
 
   try {
+  const tl = await syncAuthoritativeTimeline();
 
   const destCity = (State.dest || 'Coorg').split(',')[0].trim();
   const srcCity  = (State.source || 'Bengaluru').split(',')[0].trim();
@@ -3046,28 +3247,31 @@ function renderOverview() {
   const stayCostPerPerson = Math.round(stayCostTotal / trav);
   const stayImg = baseStay.image || baseStay.image_url || getStayImage(baseStay);
 
-  // Agent 1: Transit Info (Per Person Share)
-  const transitMode = (State.transitMode || State.transport || 'Cab').toUpperCase();
-  const transitTitle = State.transitDetails?.mode_title || `${transitMode} Connector`;
-  const transitDist = State.transitDetails?.distance_km || Math.round(rd.distKm || 280);
-  const transitDuration = State.transitDetails?.duration_hours || '5.5';
-  const transitFareTotal = State.transitCost || State.transitDetails?.estimated_fare || (transitDist * 10);
+  // Agent 1: Transit Info (Single Source of Truth from timeline_builder)
+  const transitMode = ((tl && tl.transit && tl.transit.mode) || State.transitMode || State.transport || 'Cab').toUpperCase();
+  const transitTitle = (tl && tl.transit && tl.transit.title) || State.transitDetails?.mode_title || `${transitMode} Connector`;
+  const transitDist = (tl && tl.transit && tl.transit.distance_km) || State.transitDetails?.distance_km || Math.round(rd.distKm || 269.8);
+  const transitDuration = (tl && tl.transit && tl.transit.duration_label) || State.transitDetails?.duration_hours || '4h 30m';
+  const transitCostPerPerson = (tl && tl.budget) ? tl.budget.transit_per_person : (State.transitCostPerPerson || Math.round((State.transitCost || 0) / trav));
+  const transitFareTotal = transitCostPerPerson * trav;
   const transitFare = transitFareTotal;
-  const transitCostPerPerson = State.transitCostPerPerson || Math.round(transitFareTotal / trav);
 
-  // Agent 3: Financials (Per Person Architecture)
-  const entryCostPerPerson = sel.reduce((s, a) => s + (a.fee || 0), 0);
+  // Agent 3: Financials (Single Source of Truth)
+  const entryCostPerPerson = (tl && tl.budget) ? tl.budget.entry_per_person : sel.reduce((s, a) => s + (a.fee || 0), 0);
   const entryCostTotal = entryCostPerPerson * trav;
-  const foodCostPerPerson = days * 600;
+  const foodCostPerPerson = (tl && tl.budget) ? tl.budget.food_per_person : (days * 600);
   const foodCostTotal = foodCostPerPerson * trav;
-  const miscCostPerPerson = 500;
+  const miscCostPerPerson = (tl && tl.budget) ? tl.budget.misc_per_person : 500;
   const miscCostTotal = miscCostPerPerson * trav;
   
-  const perPersonSpend = stayCostPerPerson + transitCostPerPerson + entryCostPerPerson + foodCostPerPerson + miscCostPerPerson;
-  const grandTotal = perPersonSpend * trav;
+  const perPersonSpend = (tl && tl.budget) ? tl.budget.per_person_total : (stayCostPerPerson + transitCostPerPerson + entryCostPerPerson + foodCostPerPerson + miscCostPerPerson);
+  const grandTotal = (tl && tl.budget) ? tl.budget.group_total : (perPersonSpend * trav);
   const totalSpend = grandTotal;
-  const perPersonBudget = State.budgetPerPerson || State.budget || 15000;
-  const totalBudget = perPersonBudget * trav;
+  const budgetTargetGroup = (tl && tl.budget) ? tl.budget.budget_target : (State.budget || 15000);
+  const isOverTarget = (tl && tl.budget) ? tl.budget.is_over_target : (grandTotal > budgetTargetGroup);
+  const budgetStatusLabel = (tl && tl.budget) ? tl.budget.budget_status_label : (isOverTarget ? 'Over Target' : 'Under Target');
+  const perPersonBudget = budgetTargetGroup;
+  const totalBudget = budgetTargetGroup;
 
   const pctStay = Math.round((stayCostPerPerson / Math.max(1, perPersonSpend)) * 100);
   const pctTransit = Math.round((transitCostPerPerson / Math.max(1, perPersonSpend)) * 100);
@@ -3079,8 +3283,13 @@ function renderOverview() {
   const temp = weather?.temperature || 24;
   const desc = (weather?.description || 'Pleasant & clear');
 
-  const tDate = document.getElementById('w_travel_date')?.value || 'Upcoming';
-  const rDate = document.getElementById('w_return_date')?.value || 'Departure';
+  const datesDisplay = (tl && tl.dates_label) ? tl.dates_label : (
+    (document.getElementById('w_travel_date')?.value && document.getElementById('w_return_date')?.value)
+      ? `${document.getElementById('w_travel_date').value} to ${document.getElementById('w_return_date').value}`
+      : 'Dates not set'
+  );
+  const tDate = (tl && tl.start_date) || document.getElementById('w_travel_date')?.value || 'Dates not set';
+  const rDate = (tl && tl.end_date) || document.getElementById('w_return_date')?.value || '';
 
   const daysPlan = getDayPlanArray();
   const dayLabels = [
@@ -3157,7 +3366,7 @@ function renderOverview() {
 
           <div class="corridor-path-wrapper">
             <div class="corridor-duration-badge">
-              <i class="bi bi-clock-history me-1"></i>${transitDuration || '5.5'}h Direct Transit · ~${transitDist} km
+              <i class="bi bi-clock-history me-1"></i>${transitDuration || '4h 30m'} Direct Transit · ~${transitDist} km
             </div>
             <div class="corridor-flight-line">
               <div class="corridor-dot start-dot"></div>
@@ -3184,7 +3393,7 @@ function renderOverview() {
         <div class="ticket-specs-row">
           <div class="spec-col">
             <div class="spec-lbl">Travel Dates</div>
-            <div class="spec-val">${tDate} → ${rDate}</div>
+            <div class="spec-val">${datesDisplay}</div>
           </div>
           <div class="spec-col">
             <div class="spec-lbl">Duration</div>
@@ -3192,7 +3401,7 @@ function renderOverview() {
           </div>
           <div class="spec-col">
             <div class="spec-lbl">Travelers</div>
-            <div class="spec-val">${trav} Traveler${trav > 1 ? 's' : ''} (Confirmed)</div>
+            <div class="spec-val">${trav} Traveler${trav > 1 ? 's' : ''} (Unbooked Draft)</div>
           </div>
           <div class="spec-col">
             <div class="spec-lbl">Base Camp Stay</div>
@@ -3278,8 +3487,8 @@ function renderOverview() {
             <i class="bi bi-floppy-fill"></i> Save Trip to Dashboard
           </button>
           <div class="d-flex gap-2">
-            <button type="button" class="btn-stub btn-outline-stub" onclick="window.print()" style="flex:1;">
-              <i class="bi bi-printer"></i> Print
+            <button type="button" class="btn-stub btn-outline-stub" onclick="downloadWizardDraftPdf()" style="flex:1;">
+              <i class="bi bi-file-earmark-pdf text-danger"></i> Download PDF
             </button>
             <button type="button" class="btn-stub btn-outline-stub" onclick="shareToWhatsApp()" style="flex:1;">
               <i class="bi bi-whatsapp text-success"></i> WhatsApp
@@ -3347,10 +3556,10 @@ function renderOverview() {
           </div>
         </div>
         <div class="bento-card-footer">
-          <span class="badge ${perPersonBudget >= perPersonSpend ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'} border small">
-            ${perPersonBudget >= perPersonSpend ? '✓ Under Target' : 'Review Allocation'}
+          <span class="badge ${!isOverTarget ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'} border small">
+            ${!isOverTarget ? '✓ Under Target' : 'Over Target'}
           </span>
-          <span class="fw-bold text-secondary small">Target: ₹${perPersonBudget.toLocaleString('en-IN')}</span>
+          <span class="fw-bold text-secondary small">Target: ₹${budgetTargetGroup.toLocaleString('en-IN')}</span>
         </div>
       </div>
 
@@ -4204,28 +4413,59 @@ function downloadItinerary() {
   showToast('✅ Detailed itinerary downloaded!', 'success');
 }
 
+async function downloadWizardDraftPdf() {
+  showToast('📄 Generating PDF dossier...', 'info');
+  try {
+    const res = await fetch('/planner/api/pdf_draft', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildTripPayloadForTimeline()),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Yatrika_${(State.dest || 'Trip').split(',')[0].trim().replace(/\s+/g, '_')}_Draft.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast('✅ PDF downloaded!', 'success');
+  } catch (err) {
+    console.error('PDF draft download failed:', err);
+    showToast('❌ Could not generate PDF right now', 'danger');
+  }
+}
+
 function shareToWhatsApp() {
-  const td = document.getElementById('w_travel_date')?.value || 'TBD';
-  const ret = document.getElementById('w_return_date')?.value || 'TBD';
+  const tl = State.authoritativeTimeline;
+  const td = document.getElementById('w_travel_date')?.value || '';
+  const ret = document.getElementById('w_return_date')?.value || '';
+  const datesStr = (tl && tl.dates_label) ? tl.dates_label : (td && ret ? `${td} to ${ret}` : 'Dates not set');
   const stayName = State.selectedStay ? State.selectedStay.name : `${State.dest.split(',')[0]} Base Camp`;
-  const transitTitle = State.transitDetails?.mode_title || State.transport;
-  const transitSummary = State.transitDetails?.details_summary || '';
+  const transitTitle = (tl && tl.transit && tl.transit.title) || State.transitDetails?.mode_title || State.transport;
+  const arrivalStr = (tl && tl.arrival_time) || State.arrivalTime || '10:30';
   const sel = State.selectedAttractions || [];
-  const topPlaces = sel.slice(0, 4).map((a, i) => `${i + 1}. ${a.name}`).join('\n');
+  const allPlaces = sel.map((a, i) => `${i + 1}. ${a.name}`).join('\n');
   const nights = Math.max(1, (State.days || 1) - 1);
+  const trav = Math.max(1, State.travelers || 1);
   const stayTotal = (State.selectedStay ? State.selectedStay.price_per_night : 2000) * nights;
-  const transitCost = State.transitCost || State.routeData?.fuelCost || 2500;
-  const totalEst = stayTotal + transitCost + sel.reduce((s, a) => s + (a.fee || 0), 0) + State.travelers * State.days * 600;
+  const transitPP = (tl && tl.budget) ? tl.budget.transit_per_person : (State.transitCostPerPerson || Math.round((State.transitCost || 0) / trav));
+  const entryPP = sel.reduce((s, a) => s + (a.fee || 0), 0);
+  const totalEst = (tl && tl.budget)
+    ? tl.budget.group_total
+    : (stayTotal + transitPP * trav + entryPP * trav + trav * State.days * 600 + trav * 500);
 
   const msg = `🌟 *Travel Plan: ${State.dest.split(',')[0]}* 🌟\n` +
     `📍 Route: ${State.source} ➔ ${State.dest}\n` +
-    `📅 Dates: ${td} to ${ret} (${State.days} Days · ${State.travelers} Travelers)\n` +
+    `📅 Dates: ${datesStr} (${State.days} Days · ${trav} Travelers)\n` +
     `🎯 Style: ${State.style}\n\n` +
     `🏡 *Base Camp Stay:*\n${stayName} (${nights} Nights @ ${State.selectedStay ? fmtINR(State.selectedStay.price_per_night) : '₹2,000'}/N)\n\n` +
-    `🚆 *Transit Booking:*\n${transitTitle} (Arrives ~${State.arrivalTime || '12:00'} directly at stay entrance)\n${transitSummary ? transitSummary + '\n' : ''}\n` +
-    `🏞️ *Key Attractions:*\n${topPlaces}\n\n` +
-    `💰 *Estimated Total Spend:* ${fmtINR(totalEst)}\n\n` +
-    `Created with AI Travel Planner 🚀`;
+    `🚆 *Transit:*\n${transitTitle} (Arrives ~${arrivalStr})\n\n` +
+    `🏞️ *All Selected Sights (${sel.length}):*\n${allPlaces}\n\n` +
+    `💰 *Group Total:* ${fmtINR(totalEst)} (₹${Math.round(totalEst / trav).toLocaleString('en-IN')}/person)\n\n` +
+    `Unbooked Draft · Yatrika`;
 
   const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
   window.open(waUrl, '_blank');
@@ -4410,7 +4650,7 @@ function renderDestinationStays(stays) {
 
     return `
       <div class="col-12 col-md-6 col-xl-4">
-        <div class="stay-card-redesign ${isSelected ? 'selected' : ''}" onclick="selectBaseCampStay('${s.id}', true)">
+        <div class="stay-card-redesign ${isSelected ? 'selected' : ''}" onclick="openWizardStayDetail('${s.id}')" style="cursor:pointer;">
           <div class="stay-card-img-wrap">
             <img src="${imgUrl}" alt="${s.name}" class="stay-card-img" loading="lazy" />
             <div class="stay-card-img-overlay"></div>
@@ -4434,11 +4674,11 @@ function renderDestinationStays(stays) {
                 <span class="text-muted extra-small">/ traveler (${nights}n)</span>
                 <div class="extra-small text-muted">₹${s.price_per_night.toLocaleString('en-IN')}/nt room · ₹${totalStayCost.toLocaleString('en-IN')} group</div>
               </div>
-              <div class="d-flex align-items-center gap-1">
-                <button type="button" class="btn btn-sm btn-outline-info py-1 px-2" onclick="window.focusAttractionOnMap('${s.lat || s.latitude}', '${s.lon || s.longitude}', '${(s.name||'').replace(/'/g, "\\'")}'); event.stopPropagation();" title="View hotel on Map" style="font-size:0.75rem;">
-                  <i class="bi bi-geo-alt-fill"></i> Map
+              <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                <button type="button" class="btn btn-sm py-1 px-2 rounded-pill d-inline-flex align-items-center gap-1" onclick="window.focusAttractionOnMap('${s.lat || s.latitude}', '${s.lon || s.longitude}', '${(s.name||'').replace(/'/g, "\\'")}'); event.stopPropagation();" title="View hotel on Map" style="font-size:0.75rem; background:#f0fdfa; color:#0f766e; border:1px solid #99f6e4; font-weight:600;">
+                  <i class="bi bi-map-fill"></i><span>Map</span>
                 </button>
-                <button type="button" class="btn btn-sm stay-select-btn ${isSelected ? 'btn-success text-white' : 'btn-outline-primary'}">
+                <button type="button" class="btn btn-sm stay-select-btn text-nowrap ${isSelected ? 'btn-success text-white' : 'btn-outline-primary'}" onclick="event.stopPropagation(); selectBaseCampStay('${s.id}', true, true);">
                   ${isSelected ? '✓ Selected' : 'Select →'}
                 </button>
               </div>
@@ -4450,7 +4690,65 @@ function renderDestinationStays(stays) {
   }).join('');
 }
 
-function selectBaseCampStay(stayId, showNotice = true) {
+function openWizardStayDetail(stayId) {
+  const stay = (State.availableStays || []).find(s => s.id === stayId);
+  const drawer = document.getElementById('detailDrawer');
+  const content = document.getElementById('drawerContent');
+  if (!stay || !drawer || !content) return;
+
+  const nights = Math.max(1, (State.days || 3) - 1);
+  const trav = Math.max(1, State.travelers || 1);
+  const totalStayCost = stay.price_per_night * nights;
+  const stayPerPerson = Math.round(totalStayCost / trav);
+  const imgUrl = getStayImage(stay);
+  const cleanAddr = formatStayAddress(stay.address, State.dest);
+  const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stay.name + ', ' + cleanAddr)}`;
+  const allAmenities = (stay.amenities && stay.amenities.length ? stay.amenities : ['Free WiFi', 'Parking', 'Room Service'])
+    .map(am => `<span class="badge bg-light text-dark border fw-semibold py-2 px-2 extra-small">${am}</span>`).join('');
+  const isSelected = State.selectedStay && State.selectedStay.id === stay.id;
+
+  content.innerHTML = `
+    <div style="position:relative;height:200px;border-radius:14px;overflow:hidden;margin-bottom:14px;background:#0f172a;">
+      <img src="${imgUrl}" alt="${stay.name}" style="width:100%;height:100%;object-fit:cover;" />
+      <span class="stay-badge-pill" style="top:10px;left:10px;">${stay.badge || stay.type || 'Stay'}</span>
+      <span class="stay-rating-pill" style="top:10px;right:10px;">★ ${stay.rating || '4.5'}</span>
+    </div>
+    <h4 class="fw-extrabold text-navy mb-1">${stay.name}</h4>
+    <p class="small text-muted mb-2"><i class="bi bi-geo-alt-fill text-turquoise me-1"></i>${cleanAddr}</p>
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      <a href="${gmapsUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary rounded-pill extra-small fw-semibold">
+        <i class="bi bi-google me-1 text-danger"></i>Google Maps Ratings &amp; Info ↗
+      </a>
+      <button type="button" class="btn btn-sm rounded-pill extra-small fw-semibold" style="background:#f0fdfa;color:#0f766e;border:1px solid #99f6e4;"
+              onclick="window.focusAttractionOnMap('${stay.lat || stay.latitude}', '${stay.lon || stay.longitude}', '${(stay.name||'').replace(/'/g, "\\'")}')">
+        <i class="bi bi-map-fill me-1"></i>View on Map
+      </button>
+    </div>
+
+    <div class="mb-3">
+      <div class="extra-small fw-bold text-uppercase text-muted mb-2">Available Facilities</div>
+      <div class="d-flex flex-wrap gap-2">${allAmenities}</div>
+    </div>
+
+    <div class="p-3 rounded-3 border bg-light mb-3">
+      <div class="fs-5 fw-extrabold text-turquoise">₹${stayPerPerson.toLocaleString('en-IN')} <span class="extra-small fw-normal text-muted">/ traveler (${nights}n)</span></div>
+      <div class="extra-small text-muted">Room rate: ₹${stay.price_per_night.toLocaleString('en-IN')}/night · Group total: ₹${totalStayCost.toLocaleString('en-IN')}</div>
+    </div>
+
+    <div class="d-flex flex-column gap-2">
+      <button type="button" class="btn btn-primary rounded-pill fw-bold py-2" onclick="selectBaseCampStay('${stay.id}', true, true); closeDrawer();">
+        ${isSelected ? '✓ Selected — Go to Transit →' : 'Select Stay &amp; Continue to Transit →'}
+      </button>
+      <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="selectBaseCampStay('${stay.id}', true, false); closeDrawer();">
+        Select Stay (Stay on This Page)
+      </button>
+    </div>
+  `;
+  drawer.classList.add('open');
+}
+window.openWizardStayDetail = openWizardStayDetail;
+
+function selectBaseCampStay(stayId, showNotice = true, advanceToNext = false) {
   const stay = (State.availableStays || []).find(s => s.id === stayId);
   if (!stay) return;
 
@@ -4491,10 +4789,11 @@ function selectBaseCampStay(stayId, showNotice = true) {
     showToast(`🏡 Selected Stay: ${stay.name}! Unlocking door-to-door transit…`, 'success');
   }
 
-  // Smoothly glide to Stage 2 (Transit) after a brief selection confirmation
-  setTimeout(() => {
-    goToStep(2);
-  }, 450);
+  if (advanceToNext) {
+    setTimeout(() => {
+      goToStep(2);
+    }, 350);
+  }
 }
 
 
@@ -5555,19 +5854,22 @@ async function saveCustomWizardTripDirectly() {
 
   showToast('💾 Saving custom itinerary directly to your dashboard…', 'info');
 
+  const tlPayload = buildTripPayloadForTimeline();
   const payload = {
     destination: State.dest,
     source: State.source || 'Bengaluru',
-    start_date: document.getElementById('w_travel_date')?.value || '',
-    end_date: document.getElementById('w_return_date')?.value || '',
+    start_date: tlPayload.start_date,
+    end_date: tlPayload.end_date,
     num_days: State.days,
     num_travelers: State.travelers,
     budget: State.budget,
     travel_style: State.style.toLowerCase(),
-    transport: State.transport,
+    transport: State.transitMode || State.transport,
     transit_mode: State.transitMode || State.transport,
     transit_cost: State.transitCost || 0,
-    arrival_time: State.arrivalTime || '10:00',
+    transit_cost_per_person: tlPayload.transit.fare_per_person,
+    transit: tlPayload.transit,
+    arrival_time: State.arrivalTime || '10:30',
     transit_details: State.transitDetails || {},
     selected_stay: State.selectedStay || {},
     selected_attractions: State.selectedAttractions,
