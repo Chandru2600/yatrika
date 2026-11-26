@@ -225,6 +225,14 @@ HUB_DATABASE = {
     },
 
     # --- Himachal Pradesh ---
+    "shimla": {
+        "name": "Shimla",
+        "has_airport": False, "nearest_airport_name": "Chandigarh Int'l Airport", "nearest_airport_code": "IXC",
+        "airport_dist_km": 115, "airport_transfer_hours": 3.2, "airport_transfer_cab_cost": 2800,
+        "has_railway": True, "nearest_station_name": "Shimla Railway Station (via Kalka)", "nearest_station_code": "SML",
+        "rail_dist_km": 0, "rail_transfer_hours": 0, "rail_transfer_cab_cost": 0,
+        "has_bus": True, "bus_terminal_name": "Shimla ISBT Tutikandi"
+    },
     "manali": {
         "name": "Manali",
         "has_airport": False, "nearest_airport_name": "Kullu Bhuntar Airport", "nearest_airport_code": "KUU",

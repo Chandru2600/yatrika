@@ -78,3 +78,25 @@ def test_phase6_vande_bharat_classes_and_no_blr_myq_flight():
 
     flt = calculate_intercity_transit("Bengaluru", "Mysuru", "flight", 2)["chosen_details"]
     assert flt["available"] is False
+
+
+def test_shimla_flight_routes_via_chandigarh_and_filters_junk_sights():
+    from backend.services.pdf.pdf_service import generate_trip_pdf
+    flt = calculate_intercity_transit("Bengaluru", "Shimla", "flight", 2)["chosen_details"]
+    assert "IXC" in flt["arrival_airport"]
+    assert flt["has_direct_hub"] is False
+
+    sched = ItinerarySchedulingModel()
+    sights = sched.fetch_attractions("Shimla")
+    names = {s["name"].lower() for s in sights}
+    for bad in ("rajiv gandhi 1944-91", "lalalajpatrai 1865-1928", "hamberg 40rp", "cave of nightmares", "a temple in my dream"):
+        assert bad not in names
+
+    pdf_path = generate_trip_pdf(
+        {"id": 999, "source": "Bengaluru", "destination": "Shimla", "num_days": 4, "num_travelers": 2, "budget": 30000, "transport": "flight", "start_date": "2026-11-27", "end_date": "2026-11-30"},
+        {"days": [], "selected_attractions": []},
+        {"total_budget": 30000, "breakdown": {"accommodation": {"amount": 10500, "percentage": 35.0}, "transport": {"amount": 19500, "percentage": 65.0}}},
+        {},
+        {}
+    )
+    assert pdf_path and pdf_path.endswith(".pdf")

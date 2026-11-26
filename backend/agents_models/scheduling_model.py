@@ -74,6 +74,10 @@ def is_generic_or_placeholder_name(name: str) -> bool:
         return True
     if re.search(r'(?i)\b(?:H#|St\s*\d+|G\d+-\d+|Market ID|Plot No|Sector\s*\d+|Gate\s*\d+|Bus Stop|Traffic Signal|Police Station)\b', s):
         return True
+    if re.search(r'\b(?:18|19|20)\d{2}\s*[-–]\s*\d{2,4}\b', s) or re.search(r'(?i)\b\d+rp\b', s):
+        return True
+    if any(bad in s.lower() for bad in ("cave of nightmares", "in my dream")):
+        return True
     if s.lower() in BARE_GENERIC_NAMES:
         return True
     return False
@@ -156,10 +160,11 @@ class ItinerarySchedulingModel:
                     a = np.sin(dlat / 2.0) ** 2 + np.cos(np.radians(target_lat)) * np.cos(np.radians(df["Latitude"])) * np.sin(dlon / 2.0) ** 2
                     dists = 6371.0 * 2.0 * np.arcsin(np.sqrt(np.clip(a, 0, 1)))
 
-                    mask = dists <= 35.0
+                    is_hill = any(k in dest_lower for k in ("shimla", "manali", "mussoorie", "nainital"))
+                    mask = dists <= (22.0 if is_hill else 35.0)
                     sub = df[mask].copy()
                     sub["calc_dist"] = dists[mask]
-                    if len(sub) < 4:
+                    if len(sub) < 4 and not is_hill:
                         mask = dists <= 45.0
                         sub = df[mask].copy()
                         sub["calc_dist"] = dists[mask]

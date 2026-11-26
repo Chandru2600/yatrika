@@ -258,7 +258,7 @@ class YatrikaNumberedCanvas(canvas.Canvas):
         self.setFillColor(TEXT_MUTED)
         self.drawString(
             margin, 0.8 * cm,
-            "Yatrika AI Travel Platform  |  Official Expedition Document  |  Verified IRCTC / RTC Corridor"
+            "Yatrika Travel Platform  |  Expedition Draft Dossier  |  Estimates Only (Unbooked)"
         )
         self.drawRightString(
             page_w - margin, 0.8 * cm,
@@ -308,11 +308,11 @@ def _build_boarding_pass(trip: dict, itinerary: dict, budget: dict, hotels: dict
     hdr_table = Table([
         [
             Paragraph("<b>YATRIKA EXPEDITION BOARDING PASS</b>", styles["ticket_title"]),
-            Paragraph(f"<b>PNR:</b> {pnr}", ParagraphStyle("Pnr", parent=styles["ticket_sub"], alignment=TA_RIGHT))
+            Paragraph(f"<b>REF:</b> {pnr}", ParagraphStyle("Pnr", parent=styles["ticket_sub"], alignment=TA_RIGHT))
         ],
         [
-            Paragraph("[VERIFIED IRCTC / RTC CORRIDOR]", styles["ticket_sub"]),
-            Paragraph("CONFIRMED ITINERARY", ParagraphStyle("Conf", parent=styles["ticket_sub"], alignment=TA_RIGHT))
+            Paragraph("[ESTIMATED DRAFT PLAN]", styles["ticket_sub"]),
+            Paragraph("UNBOOKED DRAFT", ParagraphStyle("Conf", parent=styles["ticket_sub"], alignment=TA_RIGHT))
         ]
     ], colWidths=[240, 110])
     hdr_table.setStyle(TableStyle([
@@ -386,7 +386,7 @@ def _build_boarding_pass(trip: dict, itinerary: dict, budget: dict, hotels: dict
         Paragraph(f"<font size=5.5 color='#99F6E4'>{transit_class}</font>", ParagraphStyle("PClass", parent=styles["ticket_sub"], alignment=TA_CENTER)),
         Spacer(1, 2),
         Table([[qr_drawing]], colWidths=[140], style=[('ALIGN', (0, 0), (-1, -1), 'CENTER'), ('LEFTPADDING', (0,0), (-1,-1), 0), ('RIGHTPADDING', (0,0), (-1,-1), 0), ('TOPPADDING', (0,0), (-1,-1), 0), ('BOTTOMPADDING', (0,0), (-1,-1), 0)]),
-        Paragraph("<font size=5.5 color='#64748B'>VERIFIED DIGITAL PASS</font>", ParagraphStyle("PVer", parent=styles["ticket_sub"], alignment=TA_CENTER)),
+        Paragraph("<font size=5.5 color='#64748B'>DRAFT SUMMARY</font>", ParagraphStyle("PVer", parent=styles["ticket_sub"], alignment=TA_CENTER)),
         Spacer(1, 2),
         Paragraph("1-PERSON FARE", styles["stub_fare_lbl"]),
         Paragraph(f"₹{per_person_fare:,.0f}", styles["stub_fare_val"]),
@@ -438,34 +438,36 @@ def _build_bento_grid(trip: dict, itinerary: dict, budget: dict, hotels: dict, s
 
     attractions = itinerary.get("selected_attractions") or []
     sights_count = len(attractions) if attractions else int(trip.get("num_days", 1) or 1) * 3
+    transit_fare_pp = transit_info.get("per_person_fare_inr") or transit_info.get("fare_per_person") or round(float(transit_fare or 0) / max(1, trav))
+    stay_rating = base_stay.get("rating", base_stay.get("star_rating", 4.0)) if isinstance(base_stay, dict) else 4.0
 
     c1 = [
-        Paragraph("● CURATED SANCTUARY", styles["badge_emerald"]),
+        Paragraph("● BASE CAMP STAY", styles["badge_emerald"]),
         Paragraph(f"<b>{stay_name[:26]}</b>", styles["card_title"]),
         Paragraph(f"{stay_addr[:38]}", styles["card_desc"]),
         Spacer(1, 2),
-        Paragraph(f"<b>₹{stay_price:,.0f}</b>/nt  ·  Safety Index: {stay_safety}/10", styles["small_bold"])
+        Paragraph(f"<b>₹{stay_price:,.0f}</b>/nt  ·  Rating: {stay_rating}/5.0", styles["small_bold"])
     ]
     c2 = [
         Paragraph("● CONNECTED TRANSIT", styles["badge_ocean"]),
         Paragraph(f"<b>{transit_title[:26]}</b>", styles["card_title"]),
         Paragraph(f"{src_city} to {dest_city} · ~{transit_dist} km ({transit_dur}h)", styles["card_desc"]),
         Spacer(1, 2),
-        Paragraph(f"<b>₹{transit_fare:,.0f}</b>/seat  ·  Direct Corridor", styles["small_bold"])
+        Paragraph(f"<b>₹{transit_fare_pp:,.0f}</b>/seat (RT)", styles["small_bold"])
     ]
     c3 = [
         Paragraph("● FINANCIAL BLUEPRINT", styles["badge_amber"]),
         Paragraph(f"<b>₹{per_person:,.0f}</b> <font size=6.5 color='#64748B'>/ traveler</font>", styles["card_title"]),
         Paragraph(f"Total: ₹{budget_sum:,.0f} ({trav} pax)", styles["card_desc"]),
         Spacer(1, 2),
-        Paragraph("Stay-First Allocation  ·  ML Verified", styles["small_bold"])
+        Paragraph("Estimated Stay-First Allocation", styles["small_bold"])
     ]
     c4 = [
         Paragraph("● CURATED SIGHT LOOPS", styles["badge_purple"]),
-        Paragraph(f"<b>{sights_count} Verified Sights</b>", styles["card_title"]),
-        Paragraph("Stay-grounded clustering (< 45 km radius)", styles["card_desc"]),
+        Paragraph(f"<b>{sights_count} Planned Sights</b>", styles["card_title"]),
+        Paragraph("Curated daily sightseeing plan", styles["card_desc"]),
         Spacer(1, 2),
-        Paragraph("0 Backtracking  ·  Random Forest ML", styles["small_bold"])
+        Paragraph("Route-ordered itinerary", styles["small_bold"])
     ]
 
     bento_table = Table([
@@ -824,11 +826,14 @@ def _build_budget_section(budget: dict, trip: dict, styles: dict):
     ]
 
     if breakdown:
+        sum_amts = sum(float(info.get("amount", 0) or 0) for info in breakdown.values())
+        denom = sum_amts if sum_amts > 0 else total_b
+        total_b = denom
         for cat, info in breakdown.items():
             cat_label = cat.replace("_", " ").title()
-            amt = info.get("amount", 0)
-            pct = info.get("percentage", 0)
-            details = info.get("details", "Verified allocation based on duration & travelers")
+            amt = float(info.get("amount", 0) or 0)
+            pct = round((amt / denom) * 100.0, 1) if denom > 0 else 0.0
+            details = info.get("details", "Estimated allocation based on duration & travelers")
             b_rows.append([
                 Paragraph(f"<b>{cat_label}</b>", styles["small"]),
                 Paragraph(f"₹{amt:,.0f}", ParagraphStyle("BAmt", parent=styles["small"], alignment=TA_RIGHT)),
@@ -849,7 +854,7 @@ def _build_budget_section(budget: dict, trip: dict, styles: dict):
         Paragraph("<b>TOTAL EXPEDITION BUDGET</b>", ParagraphStyle("BTot", parent=styles["small_bold"], textColor=WHITE)),
         Paragraph(f"<b>₹{total_b:,.0f}</b>", ParagraphStyle("BTotAmt", parent=styles["small_bold"], textColor=WHITE, alignment=TA_RIGHT)),
         Paragraph("<b>100%</b>", ParagraphStyle("BTotPct", parent=styles["small_bold"], textColor=WHITE, alignment=TA_CENTER)),
-        Paragraph("<font color='#E6FFFA'><b>ML Verified Stay-First Allocation</b></font>", styles["small"]),
+        Paragraph("<font color='#E6FFFA'><b>Estimated Stay-First Allocation</b></font>", styles["small"]),
     ])
 
     b_table = Table(b_rows, colWidths=[120, 95, 75, 220])

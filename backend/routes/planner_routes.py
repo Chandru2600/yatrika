@@ -194,7 +194,12 @@ def is_generic_or_placeholder_name(name: str) -> bool:
     # 3. Street addresses / house markers mistakenly tagged as attractions
     if re.search(r'(?i)\b(?:H#|St\s*\d+|G\d+-\d+|Market ID|Plot No|Sector\s*\d+)\b', s):
         return True
-    # 4. Bare generic category words without a specific name
+    # 4. Statue life-date ranges (e.g. "1944-91"), garbled codes ("40rp"), or whimsical OSM labels
+    if re.search(r'\b(?:18|19|20)\d{2}\s*[-–]\s*\d{2,4}\b', s) or re.search(r'(?i)\b\d+rp\b', s):
+        return True
+    if any(bad in s.lower() for bad in ("cave of nightmares", "in my dream")):
+        return True
+    # 5. Bare generic category words without a specific name
     if s.lower() in BARE_GENERIC_NAMES:
         return True
     return False
@@ -268,7 +273,8 @@ def search_attractions_api():
     dest_lower = dest.lower()
     is_coorg = any(k in dest_lower for k in ("coorg", "kodagu", "madikeri"))
     is_mysuru = any(k in dest_lower for k in ("mysuru", "mysore"))
-    effective_radius = min(radius_km, 55.0) if (is_coorg or is_mysuru) else radius_km
+    is_hill = any(k in dest_lower for k in ("shimla", "manali", "mussoorie", "nainital"))
+    effective_radius = 22.0 if is_hill else (min(radius_km, 55.0) if (is_coorg or is_mysuru) else radius_km)
 
     COORG_OUTSIDE_KEYWORDS = (
         "bekal", "muzhappilangad", "arakkal", "parassinikkadavu", "chembirika",
