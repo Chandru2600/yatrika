@@ -686,8 +686,40 @@ def resolve_location_hubs(city_name: str) -> dict:
             return info
 
     # 2. Major Commercial Airport Metros
+    _METRO_RAIL_CODES = {
+        "bengaluru": ("KSR Bengaluru City Junction", "SBC"),
+        "bangalore": ("KSR Bengaluru City Junction", "SBC"),
+        "delhi": ("New Delhi Railway Station", "NDLS"),
+        "new delhi": ("New Delhi Railway Station", "NDLS"),
+        "mumbai": ("Mumbai CSMT", "CSMT"),
+        "chennai": ("Chennai Central", "MAS"),
+        "kolkata": ("Howrah Junction", "HWH"),
+        "hyderabad": ("Secunderabad Junction", "SC"),
+        "varanasi": ("Varanasi Junction", "BSB"),
+        "kashi": ("Varanasi Junction", "BSB"),
+        "kochi": ("Ernakulam Junction", "ERS"),
+        "cochin": ("Ernakulam Junction", "ERS"),
+        "thiruvananthapuram": ("Thiruvananthapuram Central", "TVC"),
+        "trivandrum": ("Thiruvananthapuram Central", "TVC"),
+        "jaipur": ("Jaipur Junction", "JP"),
+        "ahmedabad": ("Ahmedabad Junction", "ADI"),
+        "pune": ("Pune Junction", "PUNE"),
+        "lucknow": ("Lucknow Charbagh", "LKO"),
+        "chandigarh": ("Chandigarh Junction", "CDG"),
+        "amritsar": ("Amritsar Junction", "ASR"),
+        "guwahati": ("Guwahati", "GHY"),
+        "patna": ("Patna Junction", "PNBE"),
+        "bhubaneswar": ("Bhubaneswar", "BBS"),
+        "nagpur": ("Nagpur Junction", "NGP"),
+        "bhopal": ("Bhopal Junction", "BPL"),
+        "indore": ("Indore Junction", "INDB"),
+        "visakhapatnam": ("Visakhapatnam Junction", "VSKP"),
+        "coimbatore": ("Coimbatore Junction", "CBE"),
+        "madurai": ("Madurai Junction", "MDU"),
+    }
     for key, (air_name, air_code) in MAJOR_METRO_AIRPORTS.items():
         if key in c_clean:
+            rail_name, rail_code = _METRO_RAIL_CODES.get(key, (f"{city_name.title()} Junction", city_name[:3].upper()))
             return {
                 "name": city_name.title(),
                 "has_airport": True,
@@ -697,8 +729,8 @@ def resolve_location_hubs(city_name: str) -> dict:
                 "airport_transfer_hours": 0,
                 "airport_transfer_cab_cost": 0,
                 "has_railway": True,
-                "nearest_station_name": f"{city_name.title()} Junction",
-                "nearest_station_code": city_name[:3].upper(),
+                "nearest_station_name": rail_name,
+                "nearest_station_code": rail_code,
                 "rail_dist_km": 0,
                 "rail_transfer_hours": 0,
                 "rail_transfer_cab_cost": 0,

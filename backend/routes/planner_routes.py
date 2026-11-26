@@ -197,7 +197,7 @@ def is_generic_or_placeholder_name(name: str) -> bool:
     # 4. Statue life-date ranges (e.g. "1944-91"), garbled codes ("40rp"), or whimsical OSM labels
     if re.search(r'\b(?:18|19|20)\d{2}\s*[-–]\s*\d{2,4}\b', s) or re.search(r'(?i)\b\d+rp\b', s):
         return True
-    if any(bad in s.lower() for bad in ("cave of nightmares", "in my dream")):
+    if any(bad in s.lower() for bad in ("cave of nightmares", "in my dream", "locomotive works")):
         return True
     # 5. Bare generic category words without a specific name
     if s.lower() in BARE_GENERIC_NAMES:

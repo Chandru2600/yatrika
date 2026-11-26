@@ -618,67 +618,96 @@ def _build_day_itinerary(day: dict, base_stay_name: str, styles: dict):
     ])
 
     slot_rows = []
-    slots_meta = [
-        ("morning", "MORNING (06:00 - 12:00)", styles["badge_ocean"], OCEAN_LIGHT),
-        ("afternoon", "AFTERNOON (12:00 - 17:00)", styles["badge_amber"], AMBER_BG),
-        ("evening", "EVENING (17:00 - 21:00)", styles["badge_purple"], PURPLE_BG),
-    ]
-
-    for slot_key, slot_lbl, badge_style, slot_bg in slots_meta:
-        slot = day.get(slot_key)
-        if not slot or not isinstance(slot, dict):
-            continue
-
-        places_list = slot.get("places")
-        if places_list and isinstance(places_list, list):
-            main_place = places_list[0] if places_list else {}
-            name = main_place.get("name") or slot.get("place") or slot.get("activity") or "Sightseeing"
-            dur = main_place.get("duration") or slot.get("duration") or "2.5h"
-            fee = main_place.get("fee") or slot.get("entry_fee") or "Free"
-            category = main_place.get("category") or "Sight"
-            desc = slot.get("activity") or main_place.get("description") or ""
-        else:
-            name = slot.get("name") or slot.get("place") or slot.get("activity") or "Sightseeing"
-            dur = slot.get("duration") or "2.5h"
-            fee = slot.get("entry_fee") or slot.get("fee") or "Free"
-            category = slot.get("category") or "Sight"
-            desc = slot.get("activity") or slot.get("description") or ""
-
-        # Normalize fee string
-        if isinstance(fee, (int, float)):
-            fee_str = f"₹{fee:,.0f}" if fee > 0 else "Free"
-        elif str(fee).isdigit():
-            fee_str = f"₹{int(fee):,.0f}" if int(fee) > 0 else "Free"
-        elif str(fee).strip() and not str(fee).startswith("₹") and not str(fee).lower() == "free":
-            fee_str = f"₹{fee}"
-        else:
-            fee_str = str(fee)
-
-        proximity = slot.get("proximity") or "Proximity: < 15 km from Base Camp"
-        tips = slot.get("tips")
-
-        left_cell = [
-            Paragraph(f"<b>[{slot_lbl}]</b>", badge_style),
-            Paragraph(f"<b>{name}</b>", styles["body_bold"]),
-            Paragraph(f"<font size=6.8 color='#64748B'>{category} · Duration: {dur} · Entry: {fee_str}</font>", styles["small"]),
-        ]
-        right_cell = [
-            Paragraph(desc if desc else f"Curated exploration of {name} with scenic viewpoint stops.", styles["body"]),
-            Paragraph(f"<font size=6.8 color='#0284C7'>{proximity}</font>" + (f" · <i>Advice: {tips}</i>" if tips else ""), styles["extra_small"])
+    if isinstance(day.get("events"), list) and day["events"]:
+        for ev in day["events"]:
+            ev_time = f"{ev.get('start_time', '')} – {ev.get('end_time', '')}".strip(" –")
+            ev_dur = ev.get("duration_label", "")
+            ev_dist = ev.get("distance_label", "")
+            ev_type = (ev.get("type") or "sight").upper()
+            badge_style = styles["badge_emerald"] if ev_type in ("TRAVEL", "HOTEL") else (styles["badge_amber"] if ev_type == "FOOD" else styles["badge_ocean"])
+            slot_bg = BG_CARD_ALT if ev_type in ("TRAVEL", "HOTEL") else (AMBER_BG if ev_type == "FOOD" else OCEAN_LIGHT)
+            left_cell = [
+                Paragraph(f"<b>[{ev_time}]</b>", badge_style),
+                Paragraph(f"<b>{ev.get('title', 'Activity')}</b>", styles["body_bold"]),
+                Paragraph(f"<font size=6.8 color='#64748B'>{ev_dur}" + (f" · {ev_dist}" if ev_dist else "") + "</font>", styles["small"]),
+            ]
+            right_cell = [
+                Paragraph(ev.get("subtitle") or "", styles["body"]),
+            ]
+            slot_table = Table([[left_cell, right_cell]], colWidths=[180, 310])
+            slot_table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, -1), slot_bg),
+                ("BOX", (0, 0), (-1, -1), 0.5, BORDER_CARD),
+                ("TOPPADDING", (0, 0), (-1, -1), 3),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                ("LEFTPADDING", (0, 0), (-1, -1), 5),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ]))
+            slot_rows.append(slot_table)
+            slot_rows.append(Spacer(1, 2.5))
+    else:
+        slots_meta = [
+            ("morning", "MORNING (06:00 - 12:00)", styles["badge_ocean"], OCEAN_LIGHT),
+            ("afternoon", "AFTERNOON (12:00 - 17:00)", styles["badge_amber"], AMBER_BG),
+            ("evening", "EVENING (17:00 - 21:00)", styles["badge_purple"], PURPLE_BG),
         ]
 
-        slot_table = Table([[left_cell, right_cell]], colWidths=[180, 310])
-        slot_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, -1), slot_bg),
-            ("BOX", (0, 0), (-1, -1), 0.5, BORDER_CARD),
-            ("TOPPADDING", (0, 0), (-1, -1), 3),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-            ("LEFTPADDING", (0, 0), (-1, -1), 5),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ]))
-        slot_rows.append(slot_table)
-        slot_rows.append(Spacer(1, 2.5))
+        for slot_key, slot_lbl, badge_style, slot_bg in slots_meta:
+            slot = day.get(slot_key)
+            if not slot or not isinstance(slot, dict):
+                continue
+
+            places_list = slot.get("places")
+            if places_list and isinstance(places_list, list):
+                main_place = places_list[0] if places_list else {}
+                name = main_place.get("name") or slot.get("place") or slot.get("activity") or "Sightseeing"
+                dur = main_place.get("duration") or slot.get("duration") or "2.5h"
+                fee = main_place.get("fee") or slot.get("entry_fee") or "Free"
+                category = main_place.get("category") or "Sight"
+                desc = slot.get("activity") or main_place.get("description") or ""
+            else:
+                name = slot.get("name") or slot.get("place") or slot.get("activity") or "Sightseeing"
+                dur = slot.get("duration") or "2.5h"
+                fee = slot.get("entry_fee") or slot.get("fee") or "Free"
+                category = slot.get("category") or "Sight"
+                desc = slot.get("activity") or slot.get("description") or ""
+
+            # Normalize fee string
+            if isinstance(fee, (int, float)):
+                fee_str = f"₹{fee:,.0f}" if fee > 0 else "Free"
+            elif str(fee).isdigit():
+                fee_str = f"₹{int(fee):,.0f}" if int(fee) > 0 else "Free"
+            elif str(fee).strip() and not str(fee).startswith("₹") and not str(fee).lower() == "free":
+                fee_str = f"₹{fee}"
+            else:
+                fee_str = str(fee)
+
+            proximity = slot.get("proximity") or "Local area"
+            tips = slot.get("tips")
+
+            left_cell = [
+                Paragraph(f"<b>[{slot_lbl}]</b>", badge_style),
+                Paragraph(f"<b>{name}</b>", styles["body_bold"]),
+                Paragraph(f"<font size=6.8 color='#64748B'>{category} · Duration: {dur} · Entry: {fee_str}</font>", styles["small"]),
+            ]
+            right_cell = [
+                Paragraph(desc if desc else f"Curated exploration of {name}.", styles["body"]),
+                Paragraph(f"<font size=6.8 color='#0284C7'>{proximity}</font>" + (f" · <i>Advice: {tips}</i>" if tips else ""), styles["extra_small"])
+            ]
+
+            slot_table = Table([[left_cell, right_cell]], colWidths=[180, 310])
+            slot_table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, -1), slot_bg),
+                ("BOX", (0, 0), (-1, -1), 0.5, BORDER_CARD),
+                ("TOPPADDING", (0, 0), (-1, -1), 3),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                ("LEFTPADDING", (0, 0), (-1, -1), 5),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ]))
+            slot_rows.append(slot_table)
+            slot_rows.append(Spacer(1, 2.5))
 
     footer_items = []
     if day.get("food_recommendations"):
@@ -745,7 +774,7 @@ def _build_hotels_section(base_stay: dict, hotels: dict, trip: dict, styles: dic
                 Paragraph(f"<b>₹{price:,.0f}</b>", ParagraphStyle("HPrice", parent=styles["card_title"], fontSize=12, textColor=TURQUOISE, alignment=TA_RIGHT)),
                 Paragraph("<font size=6.5 color='#64748B'>per night</font>", ParagraphStyle("HPer", parent=styles["small"], alignment=TA_RIGHT)),
                 Spacer(1, 4),
-                Paragraph(f"Safety: <b>{safety}/10</b>", ParagraphStyle("HSafe", parent=styles["small"], alignment=TA_RIGHT)),
+                Paragraph(f"Rating: <b>{rating}/5.0</b>", ParagraphStyle("HSafe", parent=styles["small"], alignment=TA_RIGHT)),
             ]
         ]
     ], colWidths=[385, 105], style=[
@@ -769,6 +798,7 @@ def _build_hotels_section(base_stay: dict, hotels: dict, trip: dict, styles: dic
         ]
     ]
 
+    seen_alt_hotels = set()
     for tier, label in [
         ("budget_hotels", "Budget-Friendly"),
         ("mid_range_hotels", "Comfort & Standard"),
@@ -777,6 +807,10 @@ def _build_hotels_section(base_stay: dict, hotels: dict, trip: dict, styles: dic
         h_list = hotels.get(tier, []) if isinstance(hotels, dict) else []
         for h in h_list[:2]:
             h_name = h.get("name", "Hotel")
+            h_key = h_name.strip().lower()
+            if h_key in seen_alt_hotels:
+                continue
+            seen_alt_hotels.add(h_key)
             h_price = h.get("price_per_night", 2000)
             h_rating = h.get("rating") or h.get("star_rating") or "4.5"
             alt_rows.append([
@@ -1074,9 +1108,10 @@ def generate_trip_pdf(trip_row, itinerary: dict, budget: dict,
     base_stay = itinerary.get("base_camp_stay") or (hotels.get("base_camp") if isinstance(hotels, dict) else None)
     base_stay_name = (base_stay.get("name") if isinstance(base_stay, dict) else None) or f"{trip_dict.get('destination', '').split(',')[0]} Base Camp"
 
-    days = itinerary.get("days", [])
+    tl_days = (itinerary.get("timeline") or {}).get("days") if isinstance(itinerary.get("timeline"), dict) else None
+    days = tl_days or itinerary.get("days", [])
     if days:
-        story.append(Paragraph("<b>Day-by-Day Expedition Itinerary Loops</b>", styles["section_h1"]))
+        story.append(Paragraph("<b>Day-by-Day Expedition Itinerary</b>", styles["section_h1"]))
         for d in days:
             story.append(_build_day_itinerary(d, base_stay_name, styles))
 

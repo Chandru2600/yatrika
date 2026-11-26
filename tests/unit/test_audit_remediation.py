@@ -115,3 +115,13 @@ def test_pan_india_geospatial_hub_resolver():
     aizawl = resolve_location_hubs("Aizawl")
     assert aizawl["nearest_airport_code"] in ("IXS", "IXA", "IMF", "GAU")
     assert aizawl["nearest_station_code"] != "AIZA"
+
+
+def test_varanasi_train_and_no_12080_fallback():
+    rail = calculate_intercity_transit("Bengaluru", "Varanasi", "train", 2)["chosen_details"]
+    assert rail["train_number"] == "22687"
+    assert "46h" in rail["schedules"][0]["duration"]
+    assert rail["train_number"] != "12080"
+
+    unmapped = calculate_intercity_transit("Bengaluru", "Guwahati", "train", 2)["chosen_details"]
+    assert unmapped["train_number"] != "12080"
