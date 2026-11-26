@@ -3086,28 +3086,33 @@ function optimizeRouteTSP() {
   
   State.selectedAttractions = ordered;
   
-  // Re-fill Day Planner based on new optimized order
-  if (State.dayPlanner) {
-    State.dayPlanner = {};
-    for (let d = 1; d <= State.days; d++) {
-      State.dayPlanner[d] = { morning: [], afternoon: [], evening: [], night: [] };
-    }
-    const days = Math.max(1, State.days);
-    State.selectedAttractions.forEach((a, i) => {
-      const day = (i % days) + 1;
-      const zones = ['morning', 'afternoon', 'evening', 'night'];
-      const zone = zones[Math.floor(i / days) % 4];
-      State.dayPlanner[day][zone].push({
-        id: a.id, icon: a.icon, name: a.name, dur: fmtHrs(a.dur), type: 'attraction'
-      });
-    });
+  // Re-fill Day Planner sequentially by optimized geographic order
+  State.dayPlanner = {};
+  const days = Math.max(1, State.days || 3);
+  for (let d = 1; d <= days; d++) {
+    State.dayPlanner[d] = { morning: [], afternoon: [], evening: [], night: [] };
   }
-  
+  const zones = ['morning', 'afternoon', 'evening', 'night'];
+  State.selectedAttractions.forEach((a, i) => {
+    const day = Math.min(days, Math.floor((i * days) / State.selectedAttractions.length) + 1);
+    const dayItemsCount = Object.values(State.dayPlanner[day]).reduce((s, arr) => s + arr.length, 0);
+    const zone = zones[Math.min(3, dayItemsCount)];
+    State.dayPlanner[day][zone].push({
+      id: a.id, icon: a.icon, name: a.name, dur: fmtHrs(a.dur), type: 'attraction'
+    });
+  });
+  State.authoritativeTimeline = null;
+
   saveStateToLS();
-  
-  // Refresh current view
+
+  // Refresh current view (including Stage 4 timeline & map)
   updateSidebar();
   updatePreviewCard();
+  if (typeof renderDayPlanner === 'function') renderDayPlanner();
+  if (typeof renderTimeline === 'function') renderTimeline();
+  if (State.mapInstance && typeof updateMapMarkersAndRoutes === 'function') {
+    updateMapMarkersAndRoutes(State.mapInstance);
+  }
   
   showToast('🚀 Route optimized using AI nearest-neighbor algorithm to minimize travel distance!', 'success');
 }
