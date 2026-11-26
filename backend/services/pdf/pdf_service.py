@@ -755,7 +755,7 @@ def _build_hotels_section(base_stay: dict, hotels: dict, trip: dict, styles: dic
     name = (base_stay.get("name") if isinstance(base_stay, dict) else None) or f"{dest_city} Heritage Resort"
     addr = (base_stay.get("address") if isinstance(base_stay, dict) else None) or f"{dest_city} Scenic Corridor"
     price = (base_stay.get("price_per_night") if isinstance(base_stay, dict) else None) or 2800
-    safety = (base_stay.get("safety_score") if isinstance(base_stay, dict) else None) or "9.6"
+    rating = ((base_stay.get("rating") or base_stay.get("star_rating")) if isinstance(base_stay, dict) else None) or "4.0"
     desc = (base_stay.get("description") if isinstance(base_stay, dict) else None) or "Centrally positioned base camp stay with verified security and high-speed Wi-Fi, optimized for daily sightseeing loops."
     amenities = (base_stay.get("amenities") if isinstance(base_stay, dict) else None) or ["Wi-Fi", "Breakfast", "AC", "Power Backup", "24/7 Security"]
 
