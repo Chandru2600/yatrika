@@ -726,23 +726,23 @@ def _build_day_itinerary(day: dict, base_stay_name: str, styles: dict):
     if day.get("local_tips"):
         footer_items.append(Paragraph(f"• <b>Local Advice:</b> {day['local_tips']}", styles["small"]))
 
-    card_content = [day_hdr, Spacer(1, 3)] + slot_rows
-    if footer_items:
-        card_content.append(Spacer(1, 2))
-        card_content.extend(footer_items)
+    table_rows = [[day_hdr]]
+    for item in slot_rows:
+        if not isinstance(item, Spacer):
+            table_rows.append([item])
+    for f_item in footer_items:
+        table_rows.append([f_item])
 
-    day_table = Table([
-        [card_content]
-    ], colWidths=[510], style=[
+    day_table = Table(table_rows, colWidths=[510], repeatRows=1, style=[
         ("BACKGROUND", (0, 0), (-1, -1), BG_CARD),
         ("BOX", (0, 0), (-1, -1), 0.75, BORDER_CARD),
-        ("TOPPADDING", (0, 0), (-1, -1), 5),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
         ("LEFTPADDING", (0, 0), (-1, -1), 7),
         ("RIGHTPADDING", (0, 0), (-1, -1), 7),
     ])
 
-    return KeepTogether([day_table, Spacer(1, 6)])
+    return KeepTogether([day_table, Spacer(1, 6)]) if len(table_rows) <= 8 else day_table
 
 
 # ── Component 6: Base Camp & Accommodations ───────────────────
