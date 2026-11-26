@@ -920,6 +920,7 @@ def save_wizard():
 
         # Create database record
         trip_data = {
+            "source": data.get("source", "Bengaluru").strip() or "Bengaluru",
             "destination": destination,
             "start_date": start_date,
             "end_date": end_date,

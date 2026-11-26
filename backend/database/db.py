@@ -98,6 +98,8 @@ def init_db() -> None:
         cursor.execute("ALTER TABLE trips ADD COLUMN share_token TEXT DEFAULT NULL")
     if "is_public" not in cols:
         cursor.execute("ALTER TABLE trips ADD COLUMN is_public INTEGER DEFAULT 0")
+    if "source" not in cols:
+        cursor.execute("ALTER TABLE trips ADD COLUMN source TEXT DEFAULT 'Bengaluru'")
     if "checklist_json" not in cols:
         cursor.execute("ALTER TABLE trips ADD COLUMN checklist_json TEXT DEFAULT NULL")
     cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_trips_share_token ON trips(share_token) WHERE share_token IS NOT NULL")

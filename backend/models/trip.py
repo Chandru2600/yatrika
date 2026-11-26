@@ -16,13 +16,14 @@ def create_trip(user_id: int, data: dict) -> int:
 
     return execute_insert("""
         INSERT INTO trips
-            (user_id, destination, start_date, end_date, num_days, budget,
+            (user_id, source, destination, start_date, end_date, num_days, budget,
              num_travelers, travel_style, transport, transit_mode, transit_cost,
              arrival_time, transit_details_json, interests,
              special_requirements, status, share_token, is_public)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)
     """, (
         user_id,
+        (data.get("source") or "Bengaluru").strip(),
         data.get("destination"),
         data.get("start_date"),
         data.get("end_date"),

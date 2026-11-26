@@ -501,7 +501,8 @@
 
     <!-- ══════ 1. LUXURY 2-PART BOARDING PASS EXPEDITION TICKET ══════ -->
     {% set dest_city = (trip.destination.split(',')[0]|trim) %}
-    {% set src_city = ((trip.source or 'Bengaluru').split(',')[0]|trim) %}
+    {% set tl_src = (itinerary.get("timeline", {}).get("source") if itinerary is mapping and itinerary.get("timeline") is mapping else None) %}
+    {% set src_city = ((trip.source or tl_src or 'Bengaluru').split(',')[0]|trim) %}
     {% set dest_code = dest_city[:3]|upper %}
     {% set src_code = src_city[:3]|upper %}
     {% set nights = [1, trip.num_days - 1]|max %}
