@@ -291,7 +291,11 @@ def build_timeline(trip: dict) -> dict:
 
     for d_idx in range(num_days):
         day_num = d_idx + 1
-        day_sights = list(per_day[d_idx])
+        # Order sunrise sights first and sunset sights last within each day
+        day_sights = sorted(
+            per_day[d_idx],
+            key=lambda x: (0 if "sunrise" in x["name"].lower() else (2 if "sunset" in x["name"].lower() else 1))
+        )
         events: list[dict] = []
         day_drive_km = 0.0
         day_drive_mins = 0

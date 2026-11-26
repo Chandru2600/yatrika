@@ -37,7 +37,9 @@ def is_junk_attraction(name: str) -> bool:
         return True
     if re.search(r"\b(?:18|19|20)\d{2}\s*[-–]\s*\d{2,4}\b", s) or re.search(r"(?i)\b\d+rp\b", s):
         return True
-    if any(b in s.lower() for b in ("cave of nightmares", "in my dream")):
+    if len(s) > 55 or re.search(r"(?i)\b(?:to the (?:east|west|north|south) of|for climbers)\b", s):
+        return True
+    if any(b in s.lower() for b in ("cave of nightmares", "in my dream", "locomotive works", "free view point", "cliff jumping point", "temple elephant bathing", "sunset viewpoint with")):
         return True
     if s.lower() in BARE_GENERIC:
         return True

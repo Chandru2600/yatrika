@@ -147,3 +147,25 @@ def test_agra_long_bus_private_operator_and_no_impossible_transit_days():
     assert len(tl["days"][1]["sights"]) == 0
     day1_dinner = [e for e in tl["days"][0]["events"] if "Dinner" in e["title"]][0]
     assert "19:00" in day1_dinner["start_time"] or "19:" in day1_dinner["start_time"]
+
+
+def test_hampi_no_ixe_vdy_flight_and_sunset_placed_last():
+    from backend.services.itinerary.timeline_builder import build_timeline
+    flt = calculate_intercity_transit("Mangaluru", "Hampi", "flight", 3)["chosen_details"]
+    assert flt["available"] is False
+
+    tl = build_timeline({
+        "source": "Mangaluru",
+        "destination": "Hampi",
+        "num_days": 1,
+        "num_travelers": 3,
+        "budget": 50000,
+        "transport": "car",
+        "stay": {"name": "Clarks Inn Hampi", "price_per_night": 3000, "lat": 15.32, "lon": 76.47},
+        "transit": {"mode": "car", "title": "Sedan Cab", "fare_per_person": 1500, "departure": "06:00", "duration_mins": 350, "distance_km": 387},
+        "selected_attractions": [
+            {"id": "s1", "name": "Anjanadri Hills Sunset Point", "dur": 90, "fee": 0, "lat": 15.34, "lon": 76.47},
+            {"id": "s2", "name": "Virupaksha Temple", "dur": 90, "fee": 0, "lat": 15.335, "lon": 76.46},
+        ],
+    })
+    assert tl["days"][0]["sights"][-1]["name"] == "Anjanadri Hills Sunset Point"

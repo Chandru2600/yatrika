@@ -171,7 +171,6 @@ Central,Madhya Pradesh,Madhya Pradesh,Royal Palace in the west of Champa Baoli a
 Central,Madhya Pradesh,Madhya Pradesh,Tavali Mahal,Heritage Palace,2.5,4.7,200,None,Yes,22.3544,75.3938
 Central,Madhya Pradesh,Madhya Pradesh,Water palace,Heritage Palace,2.5,4.2,200,None,Yes,22.7394,75.4122
 West,Maharashtra,Maharashtra,The palace situated in the fort,Heritage Palace,2.5,4.8,200,None,No,21.3078,76.2369
-West,Maharashtra,Maharashtra,Mhal Gulara palaces and  building on both sides of Utoali river and two masonry dams in the river,Heritage Palace,2.5,4.8,200,None,No,21.3311,76.3456
 North,Rajasthan,Rajasthan,Man Singh Palace,Heritage Palace,2.5,4.2,200,None,Yes,26.2301,78.1691
 North,Rajasthan,Rajasthan,Sukh Mahal,Heritage Palace,2.5,4.1,200,None,Yes,25.4528,75.6419
 South,Karnataka,Karnataka,Irrum Manzil,Heritage Palace,2.5,4.5,200,None,No,17.4194,78.455
@@ -605,7 +604,6 @@ West,Maharashtra,Maharashtra,Mani Bhavan,Museum,2.0,4.1,50,None,No,18.9599,72.81
 West,Maharashtra,Maharashtra,Bharat Itihas Sanshodhak Mandal,Museum,2.0,4.4,50,None,Yes,18.511,73.85
 South,Karnataka,Karnataka,Birla Science Museum,Museum,2.0,4.1,50,None,Yes,17.4033,78.4706
 West,Maharashtra,Maharashtra,Asiatic Society of Mumbai,Museum,2.0,4.8,50,None,Yes,18.9322,72.8362
-North,Jammu and Kashmir,Jammu and Kashmir,Munshi Aziz Bhat Museum of Central Asian and Kargil Trade Artifacts,Museum,2.0,4.8,50,None,No,34.562,76.123
 East,Odisha,Odisha,Odisha State Museum,Museum,2.0,4.0,50,None,No,20.2562,85.8415
 South,Andhra Pradesh,Andhra Pradesh,Panagal Museum,Museum,2.0,4.1,50,None,No,17.0803,79.2533
 North,Rajasthan,Rajasthan,Parliament Museum,Museum,2.0,4.1,50,None,No,28.6187,77.2072
@@ -673,7 +671,6 @@ West,Goa,Goa,Ashvek Vintage World,Museum,2.0,4.0,50,None,No,15.3211,73.9415
 South,Tamil Nadu,Tamil Nadu,"Government Museum, Coimbatore",Museum,2.0,4.3,50,None,No,11.0073,76.97
 South,Tamil Nadu,Tamil Nadu,Puducherry Museum,Museum,2.0,4.7,50,None,No,11.9344,79.8349
 North,Rajasthan,Rajasthan,Rajiv Gandhi Regional Museum of Natural History,Museum,2.0,4.5,50,None,No,26.0173,76.5026
-South,Tamil Nadu,Tamil Nadu,Kottarakkara Thampuran Memorial Museum of Classical Arts,Museum,2.0,4.3,50,None,Yes,9.0016,76.7701
 South,Kerala,Kerala,V K Krishna Menon Museum,Museum,2.0,4.6,50,None,Yes,11.2926,75.7781
 South,Tamil Nadu,Tamil Nadu,Mahakavi Bharathi Memorial Library,Museum,2.0,4.2,50,None,Yes,11.3513,77.7176
 East,Odisha,Odisha,Netaji Birth Place Museum,Museum,2.0,4.3,50,None,Yes,20.4699,85.8665
@@ -793,7 +790,6 @@ Northeast,Assam,Assam,"Regional Science Centre, Guwahati",Museum,2.0,4.2,50,None
 North,Haryana,Haryana,Dagshai Central Jail & Museum,Museum,2.0,4.0,50,None,Yes,30.8865,77.0529
 North,Rajasthan,Rajasthan,Open Air Museum,Museum,2.0,4.4,50,None,No,25.42,77.8317
 West,Gujarat,Gujarat,Shristhal Sangrahalay,Museum,2.0,4.3,50,None,Yes,23.9092,72.3633
-East,West Bengal,West Bengal,Netaji Museum and Centre for Studies in Himalayan Languages Society & Culture,Museum,2.0,4.8,50,None,Yes,26.8663,88.2986
 North,Himachal Pradesh,Himachal Pradesh,Himachal Pradesh state museum,Museum,2.0,4.6,50,None,Yes,31.1033,77.1508
 West,Maharashtra,Maharashtra,Mahatma Phule Wada,Museum,2.0,4.2,50,None,No,18.5067,73.8639
 West,Gujarat,Gujarat,Ancient Jain Temple (Museum Building),Museum,2.0,4.4,50,None,Yes,20.8906,70.4022
@@ -821,7 +817,6 @@ East,West Bengal,West Bengal,Ramakrishna Mission Vidyapith Museum,Museum,2.0,4.4
 East,West Bengal,West Bengal,Debagram Museum,Museum,2.0,4.6,50,None,Yes,23.1494,88.662
 Northeast,Assam,Assam,Coal Heritage Park and Museum,Museum,2.0,4.3,50,None,Yes,27.2887,95.6736
 South,Telangana,Telangana,Kumuram Bheem Tribal Museum,Museum,2.0,4.1,50,None,Yes,19.3678,79.161
-South,Tamil Nadu,Tamil Nadu,Shankar Memorial National Cartoon Museum and Art Gallery,Museum,2.0,4.6,50,None,Yes,9.15,76.531
 North,Rajasthan,Rajasthan,Amrapali Museum,Museum,2.0,4.1,50,None,No,26.9152,75.8014
 East,Odisha,Odisha,Sudarshan Crafts Museum,Museum,2.0,4.1,50,None,No,19.8056,85.8337
 North,Rajasthan,Rajasthan,Maharana Pratap Museum,Museum,2.0,4.2,50,None,No,24.8844,73.6912
@@ -1264,11 +1259,9 @@ West,Maharashtra,Maharashtra,Khed Caves,Nature & Scenic,2.0,4.7,25,None,Yes,17.7
 South,Karnataka,Karnataka,Pohale caves,Nature & Scenic,2.0,4.8,25,None,No,16.7909,74.1912
 West,Maharashtra,Maharashtra,Yerphal Caves,Nature & Scenic,2.0,4.6,25,None,Yes,17.3821,73.943
 West,Gujarat,Gujarat,Khapra Kodiya Caves,Nature & Scenic,2.0,4.6,25,None,No,21.5299,70.4681
-South,Tamil Nadu,Tamil Nadu,Natural Cavern With Drip Line On The Western Side Of The Kudumiyanmalai,Nature & Scenic,2.0,4.8,25,None,Yes,10.4164,78.6578
 South,Tamil Nadu,Tamil Nadu,Natural Cavern Called Andarmatam,Nature & Scenic,2.0,4.3,25,None,No,10.3361,78.5887
 South,Tamil Nadu,Tamil Nadu,Sittanavasal Cave inscriptions,Nature & Scenic,2.0,4.7,25,None,No,10.4503,78.725
 South,Tamil Nadu,Tamil Nadu,Cave In Sitharmalai,Nature & Scenic,2.0,4.5,25,None,No,10.0746,77.8454
-South,Tamil Nadu,Tamil Nadu,Natural Cavern Known As Virupakshi Cuha & Skandashram And Path Leading From Ramnasharam.,Nature & Scenic,2.0,4.2,25,None,No,12.2336,79.0619
 Central,Madhya Pradesh,Madhya Pradesh,Silhara Caves bearing inscriptions of last Century AD,Nature & Scenic,2.0,4.3,25,None,No,23.1381,81.9644
 North,Uttar Pradesh,Uttar Pradesh,Saptamatrika Cave Badoh Pathari,Nature & Scenic,2.0,4.1,25,None,Yes,23.9253,78.212
 Central,Madhya Pradesh,Madhya Pradesh,Sat kothari Caves,Nature & Scenic,2.0,4.3,25,None,No,22.3647,75.3906
@@ -1750,7 +1743,6 @@ South,Karnataka,Karnataka,Rayadurg Palace and Rama and Krishna temples,Heritage 
 North,Punjab,Punjab,Rupnagar,Heritage Site,2.0,4.3,40,None,Yes,30.9664,76.5331
 South,Karnataka,Karnataka,Paddamudiyam archaeological site,Heritage Site,2.0,4.6,40,None,No,15.0127,78.4518
 East,West Bengal,West Bengal,Chariswar,Heritage Site,2.0,4.2,40,None,No,22.5209,88.543
-South,Andhra Pradesh,Andhra Pradesh,reconstructed monuments at Anpu and Nagarjunakonda hilltop,Heritage Site,2.0,4.6,40,None,No,16.504,79.2765
 South,Andhra Pradesh,Andhra Pradesh,Buddhist remains at Kodavali,Heritage Site,2.0,4.1,40,None,Yes,17.2407,82.2722
 South,Andhra Pradesh,Andhra Pradesh,Munagacherla ancient site and remains,Heritage Site,2.0,4.6,40,None,Yes,16.8034,80.2588
 South,Andhra Pradesh,Andhra Pradesh,Alluru ancient Buddhist site,Heritage Site,2.0,4.8,40,None,No,16.7716,80.438
@@ -1839,12 +1831,10 @@ South,Tamil Nadu,Tamil Nadu,"Prehistoric Burial Site, Stone Circle, and Menhirs"
 South,Tamil Nadu,Tamil Nadu,Prehistoric Burial Site,Heritage Site,2.0,4.1,40,None,Yes,10.455,78.7731
 South,Tamil Nadu,Tamil Nadu,Kalasakkadu Burial Site,Heritage Site,2.0,4.1,40,None,Yes,10.3726,78.8419
 South,Tamil Nadu,Tamil Nadu,Kambarmedu,Heritage Site,2.0,4.8,40,None,No,11.0438,79.5791
-South,Tamil Nadu,Tamil Nadu,Site containing megalithic burials including themonolithic anthromorphic figure erected at the site.,Heritage Site,2.0,4.2,40,None,Yes,12.1384,78.8343
 South,Tamil Nadu,Tamil Nadu,"Prehistoric Site, Kalvoi",Heritage Site,2.0,4.2,40,None,No,8.626,77.87
 South,Tamil Nadu,Tamil Nadu,"Prehistoric Site, Karungulam",Heritage Site,2.0,4.1,40,None,No,8.6322,77.8764
 South,Tamil Nadu,Tamil Nadu,Pandava Graves,Heritage Site,2.0,4.5,40,None,No,11.1197,77.288
 East,Jharkhand,Jharkhand,Khukhragarh,Heritage Site,2.0,4.6,40,None,Yes,23.3167,84.95
-West,Gujarat,Gujarat,Champaner-Pavagadh Archaeological Park - Primary Heritage Zone,Heritage Site,2.0,4.1,40,None,No,22.4833,73.5333
 West,Gujarat,Gujarat,BRD 02 Kabutarkhana / MJD 10 Khajuri Masjid,Heritage Site,2.0,4.4,40,None,No,22.4942,73.5552
 West,Gujarat,Gujarat,MQB 04 Maqbara near Panchmahuda Masjid,Heritage Site,2.0,4.6,40,None,Yes,22.4895,73.5007
 West,Gujarat,Gujarat,MQB 05 Maqbara Mandvi,Heritage Site,2.0,4.0,40,None,Yes,22.4954,73.5118
@@ -1885,11 +1875,9 @@ West,Maharashtra,Maharashtra,Archaeological site remains,Heritage Site,2.0,4.7,4
 West,Maharashtra,Maharashtra,Ancient Buddhist remains,Heritage Site,2.0,4.0,40,None,No,21.3963,79.2782
 West,Maharashtra,Maharashtra,Ramtek hill ruins and archaeological site,Heritage Site,2.0,4.8,40,None,Yes,21.399,79.3361
 North,Uttar Pradesh,Uttar Pradesh,Ancient site called Garba-ka-kot or Rajbhar-ka-lot,Heritage Site,2.0,4.5,40,None,Yes,25.9579,83.3496
-North,Uttar Pradesh,Uttar Pradesh,Ancient site covered with mounds of brick ruins and containing an ancient masonry well,Heritage Site,2.0,4.8,40,None,No,26.4397,83.4386
 North,Uttar Pradesh,Uttar Pradesh,Site and stupa and monastery of the Sakyas,Heritage Site,2.0,4.6,40,None,Yes,27.448,83.128
 North,Uttar Pradesh,Uttar Pradesh,Pipri Monument,Heritage Site,2.0,4.3,40,None,Yes,27.3303,83.1055
 North,Uttar Pradesh,Uttar Pradesh,Ancient site near the village of Bhitti,Heritage Site,2.0,4.7,40,None,No,27.5208,82.0003
-North,Rajasthan,Rajasthan,"Archaeological Site  Remains comprised in Survey Plot Nos. 736, 738/2, 738/3  parts of Survey Plot Nos. 737, 738 / 1 and 738 / 1 and 738 / 4 as shown in the site plan",Heritage Site,2.0,4.1,40,None,Yes,28.5043,77.5112
 North,Rajasthan,Rajasthan,Site of ancient Pokhar (Pushkarini),Heritage Site,2.0,4.7,40,None,Yes,27.4988,77.6264
 North,Uttar Pradesh,Uttar Pradesh,Ancient site at Jagatram,Heritage Site,2.0,4.2,40,None,Yes,30.497,77.8268
 North,Uttar Pradesh,Uttar Pradesh,Excavated site at Dronsagar,Heritage Site,2.0,4.6,40,None,Yes,29.2062,78.9767
@@ -1909,7 +1897,6 @@ North,Uttar Pradesh,Uttar Pradesh,"Pawaya, Madhya Pradesh",Heritage Site,2.0,4.8
 Northeast,Assam,Assam,Ambari Archeological Site,Heritage Site,2.0,4.3,40,None,Yes,26.118,91.4521
 East,Odisha,Odisha,Diamond Triangle,Heritage Site,2.0,4.3,40,None,Yes,20.6333,86.2667
 East,West Bengal,West Bengal,Debalgarh,Heritage Site,2.0,4.6,40,None,Yes,23.1584,88.6589
-North,Uttar Pradesh,Uttar Pradesh,"Ancient site and Ashvamedha Archaeological Remains, Jagatgram Barhwala",Heritage Site,2.0,4.0,40,None,Yes,30.4971,77.8268
 North,Rajasthan,Rajasthan,Ojhiyana archaeological site,Heritage Site,2.0,4.5,40,None,Yes,25.8787,74.3576
 North,Uttar Pradesh,Uttar Pradesh,Matha Kuar Shrine,Heritage Site,2.0,4.3,40,None,No,26.7383,83.8881
 South,Karnataka,Karnataka,Inscription Stones of Bengaluru,Heritage Site,2.0,4.4,40,None,Yes,12.8768,77.6265
@@ -1974,7 +1961,6 @@ West,Maharashtra,Maharashtra,Ahilyabai Birthplace,Heritage Site,2.0,4.1,40,None,
 South,Tamil Nadu,Tamil Nadu,"Memorial Pillar, Arasu Pannai",Heritage Site,2.0,4.4,40,None,No,13.0258,80.2305
 West,Maharashtra,Maharashtra,Mulji Jetha Fountain,Heritage Site,2.0,4.1,40,None,Yes,18.9343,72.8358
 West,Maharashtra,Maharashtra,Jijamata's Samadhi,Heritage Site,2.0,4.8,40,None,Yes,18.2438,73.4147
-South,Kerala,Kerala,Monuments indicating the 1st arrival of Vasco-de-Gama at Kappad,Heritage Site,2.0,4.8,40,None,Yes,11.3803,75.7222
 South,Tamil Nadu,Tamil Nadu,Monolithic monument,Heritage Site,2.0,4.0,40,None,Yes,10.521,76.2497
 North,Rajasthan,Rajasthan,Monument near Kilah railway station,Heritage Site,2.0,4.1,40,None,Yes,27.5945,78.0591
 North,Uttar Pradesh,Uttar Pradesh,Monument of Major Robert Naim,Heritage Site,2.0,4.5,40,None,Yes,27.6581,78.4477
@@ -2077,7 +2063,6 @@ West,Maharashtra,Maharashtra,"Holy Cross Church, Kurla",Spiritual,1.5,4.2,0,None
 South,Karnataka,Karnataka,"Holy Cross Church, Pavoor",Spiritual,1.5,4.2,0,None,Yes,12.7477,74.9056
 South,Tamil Nadu,Tamil Nadu,Holy Cross Shrine Mapranam,Spiritual,1.5,4.4,0,None,Yes,10.3804,76.2268
 South,Tamil Nadu,Tamil Nadu,Holy Family Church Mannila,Spiritual,1.5,4.0,0,None,Yes,9.4667,76.55
-South,Tamil Nadu,Tamil Nadu,"Holy Magi Syro-Malabar Catholic Forane Church, Muvattupuzha",Spiritual,1.5,4.7,0,None,Yes,9.9806,76.581
 South,Karnataka,Karnataka,"Holy Trinity Church, Bangalore",Spiritual,1.5,4.6,0,None,No,12.9721,77.6206
 South,Karnataka,Karnataka,"Holy Trinity Church, Bolarum",Spiritual,1.5,4.7,0,None,No,17.5167,78.5236
 South,Tamil Nadu,Tamil Nadu,"Holy Trinity Church, Ooty",Spiritual,1.5,4.5,0,None,Yes,11.4134,76.7021
@@ -2095,7 +2080,6 @@ South,Tamil Nadu,Tamil Nadu,"Little Flower Church, Kaprassery",Spiritual,1.5,4.5
 South,Tamil Nadu,Tamil Nadu,Manarcad Church,Spiritual,1.5,4.2,0,None,Yes,9.5997,76.5844
 South,Tamil Nadu,Tamil Nadu,Manjanikkara Dayara,Spiritual,1.5,4.6,0,None,Yes,9.249,76.7432
 South,Tamil Nadu,Tamil Nadu,Mar Aphrem Church,Spiritual,1.5,4.4,0,None,No,9.5921,76.5608
-South,Tamil Nadu,Tamil Nadu,"St. John The Baptist Jacobite Syrian Church, South Parur",Spiritual,1.5,4.8,0,None,Yes,9.8638,76.3819
 North,Punjab,Punjab,St. John in the Wilderness Church,Spiritual,1.5,4.8,0,None,No,32.2471,76.3107
 West,Maharashtra,Maharashtra,"St. John the Baptist Church, Mumbai",Spiritual,1.5,4.4,0,None,Yes,19.195,72.9758
 West,Maharashtra,Maharashtra,"St. Joseph's Church, Juhu",Spiritual,1.5,4.7,0,None,No,19.1072,72.8264
@@ -2113,7 +2097,6 @@ South,Kerala,Kerala,"St. Mary's Orthodox Church, Maikavu",Spiritual,1.5,4.0,0,No
 South,Karnataka,Karnataka,St. Mary's Orthodox Valiyapally,Spiritual,1.5,4.2,0,None,No,13.0573,77.5481
 South,Tamil Nadu,Tamil Nadu,"St. Mary's Simhasana Church, Veliyanad",Spiritual,1.5,4.1,0,None,Yes,9.8782,76.4871
 South,Tamil Nadu,Tamil Nadu,"St. Mary's Syro-Malabar Catholic Church, Arakuzha",Spiritual,1.5,4.0,0,None,Yes,9.9286,76.608
-South,Tamil Nadu,Tamil Nadu,"St. Mary's Syro-Malabar Catholic Forane Church, Champakulam",Spiritual,1.5,4.0,0,None,No,9.4092,76.4111
 South,Tamil Nadu,Tamil Nadu,"St. Mary, Queen of Peace Basilica",Spiritual,1.5,4.0,0,None,No,8.503,76.95
 South,Tamil Nadu,Tamil Nadu,"St. Marys Jacobite Syrian Cathedral, Kuruppampady",Spiritual,1.5,4.6,0,None,Yes,10.111,76.5218
 South,Tamil Nadu,Tamil Nadu,"St. Matthias' Church, Vepery",Spiritual,1.5,4.6,0,None,No,13.0874,80.2611
@@ -2182,7 +2165,6 @@ South,Tamil Nadu,Tamil Nadu,"Basilica of Our Lady of Snows, Thoothukudi",Spiritu
 West,Goa,Goa,Our Lady of the Immaculate Conception Church,Spiritual,1.5,4.6,0,None,Yes,15.4983,73.8294
 East,Bihar,Bihar,Padri Ki Haveli,Spiritual,1.5,4.7,0,None,No,25.611,85.144
 South,Karnataka,Karnataka,Our Lady of Lourde's Church (Pallikkunnu Church),Spiritual,1.5,4.4,0,None,Yes,11.685,76.056
-South,Tamil Nadu,Tamil Nadu,"Parumala Church(St Peters & St Paul Orthodox Church, Parumala)",Spiritual,1.5,4.4,0,None,Yes,9.3247,76.5369
 South,Tamil Nadu,Tamil Nadu,"Our Lady of Good Health Church, Pattumala",Spiritual,1.5,4.1,0,None,Yes,9.5791,77.0344
 South,Kerala,Kerala,Pazhanji Church,Spiritual,1.5,4.2,0,None,Yes,10.6886,76.0509
 South,Tamil Nadu,Tamil Nadu,"Old Syrian Church, Chengannur",Spiritual,1.5,4.4,0,None,Yes,9.3227,76.6056
@@ -2283,9 +2265,7 @@ West,Maharashtra,Maharashtra,"Sacred Heart Church, Santacruz",Spiritual,1.5,4.6,
 South,Tamil Nadu,Tamil Nadu,"St. Francis Xavier's Church, Pizhala",Spiritual,1.5,4.6,0,None,Yes,10.0479,76.2625
 South,Tamil Nadu,Tamil Nadu,"Mar Hormizd Syro-Malabar Catholic Church, Angamaly",Spiritual,1.5,4.6,0,None,Yes,10.1906,76.3828
 South,Karnataka,Karnataka,"Fort Church, Bangalore",Spiritual,1.5,4.3,0,None,Yes,12.9629,77.576
-South,Tamil Nadu,Tamil Nadu,Aruvithura St. George's Syro-Malabar Catholic Forane Church,Spiritual,1.5,4.6,0,None,Yes,9.6856,76.7778
 South,Tamil Nadu,Tamil Nadu,Kadampanad Church,Spiritual,1.5,4.0,0,None,Yes,9.0946,76.6883
-South,Tamil Nadu,Tamil Nadu,"Kottakkavu Mar Thoma Syro-Malabar Pilgrim Church, North Paravur",Spiritual,1.5,4.7,0,None,No,10.1509,76.218
 South,Karnataka,Karnataka,"St. Andrew's Church, Bangalore",Spiritual,1.5,4.8,0,None,Yes,12.9792,77.6042
 South,Karnataka,Karnataka,"St. Bartholomew's Church, Mysore",Spiritual,1.5,4.2,0,None,No,12.3101,76.6573
 South,Karnataka,Karnataka,"St. George Forane Church Kallody, Wayanad",Spiritual,1.5,4.5,0,None,Yes,11.7656,75.9614
@@ -2305,7 +2285,6 @@ South,Tamil Nadu,Tamil Nadu,Ramapuram Church,Spiritual,1.5,4.8,0,None,Yes,9.7964
 South,Tamil Nadu,Tamil Nadu,"St. Francis Xavier's Church, Sampaloor",Spiritual,1.5,4.8,0,None,Yes,10.2686,76.2967
 South,Tamil Nadu,Tamil Nadu,"New Jerusalem Church, Tranquebar",Spiritual,1.5,4.7,0,None,No,11.0272,79.8543
 South,Tamil Nadu,Tamil Nadu,Jacobite Syrian Cathedral Kundara,Spiritual,1.5,4.7,0,None,No,8.9703,76.6697
-South,Tamil Nadu,Tamil Nadu,"Our Lady of Perpetual Help Syro-Malabar Church, West Chalakudy",Spiritual,1.5,4.8,0,None,Yes,10.2967,76.3187
 South,Kerala,Kerala,"St. Jude Church, Karanakodam",Spiritual,1.5,4.1,0,None,Yes,9.59,76.18
 South,Karnataka,Karnataka,"Christ Church, Salem",Spiritual,1.5,4.6,0,None,No,11.6559,78.1555
 South,Karnataka,Karnataka,East Parade Church,Spiritual,1.5,4.1,0,None,No,12.974,77.6146
@@ -2411,10 +2390,8 @@ Central,Madhya Pradesh,Madhya Pradesh,St. John in the Wilderness (Nainital),Spir
 East,West Bengal,West Bengal,Duff Church,Spiritual,1.5,4.6,0,None,Yes,22.5866,88.3699
 East,West Bengal,West Bengal,Church of the Sacred Heart of Jesus,Spiritual,1.5,4.5,0,None,Yes,22.5648,88.3527
 East,West Bengal,West Bengal,St. Stephen's Church,Spiritual,1.5,4.4,0,None,Yes,22.5403,88.3281
-South,Tamil Nadu,Tamil Nadu,"Basilica of Our Lady of the Holy Rosary, Karumathampatti",Spiritual,1.5,4.3,0,None,Yes,11.1085,77.1822
 South,Karnataka,Karnataka,"St. Anthony's Basilica, Dornahalli",Spiritual,1.5,4.3,0,None,Yes,12.4106,76.4216
 South,Karnataka,Karnataka,"Basilica of Our Lady of Health, Harihar",Spiritual,1.5,4.3,0,None,No,14.5107,75.8107
-East,West Bengal,West Bengal,Church of the Sister of Cluney and French Cemetery Cathedral,Spiritual,1.5,4.2,0,None,Yes,22.8575,88.3678
 East,West Bengal,West Bengal,"Christ Church, Bardhaman",Spiritual,1.5,4.7,0,None,Yes,23.2409,87.8674
 West,Goa,Goa,Church of St. Peter,Spiritual,1.5,4.4,0,None,Yes,15.5004,73.8973
 West,Maharashtra,Maharashtra,Ruined Church,Spiritual,1.5,4.1,0,None,No,20.4075,72.8308
@@ -3137,7 +3114,6 @@ South,Karnataka,Karnataka,Narasimha Jharni,Spiritual,1.5,4.6,0,None,No,17.9031,7
 South,Tamil Nadu,Tamil Nadu,Thirupparankundram Rock-cut Cave and Inscription,Spiritual,1.5,4.6,0,None,Yes,9.8742,78.0708
 South,Karnataka,Karnataka,Hosur Nanjundeswarar Temple,Spiritual,1.5,4.2,0,None,No,12.7338,77.827
 South,Tamil Nadu,Tamil Nadu,Sukreeswarar temple,Spiritual,1.5,4.6,0,None,Yes,11.1336,77.3989
-South,Tamil Nadu,Tamil Nadu,Villivakkam Amritavallith Thayar Udanurai Sowmya Damodara Perumal Temple,Spiritual,1.5,4.8,0,None,No,13.1068,80.2072
 East,West Bengal,West Bengal,Agameswari Kali Mata Temple,Spiritual,1.5,4.7,0,None,Yes,23.4129,88.3676
 East,West Bengal,West Bengal,Bhabataran Shib Temple,Spiritual,1.5,4.4,0,None,Yes,23.4106,88.3701
 East,West Bengal,West Bengal,"Buroshib Temple, Nabadwip",Spiritual,1.5,4.1,0,None,No,23.4114,88.3639
@@ -3435,7 +3411,6 @@ South,Karnataka,Karnataka,Temples and Inscriptions,Spiritual,1.5,4.3,0,None,No,1
 South,Karnataka,Karnataka,Mallikarjuna & Ramesvara Temple,Spiritual,1.5,4.8,0,None,No,14.1907,75.0854
 South,Karnataka,Karnataka,Pranavesvara Temple,Spiritual,1.5,4.8,0,None,No,14.4226,75.2532
 South,Karnataka,Karnataka,Onnakesava Temple,Spiritual,1.5,4.7,0,None,No,13.0871,76.691
-South,Karnataka,Karnataka,Ananthapadmanabha temple with ancient 'Dalans' in ruins around,Spiritual,1.5,4.5,0,None,Yes,13.2132,75.0038
 South,Karnataka,Karnataka,Kedaresvara temple,Spiritual,1.5,4.4,0,None,Yes,13.0882,76.6938
 West,Gujarat,Gujarat,Siva temple and ruins,Spiritual,1.5,4.8,0,None,No,23.4931,74.1003
 North,Rajasthan,Rajasthan,Ancient temple known as Kaneriki Putali,Spiritual,1.5,4.2,0,None,No,25.134,75.2119
@@ -3464,7 +3439,6 @@ South,Tamil Nadu,Tamil Nadu,Munkudmisvara Temple,Spiritual,1.5,4.7,0,None,No,12.
 South,Tamil Nadu,Tamil Nadu,Dolostva Mandapa,Spiritual,1.5,4.4,0,None,No,12.6172,80.1942
 South,Tamil Nadu,Tamil Nadu,Valayankuttai Ratha,Spiritual,1.5,4.0,0,None,Yes,12.6188,80.1874
 South,Tamil Nadu,Tamil Nadu,Pidari Rathas,Spiritual,1.5,4.4,0,None,No,12.6203,80.1876
-South,Tamil Nadu,Tamil Nadu,Unfinished Rock Cut Cave Temple North Of Krishna Mandapa,Spiritual,1.5,4.7,0,None,No,12.6176,80.1926
 South,Tamil Nadu,Tamil Nadu,Dharmeswarar Temple,Spiritual,1.5,4.3,0,None,Yes,12.9156,80.0433
 South,Tamil Nadu,Tamil Nadu,Vaikunta Perumal Temple,Spiritual,1.5,4.4,0,None,No,12.8371,79.7098
 South,Tamil Nadu,Tamil Nadu,Lesser Siva Temple(Kanthalingesvasatemple),Spiritual,1.5,4.5,0,None,Yes,12.8497,79.8586
@@ -3484,9 +3458,7 @@ South,Tamil Nadu,Tamil Nadu,Remains Of Structural Temples And Antiquities,Spirit
 South,Tamil Nadu,Tamil Nadu,Siva And Pillayar Temple,Spiritual,1.5,4.6,0,None,Yes,10.4144,78.7151
 South,Tamil Nadu,Tamil Nadu,Menandar Pillayar Temple,Spiritual,1.5,4.0,0,None,No,10.1913,78.8441
 South,Tamil Nadu,Tamil Nadu,Jain Tirthankara Idol And Relics Of Old Jain Temple,Spiritual,1.5,4.5,0,None,Yes,10.4557,78.7739
-South,Tamil Nadu,Tamil Nadu,(I) Jain Tirthankara Image (Ii) Remains Of The Temple (Iii) Ganesa Image (Iv) Nandi With Inscriptions,Spiritual,1.5,4.5,0,None,No,10.3846,78.752
 South,Tamil Nadu,Tamil Nadu,Tiruperumanadar Temple,Spiritual,1.5,4.4,0,None,Yes,10.5785,78.678
-South,Tamil Nadu,Tamil Nadu,Amman Koil (Melaikadambar Koil And The Siva Temple To Its West),Spiritual,1.5,4.8,0,None,Yes,10.5131,78.7675
 South,Tamil Nadu,Tamil Nadu,"Valarmadhiswarar Temple, Nirpalani",Spiritual,1.5,4.5,0,None,No,10.6211,78.7108
 South,Tamil Nadu,Tamil Nadu,"Rajendracolisvaram Temple, Ponamaravathi",Spiritual,1.5,4.4,0,None,No,10.2767,78.5383
 South,Tamil Nadu,Tamil Nadu,"Pushpavaneswarar Temple, Poovalakudi",Spiritual,1.5,4.0,0,None,Yes,10.3339,78.6258
@@ -3597,13 +3569,10 @@ South,Tamil Nadu,Tamil Nadu,Pattabhirama Temple And 12 Pillared Mandapa,Spiritua
 South,Tamil Nadu,Tamil Nadu,"Ooramana temple and monastery, Memury",Spiritual,1.5,4.5,0,None,Yes,9.9578,76.5047
 South,Tamil Nadu,Tamil Nadu,Muruganathasvami Temple,Spiritual,1.5,4.3,0,None,No,11.1639,77.3114
 North,Uttar Pradesh,Uttar Pradesh,Bridge over the Beta river and temple attached to it,Spiritual,1.5,4.8,0,None,No,26.8834,80.7743
-North,Uttar Pradesh,Uttar Pradesh,Dilapidated Bundela temple with a colossal statue of Tirthankar called linga with two short inscriptions,Spiritual,1.5,4.0,0,None,No,24.6991,78.7418
 North,Uttar Pradesh,Uttar Pradesh,Jain Temple,Spiritual,1.5,4.1,0,None,No,24.6991,78.7418
-North,Uttar Pradesh,Uttar Pradesh,"Three temples, two of Vishnu and one of Linga Mahadeva of Gondwani type",Spiritual,1.5,4.1,0,None,No,25.0352,78.3759
 North,Uttar Pradesh,Uttar Pradesh,Temple of Sun God,Spiritual,1.5,4.7,0,None,Yes,24.4371,78.6943
 North,Uttar Pradesh,Uttar Pradesh,Small temple in the Jungle,Spiritual,1.5,4.7,0,None,No,24.4904,78.3321
 North,Uttar Pradesh,Uttar Pradesh,Vishnu temple known as Phandaria,Spiritual,1.5,4.3,0,None,Yes,24.4909,78.3243
-North,Uttar Pradesh,Uttar Pradesh,Large slab of the seven Mothers with Ganesha lying on the bed of the valley below the temple Chandi,Spiritual,1.5,4.1,0,None,No,25.3573,78.543
 North,Uttar Pradesh,Uttar Pradesh,Gupta Temple,Spiritual,1.5,4.5,0,None,No,24.5273,78.24
 North,Uttar Pradesh,Uttar Pradesh,Large temples,Spiritual,1.5,4.0,0,None,Yes,24.518,78.2455
 North,Uttar Pradesh,Uttar Pradesh,Varaha temple,Spiritual,1.5,4.0,0,None,Yes,24.5173,78.2359
@@ -3612,18 +3581,14 @@ North,Uttar Pradesh,Uttar Pradesh,Temple of Bhavani,Spiritual,1.5,4.8,0,None,No,
 North,Uttar Pradesh,Uttar Pradesh,Small temple of Sankhanath or Santanatha,Spiritual,1.5,4.3,0,None,No,24.3767,78.6202
 North,Uttar Pradesh,Uttar Pradesh,Jain temples,Spiritual,1.5,4.6,0,None,Yes,24.4268,78.3888
 North,Uttar Pradesh,Uttar Pradesh,Temples,Spiritual,1.5,4.0,0,None,Yes,24.4441,78.3999
-North,Uttar Pradesh,Uttar Pradesh,Two small temples of the Godwani type of which one is sacred to Gond baba and the other to Mahadeva,Spiritual,1.5,4.0,0,None,Yes,24.4309,78.3917
-North,Uttar Pradesh,Uttar Pradesh,"Northern temple consisting of a shrine and a porch sacred to Mahadeva or Linga, an inscription of Samvat 1014 over the lintel",Spiritual,1.5,4.1,0,None,Yes,24.3931,78.6469
 North,Uttar Pradesh,Uttar Pradesh,Temples dedicated to Vishnu,Spiritual,1.5,4.2,0,None,No,24.3902,78.6473
 North,Uttar Pradesh,Uttar Pradesh,Large temple in front of Panch Marhia,Spiritual,1.5,4.3,0,None,Yes,24.2549,78.6954
 North,Uttar Pradesh,Uttar Pradesh,Temple at Mahadeva,Spiritual,1.5,4.8,0,None,Yes,24.2468,78.6947
 North,Uttar Pradesh,Uttar Pradesh,Temples (Bari & Chotti Kacheries),Spiritual,1.5,4.3,0,None,No,24.2489,78.6953
-North,Uttar Pradesh,Uttar Pradesh,"Two small temples, one of which is sacred to the mother of Mahavira",Spiritual,1.5,4.2,0,None,No,24.2528,78.6973
 North,Uttar Pradesh,Uttar Pradesh,Ruined temple The sanctum site has a statue of Trimurti,Spiritual,1.5,4.2,0,None,No,24.3428,78.7758
 North,Uttar Pradesh,Uttar Pradesh,Remains of a large Vishnu temple,Spiritual,1.5,4.4,0,None,Yes,24.8231,78.3281
 North,Uttar Pradesh,Uttar Pradesh,Jain Temple and a Torana or Gateway,Spiritual,1.5,4.2,0,None,Yes,24.8247,78.3251
 North,Uttar Pradesh,Uttar Pradesh,Temple of Mahadeva,Spiritual,1.5,4.1,0,None,Yes,25.8481,78.5734
-North,Rajasthan,Rajasthan,Remains of an old Hindu temple inside the Dayaram's fort,Spiritual,1.5,4.6,0,None,Yes,27.5926,78.0612
 North,Rajasthan,Rajasthan,Govind Dev Temple,Spiritual,1.5,4.3,0,None,No,27.5814,77.6995
 North,Rajasthan,Rajasthan,Temple of Jugal Kishore,Spiritual,1.5,4.2,0,None,No,27.5869,77.6987
 North,Uttar Pradesh,Uttar Pradesh,Bandeo Temple,Spiritual,1.5,4.2,0,None,No,29.7763,79.4309
@@ -3633,11 +3598,9 @@ North,Uttar Pradesh,Uttar Pradesh,Brick Temples (two),Spiritual,1.5,4.7,0,None,N
 Central,Madhya Pradesh,Madhya Pradesh,Nohta ( Mahadeva ) Temple,Spiritual,1.5,4.7,0,None,Yes,23.6717,79.5814
 North,Uttar Pradesh,Uttar Pradesh,(Siva) Temple of Kunora Bari,Spiritual,1.5,4.2,0,None,Yes,24.2753,79.4375
 Central,Madhya Pradesh,Madhya Pradesh,(Siva Temple) Old Temple,Spiritual,1.5,4.6,0,None,Yes,23.3306,79.3842
-North,Uttar Pradesh,Uttar Pradesh,The remains of an old sculptures temple built without mortar and attributed to Chandelas,Spiritual,1.5,4.3,0,None,Yes,24.1393,79.4701
 North,Uttar Pradesh,Uttar Pradesh,Sakhar Temple (Ruined Shiva Temple ),Spiritual,1.5,4.0,0,None,Yes,24.2114,79.7164
 North,Uttar Pradesh,Uttar Pradesh,Flat roofed temples below the hill,Spiritual,1.5,4.1,0,None,No,23.9847,79.7222
 North,Rajasthan,Rajasthan,Temple No  2 to 7,Spiritual,1.5,4.6,0,None,No,24.9636,77.9126
-Central,Madhya Pradesh,Madhya Pradesh,The whole site of Kankali Devi Temple and Durgadevi temple,Spiritual,1.5,4.4,0,None,Yes,23.69,80.0668
 Central,Madhya Pradesh,Madhya Pradesh,Vishnu-Varaha Temple,Spiritual,1.5,4.2,0,None,Yes,23.7914,80.2752
 North,Uttar Pradesh,Uttar Pradesh,Temple of Somnath and ruins of several temples,Spiritual,1.5,4.2,0,None,Yes,23.9183,80.0186
 North,Uttar Pradesh,Uttar Pradesh,Ruined temple near the sources of the Kiyan river,Spiritual,1.5,4.7,0,None,No,23.9331,80.2536
@@ -3658,7 +3621,6 @@ Central,Madhya Pradesh,Madhya Pradesh,Sidheshwara Temple,Spiritual,1.5,4.2,0,Non
 Central,Madhya Pradesh,Madhya Pradesh,Unfinished Temple,Spiritual,1.5,4.5,0,None,No,22.4953,76.9772
 Central,Madhya Pradesh,Madhya Pradesh,Rock cut temple,Spiritual,1.5,4.3,0,None,Yes,22.2758,75.5189
 North,Rajasthan,Rajasthan,Brahmanical Rock temple,Spiritual,1.5,4.2,0,None,No,24.1939,75.499
-West,Maharashtra,Maharashtra,Mahadeva temple near Inspection Bungalow with compound wall,Spiritual,1.5,4.6,0,None,No,21.4697,76.28
 Central,Madhya Pradesh,Madhya Pradesh,Chaubis  avtar temple with its contents,Spiritual,1.5,4.1,0,None,No,22.2538,76.1657
 Central,Madhya Pradesh,Madhya Pradesh,Siddeswara of Sidhanath tempe,Spiritual,1.5,4.3,0,None,No,22.2459,76.1559
 West,Maharashtra,Maharashtra,Chaubara Dara,Spiritual,1.5,4.4,0,None,Yes,21.8217,75.4545
@@ -3712,7 +3674,6 @@ East,West Bengal,West Bengal,Octagonal Siva temple at Supur,Spiritual,1.5,4.7,0,
 West,Maharashtra,Maharashtra,Temple of Mallikarjuna,Spiritual,1.5,4.1,0,None,Yes,18.5538,75.0125
 West,Maharashtra,Maharashtra,Naktichedeul,Spiritual,1.5,4.5,0,None,Yes,18.5536,75.0119
 West,Maharashtra,Maharashtra,Temple of Devi,Spiritual,1.5,4.8,0,None,Yes,18.83,74.8276
-West,Maharashtra,Maharashtra,Temple of Shiva on the further side of the stream at Parner,Spiritual,1.5,4.8,0,None,No,19.0086,74.4294
 West,Maharashtra,Maharashtra,Temple of Laxmi Narayan,Spiritual,1.5,4.3,0,None,No,18.5078,74.7044
 West,Maharashtra,Maharashtra,Triple shrined temple of Bhavani,Spiritual,1.5,4.2,0,None,Yes,19.6471,73.9351
 West,Maharashtra,Maharashtra,Temple of Siddheshwar Mahadev,Spiritual,1.5,4.3,0,None,Yes,19.6224,75.015
@@ -3725,12 +3686,10 @@ West,Maharashtra,Maharashtra,Fifteen Temples,Spiritual,1.5,4.2,0,None,No,19.9828
 West,Maharashtra,Maharashtra,Gaimukha Temple & Tank,Spiritual,1.5,4.8,0,None,Yes,19.9857,76.5144
 West,Maharashtra,Maharashtra,Gaimukha Temple No 1 of Daitya Sudana,Spiritual,1.5,4.2,0,None,No,19.9859,76.5144
 West,Maharashtra,Maharashtra,Old Temple of Mahadev,Spiritual,1.5,4.6,0,None,Yes,20.3464,76.1712
-West,Maharashtra,Maharashtra,"Large high knoll immediately to the east of Bhandranath temple with remains of a temple, with huge stone carved blocks & a figure of Ganapati",Spiritual,1.5,4.6,0,None,No,20.1,79.1133
 West,Maharashtra,Maharashtra,Mahadev Temple close to the Municipal office,Spiritual,1.5,4.6,0,None,Yes,19.9459,79.2968
 West,Maharashtra,Maharashtra,Temple of the Mahakali,Spiritual,1.5,4.1,0,None,No,19.9426,79.304
 West,Maharashtra,Maharashtra,Temple of Keshavanath,Spiritual,1.5,4.0,0,None,No,19.9962,79.7518
 West,Maharashtra,Maharashtra,Ancient Temple,Spiritual,1.5,4.1,0,None,Yes,20.6077,79.737
-West,Maharashtra,Maharashtra,"Hemadpanthi Temple containing images of Dattatraya, Mahadev & Laxminarayan",Spiritual,1.5,4.0,0,None,Yes,19.9122,79.179
 West,Maharashtra,Maharashtra,Old Temple of Chandikadevi,Spiritual,1.5,4.7,0,None,Yes,20.1042,79.1169
 West,Maharashtra,Maharashtra,Mahadeo’s Temple (Hemadpanti),Spiritual,1.5,4.6,0,None,No,20.4117,79.4888
 West,Maharashtra,Maharashtra,Ramdigi temple & Ramdigi pool,Spiritual,1.5,4.3,0,None,Yes,20.4285,79.2477
@@ -3738,8 +3697,6 @@ West,Maharashtra,Maharashtra,Old Hemadpanthi Temple,Spiritual,1.5,4.2,0,None,No,
 West,Maharashtra,Maharashtra,Small Temple on Survey No.141,Spiritual,1.5,4.0,0,None,No,21.1681,74.4922
 West,Maharashtra,Maharashtra,Temple of Durga,Spiritual,1.5,4.8,0,None,No,21.1701,74.4911
 West,Maharashtra,Maharashtra,Temple of Shiva,Spiritual,1.5,4.1,0,None,No,21.1679,74.4921
-West,Maharashtra,Maharashtra,Temple of the left side of shiva's Temple in Survey No. 418,Spiritual,1.5,4.2,0,None,Yes,21.1681,74.4916
-West,Maharashtra,Maharashtra,Two temples (one small and one large) which are closely situated,Spiritual,1.5,4.0,0,None,Yes,20.4212,79.9976
 West,Maharashtra,Maharashtra,Temple of Changdev,Spiritual,1.5,4.8,0,None,Yes,21.0921,76.0063
 West,Maharashtra,Maharashtra,Temple of Devi and Sambha,Spiritual,1.5,4.1,0,None,No,20.4819,75.1788
 West,Maharashtra,Maharashtra,Maheswara Temple,Spiritual,1.5,4.2,0,None,Yes,20.3342,74.9743
@@ -3769,11 +3726,8 @@ South,Karnataka,Karnataka,Jhabreshwar Mahadev Temple,Spiritual,1.5,4.3,0,None,Ye
 South,Karnataka,Karnataka,Old Temple of Sri Siddeshwar,Spiritual,1.5,4.7,0,None,Yes,17.5646,75.5593
 South,Karnataka,Karnataka,Hemadpanthi Temple of Vithoba,Spiritual,1.5,4.2,0,None,No,17.8704,75.0945
 South,Karnataka,Karnataka,Temple of Devi (Yamai),Spiritual,1.5,4.0,0,None,Yes,17.8707,75.093
-South,Karnataka,Karnataka,Gateway and old Maruti temple with Viragal stones on either side,Spiritual,1.5,4.1,0,None,Yes,17.7909,75.059
 South,Karnataka,Karnataka,Old doubled shrined temple,Spiritual,1.5,4.7,0,None,Yes,17.7924,75.0605
-South,Karnataka,Karnataka,Old Temple and Viragals or sculptured memorial stones by the road side just outside the village,Spiritual,1.5,4.0,0,None,No,17.7914,75.0609
 South,Karnataka,Karnataka,Old Temple of Sarkarvada,Spiritual,1.5,4.1,0,None,No,17.7908,75.0573
-South,Karnataka,Karnataka,"Temple of Haranareshwar & Ardhanarinateshwar, one Hemadpanthi tank (small square kunda) & Viragal stones kept in the compound",Spiritual,1.5,4.5,0,None,No,17.7917,75.0536
 West,Maharashtra,Maharashtra,Old temple,Spiritual,1.5,4.1,0,None,No,19.8643,74.5214
 West,Maharashtra,Maharashtra,Ballaleshwar Temple,Spiritual,1.5,4.8,0,None,No,19.9328,73.5269
 South,Karnataka,Karnataka,Remains of an old Hindu temple near the barracks.,Spiritual,1.5,4.7,0,None,Yes,15.8571,74.5258
@@ -4271,7 +4225,6 @@ East,West Bengal,West Bengal,Dhirdham Temple,Spiritual,1.5,4.8,0,None,No,27.0375
 East,West Bengal,West Bengal,Lakhsmi Narayan Temple,Spiritual,1.5,4.4,0,None,No,23.1479,87.5349
 East,West Bengal,West Bengal,"Bindhyabasini Temple, Guptipara",Spiritual,1.5,4.5,0,None,No,23.1976,88.4369
 West,Gujarat,Gujarat,"Manibhadra Temple, Magarwada",Spiritual,1.5,4.1,0,None,No,24.0591,72.4568
-West,Maharashtra,Maharashtra,Temple between Durga's Temple and Math in Survey No. 141,Spiritual,1.5,4.7,0,None,Yes,21.1701,74.4909
 East,West Bengal,West Bengal,"Jaleswar temple, Santipur",Spiritual,1.5,4.7,0,None,Yes,23.2391,88.4334
 East,West Bengal,West Bengal,Annapurna temple of Singha Ray family,Spiritual,1.5,4.2,0,None,Yes,23.6228,88.3538
 East,West Bengal,West Bengal,Haridas Thakur temple,Spiritual,1.5,4.5,0,None,Yes,23.2223,88.4803
@@ -4350,7 +4303,6 @@ East,West Bengal,West Bengal,Enayetnagar Panchanandatala Temple,Spiritual,1.5,4.
 East,West Bengal,West Bengal,Kashibati Buroshibtala Temple,Spiritual,1.5,4.5,0,None,Yes,22.3753,88.247
 East,West Bengal,West Bengal,Shitala Temple Chotobari,Spiritual,1.5,4.3,0,None,Yes,22.3924,88.215
 East,West Bengal,West Bengal,Pranabananda Ashram,Spiritual,1.5,4.5,0,None,Yes,22.4569,88.1634
-East,West Bengal,West Bengal,Buinta Mukteshwar Shiv O Ganapati Temple O Pachabati Ashram,Spiritual,1.5,4.0,0,None,No,22.4568,88.1866
 East,West Bengal,West Bengal,Paikpara Ma Shitala Temple,Spiritual,1.5,4.4,0,None,No,22.472,88.2101
 East,West Bengal,West Bengal,Paikpara Dharmatala Shiv Temple,Spiritual,1.5,4.6,0,None,Yes,22.4694,88.2025
 East,West Bengal,West Bengal,Madarat Kali Temple,Spiritual,1.5,4.7,0,None,Yes,22.3639,88.4462
@@ -4681,7 +4633,6 @@ East,West Bengal,West Bengal,Dakshin Haradhanpur Shiv Temple,Spiritual,1.5,4.5,0
 East,West Bengal,West Bengal,Dakshin Haradhanpur Durga Temple,Spiritual,1.5,4.5,0,None,Yes,21.7317,88.1407
 East,West Bengal,West Bengal,Dakshin Haradhanpur Kachhari Para Shiv Temple,Spiritual,1.5,4.0,0,None,No,21.7375,88.1507
 East,West Bengal,West Bengal,Dakshin Haradhanpur Madhyampally Manasha Temple,Spiritual,1.5,4.6,0,None,No,21.7262,88.1381
-East,West Bengal,West Bengal,Dakshin Haradhanpur Deshpran Birendra Sangha Manasha Temple,Spiritual,1.5,4.4,0,None,Yes,21.7242,88.1383
 East,West Bengal,West Bengal,Bankimnagar Bhanga Bishalakshmi Temple,Spiritual,1.5,4.4,0,None,Yes,21.6967,88.1445
 East,West Bengal,West Bengal,Gamatala Shitala Bishalakshmi Temple,Spiritual,1.5,4.0,0,None,Yes,21.7242,88.1505
 East,West Bengal,West Bengal,Karanjatala Shitala Bishalakshmi Temple,Spiritual,1.5,4.8,0,None,Yes,21.6968,88.1447
@@ -4693,12 +4644,9 @@ East,West Bengal,West Bengal,Bakultala Shivalay Temple,Spiritual,1.5,4.8,0,None,
 East,West Bengal,West Bengal,Shitala Bishalakshmi Ganga O Manasha Temple,Spiritual,1.5,4.5,0,None,No,21.8581,88.1216
 East,West Bengal,West Bengal,Bakultala Rokteswar Temple,Spiritual,1.5,4.4,0,None,No,21.8581,88.1216
 East,West Bengal,West Bengal,Gouranga Jiu Samaj Sangha,Spiritual,1.5,4.5,0,None,Yes,21.8466,88.1197
-East,West Bengal,West Bengal,Bankimnagar Bhagirath Smriti Sangha Shitala O Bisha Lakshmi Temple,Spiritual,1.5,4.0,0,None,Yes,21.7051,88.1469
 East,West Bengal,West Bengal,Sumatinagar Jagannath Paribar Temple,Spiritual,1.5,4.7,0,None,Yes,21.7187,88.1511
 East,West Bengal,West Bengal,Sumatinagar Lakshmi Mata Temple,Spiritual,1.5,4.5,0,None,Yes,21.7271,88.1543
-East,West Bengal,West Bengal,"Sumatinagar Apurbamoyee Shitala, Bishalakshmi, Goshtho Temple",Spiritual,1.5,4.7,0,None,Yes,21.7283,88.1478
 East,West Bengal,West Bengal,Kapila Nanda Ashram,Spiritual,1.5,4.6,0,None,Yes,21.7224,88.0715
-East,West Bengal,West Bengal,"Dakshin Haradhanpur Kheya Ghat Shitala, Bisa Lakshmi Temple",Spiritual,1.5,4.2,0,None,Yes,21.7263,88.1285
 East,West Bengal,West Bengal,Dakshin Haradhanpur Jharu Daspur Manasha Temple,Spiritual,1.5,4.8,0,None,No,21.7435,88.1382
 East,West Bengal,West Bengal,Raj Lakshmi Temple,Spiritual,1.5,4.7,0,None,No,21.7281,88.1051
 East,West Bengal,West Bengal,Sat Sebashram Sangha,Spiritual,1.5,4.4,0,None,No,21.7294,88.1053
@@ -4711,7 +4659,6 @@ East,West Bengal,West Bengal,Narayanpur Durga Temple,Spiritual,1.5,4.0,0,None,No
 East,West Bengal,West Bengal,Radhanagar Shitala O Bishalakshmi Temple,Spiritual,1.5,4.3,0,None,Yes,21.6914,88.2339
 East,West Bengal,West Bengal,Radhanagar Ram Sitar Temple,Spiritual,1.5,4.7,0,None,No,21.6917,88.2447
 East,West Bengal,West Bengal,Stala Temple,Spiritual,1.5,4.3,0,None,No,21.7119,88.2667
-East,West Bengal,West Bengal,Dakshin Durgapur Chourangi Battala Shitala O Bishalakshmi Temple,Spiritual,1.5,4.8,0,None,No,21.6931,88.2289
 East,West Bengal,West Bengal,Koylaghata Shiv Temple,Spiritual,1.5,4.6,0,None,No,21.5993,88.2658
 East,West Bengal,West Bengal,Manasha Temple,Spiritual,1.5,4.8,0,None,No,21.8325,88.2383
 East,West Bengal,West Bengal,Shri Shri Manasha Temple,Spiritual,1.5,4.2,0,None,Yes,21.6734,88.2575
@@ -4980,12 +4927,9 @@ South,Karnataka,Karnataka,Virupaksha temple,Spiritual,1.5,4.7,0,None,No,14.3569,
 South,Karnataka,Karnataka,"Virabhadra temple, inscriptions and ancient site",Spiritual,1.5,4.6,0,None,No,14.5574,74.9853
 South,Karnataka,Karnataka,Virabhadra temple,Spiritual,1.5,4.2,0,None,No,14.2288,74.6628
 South,Karnataka,Karnataka,Chanderasekara Temple,Spiritual,1.5,4.7,0,None,No,15.3139,76.4744
-South,Karnataka,Karnataka,Jain temple with inscriptions North East of Elephant's Stable,Spiritual,1.5,4.5,0,None,Yes,15.3209,76.4741
 South,Karnataka,Karnataka,Gnanagitte Jaina Temple,Spiritual,1.5,4.4,0,None,Yes,15.3137,76.4782
 South,Karnataka,Karnataka,Prasanna Virupaksha Temple,Spiritual,1.5,4.0,0,None,No,15.3181,76.4641
 South,Karnataka,Karnataka,Pattabhirama Temple,Spiritual,1.5,4.7,0,None,No,15.3059,76.4828
-South,Karnataka,Karnataka,Two small Siva Temples with inscriptions to the east of Pattabhirama Temple,Spiritual,1.5,4.7,0,None,Yes,15.3028,76.4945
-South,Karnataka,Karnataka,i)Water Pavilion in Zenana Enclosureii) Guards House in Zenana Enclosure iii) Walls and Gateways of the Zenana Enclosure iv) Ranga Temple,Spiritual,1.5,4.4,0,None,No,15.3197,76.472
 South,Karnataka,Karnataka,Krishna Temple,Spiritual,1.5,4.7,0,None,Yes,15.3305,76.4604
 South,Karnataka,Karnataka,Linga Temple near Narsimha Statue Badavilinga Temple,Spiritual,1.5,4.2,0,None,No,15.3295,76.4591
 South,Karnataka,Karnataka,Parvati & Kartikeya Temples,Spiritual,1.5,4.7,0,None,No,15.0114,76.5644
@@ -4993,11 +4937,8 @@ South,Karnataka,Karnataka,Suryanarayana Temple,Spiritual,1.5,4.6,0,None,No,14.99
 South,Karnataka,Karnataka,Saraswathy Temple,Spiritual,1.5,4.3,0,None,Yes,15.3106,76.4295
 South,Karnataka,Karnataka,Vishnu Temple No.I close to north end of Soolai Bazaar,Spiritual,1.5,4.5,0,None,Yes,15.3364,76.4698
 South,Karnataka,Karnataka,Vishnu Temple No.II close to the last,Spiritual,1.5,4.6,0,None,No,15.3367,76.4708
-South,Karnataka,Karnataka,Vishnu Temple No.III facing South Gateway of Vittala Temple,Spiritual,1.5,4.2,0,None,No,15.3415,76.4755
 South,Karnataka,Karnataka,Vidyasankara Temple,Spiritual,1.5,4.3,0,None,No,13.4158,75.2514
 South,Karnataka,Karnataka,Chitradurga hill fortress & temples,Spiritual,1.5,4.7,0,None,No,14.2158,76.3959
-South,Karnataka,Karnataka,Akka Tangi Temple & Ashokan Inscription Emmethammana Gundu,Spiritual,1.5,4.1,0,None,Yes,14.8083,76.8022
-South,Karnataka,Karnataka,Three stone built Jaina Temples standing in a Courtyard with an inscription,Spiritual,1.5,4.7,0,None,No,12.6917,75.9192
 East,West Bengal,West Bengal,Krishna Chandraji Temple,Spiritual,1.5,4.7,0,None,Yes,23.2213,88.3657
 East,West Bengal,West Bengal,Pratapeswar Siva Temple,Spiritual,1.5,4.7,0,None,No,23.221,88.3649
 Northeast,Assam,Assam,Haleshwar Temple,Spiritual,1.5,4.2,0,None,No,26.7083,92.7662
@@ -5137,13 +5078,11 @@ North,Rajasthan,Rajasthan,Stupa and other remains,Spiritual,1.5,4.0,0,None,No,23
 North,Uttar Pradesh,Uttar Pradesh,Bharhut Buddhist Remains,Spiritual,1.5,4.3,0,None,No,24.4469,80.8461
 North,Rajasthan,Rajasthan,Buddhist stupa,Spiritual,1.5,4.8,0,None,No,23.665,78.0984
 Central,Madhya Pradesh,Madhya Pradesh,Buddhist stupas along with saru-maru monastric complex,Spiritual,1.5,4.3,0,None,No,22.7297,77.5206
-Central,Madhya Pradesh,Madhya Pradesh,"Painted Rock Shelters, Buddhist stupas and other remains",Spiritual,1.5,4.7,0,None,Yes,22.798,77.6558
 East,Bihar,Bihar,Giriyak Stupa,Spiritual,1.5,4.7,0,None,No,25.025,85.5131
 Northeast,Assam,Assam,Gorsam Chorten,Spiritual,1.5,4.2,0,None,Yes,27.6982,91.7159
 East,Bihar,Bihar,Relic Stupa of Vaishali,Spiritual,1.5,4.4,0,None,Yes,25.9951,85.1178
 North,Uttar Pradesh,Uttar Pradesh,Piprahwa_Stupa,Spiritual,1.5,4.3,0,None,No,27.4478,83.1292
 South,Andhra Pradesh,Andhra Pradesh,Buddhist Stupa of Jaggayyapeta,Spiritual,1.5,4.6,0,None,No,16.8869,80.1064
-North,Uttar Pradesh,Uttar Pradesh,Banaras Locomotive Works,Heritage Site,2.0,4.4,40,None,Yes,25.2923,82.9596
 South,Tamil Nadu,Tamil Nadu,Integral Coach Factory,Heritage Site,2.0,4.1,40,None,No,13.0983,80.2084
 South,Karnataka,Karnataka,U. R. Rao Satellite Centre,Heritage Site,2.0,4.3,40,None,No,12.9612,77.6548
 North,Punjab,Punjab,Rail Coach Factory,Heritage Site,2.0,4.0,40,None,No,31.3283,75.3511
@@ -5198,7 +5137,6 @@ North,Punjab,Punjab,Dakhni Sarai,Heritage Site,2.0,4.1,40,None,No,31.1719,75.411
 South,Karnataka,Karnataka,2013 Hyderabad blasts,Heritage Site,2.0,4.2,40,None,Yes,17.3601,78.4734
 South,Tamil Nadu,Tamil Nadu,Trikalyanam,Heritage Site,2.0,4.4,40,None,Yes,9.0978,76.8181
 West,Maharashtra,Maharashtra,2022 Mumbai building collapse,Heritage Site,2.0,4.4,40,None,No,19.0574,72.8838
-North,Uttar Pradesh,Uttar Pradesh,Event:Wikipedia 25 B Day Celebration by WikiClub Tech SHUATS,Heritage Site,2.0,4.6,40,None,Yes,25.4137,81.8491
 South,Tamil Nadu,Tamil Nadu,Chandragiri Fort,Heritage Fort,3.0,4.4,100,Monday,No,13.583,79.3053
 South,Karnataka,Karnataka,Gauribidanuru,Tourist Attraction,2.0,4.4,20,None,No,13.6115,77.5168
 South,Karnataka,Karnataka,Rajarajeshwari Arch,Tourist Attraction,2.0,4.5,20,None,Yes,12.936,77.5183
@@ -5371,7 +5309,6 @@ South,Karnataka,Karnataka,Madhugiri Betta,Scenic Viewpoint,1.0,4.7,10,None,Yes,1
 South,Tamil Nadu,Tamil Nadu,St. Alphonsa Museum,Museum,2.0,4.7,50,None,Yes,9.7028,76.7259
 South,Tamil Nadu,Tamil Nadu,Loam's View,Scenic Viewpoint,1.0,4.3,10,None,Yes,10.451,76.9842
 South,Karnataka,Karnataka,Open Air Sculpture Museum,Museum,2.0,4.5,50,None,Yes,15.3196,76.4697
-South,Karnataka,Karnataka,Temple Elephant Bathing,Tourist Attraction,2.0,4.7,20,None,Yes,15.337,76.458
 South,Karnataka,Karnataka,Narasimharaja Wodeyar,Historical Monument,1.5,4.8,30,None,No,12.3083,76.6558
 South,Tamil Nadu,Tamil Nadu,C. A. Carver Marsh Memorial,Historical Monument,1.5,4.4,30,None,No,10.377,76.9958
 South,Tamil Nadu,Tamil Nadu,Telescope House,Tourist Attraction,2.0,4.7,20,None,Yes,11.4009,76.7355
@@ -5602,7 +5539,6 @@ South,Karnataka,Karnataka,marri chenna reddy statue,Historical Monument,1.5,4.8,
 South,Karnataka,Karnataka,Hanuman Statue,Historical Monument,1.5,4.6,30,None,No,15.8249,78.0214
 South,Andhra Pradesh,Andhra Pradesh,Rani Rudramadevi Statue,Historical Monument,1.5,4.7,30,None,Yes,17.9877,79.6013
 South,Karnataka,Karnataka,gandhi statue,Historical Monument,1.5,4.6,30,None,No,17.3924,78.5192
-South,Karnataka,Karnataka,"Mystic Meadows - A conservatory for Bees , Birds & Butterflies",Tourist Attraction,2.0,4.5,20,None,Yes,15.4298,74.0126
 South,Karnataka,Karnataka,BR Ambedkar Statue,Historical Monument,1.5,4.8,30,None,No,17.4952,78.3918
 South,Tamil Nadu,Tamil Nadu,Presidents Trophy View Point,Scenic Viewpoint,1.0,4.7,10,None,Yes,8.8918,76.5855
 South,Karnataka,Karnataka,Rangapura Fort,Historical Monument,1.5,4.2,30,None,No,15.9364,76.461
@@ -6199,7 +6135,6 @@ South,Tamil Nadu,Tamil Nadu,Maritime Museum,Museum,2.0,4.4,50,None,No,12.6162,80
 South,Tamil Nadu,Tamil Nadu,Lighthouse Heritage Museum,Museum,2.0,4.3,50,None,Yes,12.6165,80.1923
 South,Tamil Nadu,Tamil Nadu,Pykara Waterfalls,Tourist Attraction,2.0,4.8,20,None,No,11.4725,76.6047
 South,Karnataka,Karnataka,"Ambedkar Statue, Boduppal",Historical Monument,1.5,4.3,30,None,Yes,17.4184,78.5846
-South,Tamil Nadu,Tamil Nadu,Monument aux combattants des Indes francaises morts pour la patrie,Historical Monument,1.5,4.8,30,None,No,11.9319,79.8354
 South,Andhra Pradesh,Andhra Pradesh,Kallam's House,Tourist Attraction,2.0,4.5,20,None,Yes,16.3979,80.6449
 Central,India,India,Maninaga Mandiraya,Historical Monument,1.5,4.2,30,None,No,8.354,80.5141
 South,Tamil Nadu,Tamil Nadu,Kavignar Puduvai Sivam,Historical Monument,1.5,4.3,30,None,Yes,11.9374,79.8202
@@ -6322,7 +6257,6 @@ South,Tamil Nadu,Tamil Nadu,Anchuruli Tunnel,Tourist Attraction,2.0,4.8,20,None,
 South,Karnataka,Karnataka,Sule Bazaar,Tourist Attraction,2.0,4.6,20,None,No,15.334,76.4701
 South,Andhra Pradesh,Andhra Pradesh,Entrance Udavalli Caves,Tourist Attraction,2.0,4.8,20,None,No,16.4972,80.5822
 South,Tamil Nadu,Tamil Nadu,Valanjanganam Waterfalls,Tourist Attraction,2.0,4.8,20,None,No,9.5629,76.9774
-South,Karnataka,Karnataka,Sunset viewpoint with temple and the river valley (for climbers),Scenic Viewpoint,1.0,4.7,10,None,Yes,15.3432,76.4797
 South,Karnataka,Karnataka,Hanging Bridge,Tourist Attraction,2.0,4.2,20,None,No,12.4369,75.9249
 South,Karnataka,Karnataka,Hanumana Pada,Tourist Attraction,2.0,4.2,20,None,No,15.3307,76.4807
 South,Karnataka,Karnataka,Anegundi Fort,Scenic Viewpoint,1.0,4.7,10,None,Yes,15.3539,76.4822
@@ -6464,7 +6398,6 @@ South,Tamil Nadu,Tamil Nadu,Rockhill View Point,Scenic Viewpoint,1.0,4.2,10,None
 South,Tamil Nadu,Tamil Nadu,loyola college,Historical Monument,1.5,4.1,30,None,Yes,8.5436,76.9129
 South,Karnataka,Karnataka,Sandalwood Oil Factory,Museum,2.0,4.2,50,None,No,12.2806,76.6384
 South,Tamil Nadu,Tamil Nadu,"Akhila Niwas, Nikhil's House",Heritage Fort,3.0,4.4,100,None,No,9.1275,76.7148
-South,Tamil Nadu,Tamil Nadu,Thanthai Periyar Memorial House தந்தை பெரியார் நினைவு இல்லம்,Historical Monument,1.5,4.6,30,None,No,11.3396,77.7317
 South,Tamil Nadu,Tamil Nadu,BR bungalow,Tourist Attraction,2.0,4.2,20,None,No,12.9521,78.8888
 South,Tamil Nadu,Tamil Nadu,Kamarajar bridge,Tourist Attraction,2.0,4.7,20,None,Yes,12.942,78.8676
 South,Karnataka,Karnataka,View platform,Scenic Viewpoint,1.0,4.2,10,None,No,15.7995,74.1737
@@ -6598,7 +6531,6 @@ South,Tamil Nadu,Tamil Nadu,KPP Nambiar,Historical Monument,1.5,4.5,30,None,Yes,
 South,Tamil Nadu,Tamil Nadu,KR Elankath,Historical Monument,1.5,4.5,30,None,Yes,8.5129,76.9714
 South,Tamil Nadu,Tamil Nadu,Sadasiva Kona waterfalls,Tourist Attraction,2.0,4.4,20,None,No,13.5373,79.6027
 South,Karnataka,Karnataka,Siddhagiri Gramjivan Museum,Museum,2.0,4.8,50,None,No,16.6114,74.2642
-South,Karnataka,Karnataka,Cliff Jumping Point,Tourist Attraction,2.0,4.8,20,None,No,15.3577,76.4343
 South,Tamil Nadu,Tamil Nadu,Orakkanpara Waterfalls,Tourist Attraction,2.0,4.1,20,None,Yes,9.461,76.7407
 South,Tamil Nadu,Tamil Nadu,Pangde war memorial,Historical Monument,1.5,4.7,30,None,Yes,8.5004,76.9883
 South,Tamil Nadu,Tamil Nadu,Anna Mascrene Memorial,Historical Monument,1.5,4.4,30,None,No,8.4985,76.9575
@@ -6643,7 +6575,6 @@ South,Tamil Nadu,Tamil Nadu,Greencrest,Tourist Attraction,2.0,4.1,20,None,Yes,10
 South,Tamil Nadu,Tamil Nadu,Beach Bungalow,Heritage Fort,3.0,4.5,100,Monday,Yes,8.4806,76.9114
 South,Karnataka,Karnataka,Handigundi,Scenic Viewpoint,1.0,4.5,10,None,Yes,12.7263,77.3153
 South,Karnataka,Karnataka,Muthurayaswamy Betta,Scenic Viewpoint,1.0,4.6,10,None,No,12.7092,77.3096
-South,Karnataka,Karnataka,Ramadevara Betta Vulture Sanctuary (Sholay Shooting spot),Scenic Viewpoint,1.0,4.8,10,None,No,12.7531,77.3032
 South,Karnataka,Karnataka,Charmadi Ghati,Scenic Viewpoint,1.0,4.5,10,None,Yes,13.101,75.4821
 South,Tamil Nadu,Tamil Nadu,kavilpuzha mini beach,Tourist Attraction,2.0,4.8,20,None,No,9.6844,76.6153
 South,Tamil Nadu,Tamil Nadu,Sri Baby John Memorial Monument,Historical Monument,1.5,4.1,30,None,Yes,8.9436,76.5374
@@ -6753,7 +6684,6 @@ South,Karnataka,Karnataka,Chakrateertha Pond,Tourist Attraction,2.0,4.2,20,None,
 South,Andhra Pradesh,Andhra Pradesh,Dammapeta Center,Historical Monument,1.5,4.6,30,None,No,17.5926,80.6981
 South,Tamil Nadu,Tamil Nadu,UNIT 6 TO  UNIT 4    MAIN ROAD,Scenic Viewpoint,1.0,4.7,10,None,Yes,8.7166,80.3643
 South,Tamil Nadu,Tamil Nadu,45011KALIMAKAL NAKAR ROAD. (கலைமகள் நகர் வீதி),Scenic Viewpoint,1.0,4.5,10,None,Yes,8.7183,80.3632
-South,Tamil Nadu,Tamil Nadu,45011 KALAIMAKAL NAKAR ROAD (கலைமகள் நகர் வீதி)  starting,Scenic Viewpoint,1.0,4.7,10,None,Yes,8.7171,80.3603
 South,Tamil Nadu,Tamil Nadu,rangeth kama to palayayooruwa main road,Scenic Viewpoint,1.0,4.1,10,None,Yes,8.7195,80.3628
 South,Karnataka,Karnataka,Amba Theertha,Tourist Attraction,2.0,4.3,20,None,Yes,13.2489,75.3451
 South,Karnataka,Karnataka,Kakana Kote Safari Centre,Tourist Attraction,2.0,4.1,20,None,Yes,12.0138,76.2566
@@ -6928,7 +6858,6 @@ South,Andhra Pradesh,Andhra Pradesh,Mahatma Gandhi Stupa,Historical Monument,1.5
 South,Karnataka,Karnataka,Shivagange Betta,Scenic Viewpoint,1.0,4.1,10,None,Yes,13.1695,77.2228
 South,Karnataka,Karnataka,Chariot,Tourist Attraction,2.0,4.8,20,None,No,14.5435,74.3176
 Central,India,India,Pigeon Island Tours,Tourist Attraction,2.0,4.3,20,None,Yes,8.6925,81.1892
-South,Tamil Nadu,Tamil Nadu,Honorable Visvanathar Kasiipillai founder of Sri Barwathy Vidyasalai,Historical Monument,1.5,4.7,30,None,Yes,9.6605,80.0477
 South,Karnataka,Karnataka,View on Floating Rock,Scenic Viewpoint,1.0,4.5,10,None,Yes,15.0181,74.0174
 North,Punjab,Punjab,Mini Secretariat,Tourist Attraction,2.0,4.3,20,None,Yes,30.9015,75.8356
 North,Punjab,Punjab,Gill Telephone Exchange,Tourist Attraction,2.0,4.3,20,None,Yes,30.8376,75.8638
@@ -7073,7 +7002,6 @@ North,Rajasthan,Rajasthan,Neela Gumbad,Historical Monument,1.5,4.4,30,None,No,28
 North,Rajasthan,Rajasthan,Akbar's Fort & Museum,Museum,2.0,4.3,50,None,Yes,26.4607,74.6337
 North,Punjab,Punjab,Gardhari Lal Memorial,Historical Monument,1.5,4.5,30,None,Yes,30.8384,76.1812
 North,Rajasthan,Rajasthan,Head Islam Museum,Museum,2.0,4.8,50,None,No,29.8236,72.5484
-North,Punjab,Punjab,Museum of Water Resources of Northern India- Dr.Uppal Museum,Museum,2.0,4.7,50,None,Yes,30.9005,75.8138
 North,Rajasthan,Rajasthan,Shirdi Sai Baba Mandir,Historical Monument,1.5,4.4,30,None,No,28.565,77.3561
 North,Rajasthan,Rajasthan,City View,Scenic Viewpoint,1.0,4.2,10,None,No,26.2998,73.0205
 North,Himachal Pradesh,Himachal Pradesh,Kartik Temple,Historical Monument,1.5,4.4,30,None,No,32.1776,77.1954
@@ -7485,7 +7413,6 @@ North,Uttar Pradesh,Uttar Pradesh,Odaltal,Tourist Attraction,2.0,4.8,20,None,No,
 Central,India,India,9.B (Mian House),Scenic Viewpoint,1.0,4.1,10,None,Yes,31.4186,73.0598
 North,Rajasthan,Rajasthan,Hina Marriage Hall,Tourist Attraction,2.0,4.6,20,None,No,29.6936,72.5471
 North,Ladakh,Ladakh,Pangong Lake,Tourist Attraction,2.0,4.7,20,None,Yes,33.8211,78.6088
-North,Himachal Pradesh,Himachal Pradesh,"Glacier blocks the road 10 months out of the year, June/July open",Tourist Attraction,2.0,4.6,20,None,No,32.8602,75.873
 Central,India,India,Advocate Kashif,Tourist Attraction,2.0,4.7,20,None,Yes,33.6057,73.0096
 North,Uttar Pradesh,Uttar Pradesh,Dahikhola,Tourist Attraction,2.0,4.5,20,None,Yes,29.1034,81.5446
 West,Gujarat,Gujarat,Sleeping Ghost rock,Tourist Attraction,2.0,4.8,20,None,No,24.5932,72.7008
@@ -8017,7 +7944,6 @@ North,Rajasthan,Rajasthan,Vishwanath Goenka Haveli,Tourist Attraction,2.0,4.8,20
 North,Rajasthan,Rajasthan,Murmuria Haveli,Tourist Attraction,2.0,4.3,20,None,Yes,28.0551,75.1448
 North,Punjab,Punjab,Tricon,Scenic Viewpoint,1.0,4.3,10,None,Yes,31.5313,74.3533
 North,Punjab,Punjab,Farrukh bhai,Scenic Viewpoint,1.0,4.8,10,None,No,31.4585,74.2749
-North,Rajasthan,Rajasthan,Free view point,Scenic Viewpoint,1.0,4.7,10,None,Yes,27.1804,78.0324
 North,Uttar Pradesh,Uttar Pradesh,Geruwa bridge longest bridge of nepal,Historical Monument,1.5,4.5,30,None,Yes,28.3692,81.1994
 North,Uttar Pradesh,Uttar Pradesh,Sawan Bhado,Tourist Attraction,2.0,4.4,20,None,No,25.3514,78.6401
 North,Rajasthan,Rajasthan,Wind Palace,Scenic Viewpoint,1.0,4.7,10,None,Yes,26.9238,75.8273
@@ -8124,7 +8050,6 @@ Central,India,India,8 RD,Tourist Attraction,2.0,4.4,20,None,No,32.6572,73.5391
 North,Uttar Pradesh,Uttar Pradesh,Bholagaudi,Tourist Attraction,2.0,4.5,20,None,Yes,28.1646,81.5035
 North,Uttar Pradesh,Uttar Pradesh,Badhaiyataal,Tourist Attraction,2.0,4.1,20,None,Yes,28.2042,81.5123
 Central,India,India,"Noor Ashraf and Sons, Al Makkah Market, Jinnah Road",Tourist Attraction,2.0,4.8,20,None,No,33.6069,73.054
-Central,India,India,"IQBAL Metal Store, Al Fazal Plaza, Jinnah Road Rawalpindi",Tourist Attraction,2.0,4.2,20,None,No,33.6055,73.0543
 Central,India,India,Accencis Anas Mansoor,Tourist Attraction,2.0,4.5,20,None,Yes,33.6948,72.9997
 Central,India,India,Hara international for Electroniccs,Tourist Attraction,2.0,4.8,20,None,No,33.593,73.0513
 North,Rajasthan,Rajasthan,Tomb of Mohammed Ghaus,Historical Monument,1.5,4.5,30,None,Yes,26.2318,78.1797
@@ -8303,7 +8228,6 @@ North,Uttar Pradesh,Uttar Pradesh,Play ground open space,Tourist Attraction,2.0,
 North,Jammu and Kashmir,Jammu and Kashmir,Chinar Park,Theme & Wildlife,3.5,4.3,250,None,Yes,33.962,75.0831
 North,Rajasthan,Rajasthan,harjeet singh's house,Heritage Fort,3.0,4.8,100,Monday,No,30.1177,75.5222
 North,Rajasthan,Rajasthan,View Point Taj Mahal 50 INR,Tourist Attraction,2.0,4.1,20,None,Yes,27.1785,78.0406
-North,Rajasthan,Rajasthan,Museum on Netaji Subhas Chandra Bose and Indian National Army,Museum,2.0,4.5,50,None,Yes,28.6582,77.2421
 North,Rajasthan,Rajasthan,Archeological Survey of India,Museum,2.0,4.1,50,None,Yes,28.6571,77.24
 North,Rajasthan,Rajasthan,Red fort center,Tourist Attraction,2.0,4.1,20,None,Yes,28.6562,77.2401
 North,Rajasthan,Rajasthan,State Museum Mandor,Museum,2.0,4.2,50,None,No,26.3527,73.0326

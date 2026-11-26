@@ -43,7 +43,18 @@ def fetch_flight_fares(source: str, dest: str, dist_km: float, travelers: int = 
             pass
 
     # Gate out intra-city and short-distance routes (< 160 km) or BLR<->MYQ where commercial flights don't apply
-    if dist_km < 160 or {src_iata, dst_iata} == {"BLR", "MYQ"}:
+    _REGIONAL_HUB_ALLOWLIST = {
+        "VDY": {"BLR", "HYD"},
+        "SLV": {"DEL", "IXC"},
+        "KUU": {"DEL", "IXC"},
+        "PYG": {"DEL", "CCU"},
+        "MYQ": {"HYD", "MAA", "GOI"},
+    }
+    no_direct_regional = (
+        (dst_iata in _REGIONAL_HUB_ALLOWLIST and src_iata not in _REGIONAL_HUB_ALLOWLIST[dst_iata])
+        or (src_iata in _REGIONAL_HUB_ALLOWLIST and dst_iata not in _REGIONAL_HUB_ALLOWLIST[src_iata])
+    )
+    if dist_km < 160 or {src_iata, dst_iata} == {"BLR", "MYQ"} or no_direct_regional:
         return {
             "mode": "flight",
             "available": False,
