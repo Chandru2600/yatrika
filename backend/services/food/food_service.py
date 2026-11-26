@@ -96,6 +96,16 @@ def get_food_for_destination(destination: str, num_days: int = 3) -> Dict[str, A
     """
     data = _load_food_data()
     clean_dest = str(destination or "India").split(",")[0].strip().lower()
+    _CITY_ALIASES = {
+        "mysuru": "mysore",
+        "bengaluru": "bangalore",
+        "kochi": "cochin",
+        "puducherry": "pondicherry",
+        "madikeri": "coorg",
+        "kodagu": "coorg",
+        "alappuzha": "alleppey",
+    }
+    clean_dest = _CITY_ALIASES.get(clean_dest, clean_dest)
 
     # 1. Direct City Match
     city_matches = [

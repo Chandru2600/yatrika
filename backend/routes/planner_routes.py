@@ -265,17 +265,33 @@ def search_attractions_api():
     elif (lat is None or lon is None):
         lat, lon = resolve_destination_coords("Coorg")
 
+    dest_lower = dest.lower()
+    is_coorg = any(k in dest_lower for k in ("coorg", "kodagu", "madikeri"))
+    is_mysuru = any(k in dest_lower for k in ("mysuru", "mysore"))
+    effective_radius = min(radius_km, 55.0) if (is_coorg or is_mysuru) else radius_km
+
+    COORG_OUTSIDE_KEYWORDS = (
+        "bekal", "muzhappilangad", "arakkal", "parassinikkadavu", "chembirika",
+        "dutch fort", "karivellur", "thirunelli", "chunchanakatte", "kannur",
+        "kasaragod", "wayanad", "thalassery", "payyannur", "mysore", "mysuru",
+        "ooty", "bangalore", "bengaluru", "hassan", "belur", "chikmagalur"
+    )
+    MYSURU_OUTSIDE_KEYWORDS = (
+        "bangalore", "bengaluru", "coorg", "kodagu", "madikeri", "ooty",
+        "wayanad", "hampi", "chikmagalur", "shravanabelagola", "hassan", "belur"
+    )
+
     if lat is not None and lon is not None:
         dlat = np.radians(df["Latitude"] - lat)
         dlon = np.radians(df["Longitude"] - lon)
         a = np.sin(dlat / 2.0) ** 2 + np.cos(np.radians(lat)) * np.cos(np.radians(df["Latitude"])) * np.sin(dlon / 2.0) ** 2
         dists = 6371.0 * 2.0 * np.arcsin(np.sqrt(np.clip(a, 0, 1)))
 
-        mask = dists <= radius_km
+        mask = dists <= effective_radius
         nearby = df[mask].copy()
         nearby["calc_dist"] = dists[mask]
-        if len(nearby) < 4:
-            mask = dists <= max(100.0, radius_km * 1.25)
+        if len(nearby) < 4 and not is_coorg:
+            mask = dists <= max(100.0, effective_radius * 1.25)
             nearby = df[mask].copy()
             nearby["calc_dist"] = dists[mask]
         if len(nearby) < 3 and dest:
@@ -284,7 +300,7 @@ def search_attractions_api():
                         df["City"].astype(str).str.lower().str.contains(d_search, regex=False)
             nearby = df[name_mask].copy()
             nearby["calc_dist"] = 12.0
-        nearby = nearby.sort_values(by=["Google Review Rating", "calc_dist"], ascending=[False, True]).head(35)
+        nearby = nearby.sort_values(by=["Google Review Rating", "calc_dist"], ascending=[False, True]).head(50)
     else:
         d_search = dest.lower()
         mask = df["City"].astype(str).str.lower().str.contains(d_search) | \
@@ -292,7 +308,7 @@ def search_attractions_api():
                df["Name"].astype(str).str.lower().str.contains(d_search)
         nearby = df[mask].copy()
         nearby["calc_dist"] = 12.0
-        nearby = nearby.sort_values(by="Google Review Rating", ascending=False).head(35)
+        nearby = nearby.sort_values(by="Google Review Rating", ascending=False).head(50)
 
     def _get_cat_icon(typ):
         t = str(typ).lower()
@@ -332,17 +348,50 @@ def search_attractions_api():
 
     from backend.services.wikipedia.wiki_places_service import batch_get_real_places, DESTINATION_AUTHENTIC_PHOTOS
 
+    import re as _re
+    seen_norm_names = set()
     candidates = []
     for idx, (_, row) in enumerate(nearby.iterrows()):
-        nm = str(row["Name"])
+        nm = str(row["Name"]).strip()
         typ = str(row.get("Type", "Sightseeing"))
         rating = round(float(row.get("Google Review Rating", 4.4)), 1)
         dur_hrs = float(row.get("Time Needed to Visit (hrs)", 2.0))
         if is_generic_or_placeholder_name(nm):
             continue
 
-        # Filter out small local places of worship (only keep major iconic ones)
         nm_lower = nm.lower()
+        city_lower = str(row.get("City", "")).lower()
+        state_lower = str(row.get("State", "")).lower()
+        if is_coorg:
+            if any(bad in nm_lower or bad in city_lower or bad in state_lower for bad in COORG_OUTSIDE_KEYWORDS):
+                continue
+            if "kerala" in state_lower:
+                continue
+        elif is_mysuru:
+            if any(bad in nm_lower or bad in city_lower or bad in state_lower for bad in MYSURU_OUTSIDE_KEYWORDS):
+                continue
+            if "tamil nadu" in state_lower or "kerala" in state_lower:
+                continue
+
+        # Normalize duplicate variants like "Irupu Falls" vs "Iruppu Falls Brahmagiri Range"
+        norm_key = _re.sub(r",.*$", "", nm_lower)
+        norm_key = norm_key.replace("iruppu", "irupu").replace("abbi", "abbey")
+        norm_key = _re.sub(r"[^a-z0-9]", "", norm_key)
+        if "irupufalls" in norm_key:
+            norm_key = "irupufalls"
+        elif "abbeyfalls" in norm_key:
+            norm_key = "abbeyfalls"
+        elif "dubare" in norm_key:
+            norm_key = "dubare"
+        elif "honnamana" in norm_key:
+            norm_key = "honnamana"
+        elif "namdroling" in norm_key or "bylakuppegoldentemple" in norm_key:
+            norm_key = "namdroling"
+        if norm_key in seen_norm_names:
+            continue
+        seen_norm_names.add(norm_key)
+
+        # Filter out small local places of worship (only keep major iconic ones)
         typ_lower = typ.lower()
         is_religious = (
             "spiritual" in typ_lower or "temple" in typ_lower or "church" in typ_lower or
@@ -410,7 +459,7 @@ def search_attractions_api():
             ],
             "nearbyFood": ["Local cuisine, coffee estates and refreshments nearby"],
             "review": reviews,
-            "opening": "9:00 AM - 5:30 PM",
+            "opening": real_info.get("opening") or "Check locally",
             "website": None,
             "phone": None
         })
@@ -612,33 +661,50 @@ def save_wizard():
                     "fee":      attr.get("fee", 0),
                 })
         
-        # Calculate costs for the budget breakdown
-        fuel_cost = 0
-        if transport == "bike":
-            total_dist = sum(a.get("dist", 0) for a in selected_attractions)
-            fuel_cost = round(total_dist / 30 * 110)
-        else:
-            total_dist = sum(a.get("dist", 0) for a in selected_attractions)
-            fuel_cost = round(total_dist / 12 * 100)
-            
-        entry_fees = sum(a.get("fee", 0) for a in selected_attractions)
-        food_cost = num_travelers * num_days * 600
-        hotel_cost = num_days * 2000
-        shopping_cost = num_travelers * 500
-        total_spend = fuel_cost + entry_fees + food_cost + hotel_cost + shopping_cost
+        # Single Source of Truth: build timeline & totals from the exact wizard selections
+        from backend.services.itinerary.timeline_builder import build_timeline
+        timeline = build_timeline({
+            "source": data.get("source", "Bengaluru"),
+            "destination": destination,
+            "start_date": start_date,
+            "end_date": end_date,
+            "num_days": num_days,
+            "num_travelers": num_travelers,
+            "budget": budget,
+            "transport": transport,
+            "stay": data.get("selected_stay") or {},
+            "transit": data.get("transit") or {
+                "mode": transport,
+                "title": data.get("transit_title") or transport.title(),
+                "fare_per_person": data.get("transit_cost_per_person") or 0,
+                "departure": data.get("transit_dep") or "06:00",
+                "duration_mins": data.get("transit_duration_mins") or 270,
+                "distance_km": data.get("transit_distance_km") or 269.8,
+            },
+            "selected_attractions": selected_attractions,
+        })
+        tl_budget = timeline["budget"]
+        fuel_cost = tl_budget["transit_group"]
+        entry_fees = tl_budget["entry_group"]
+        food_cost = tl_budget["food_group"]
+        hotel_cost = tl_budget["stay_group"]
+        shopping_cost = tl_budget["misc_group"]
+        total_spend = tl_budget["group_total"]
 
         # Construct budget JSON
         budget_pct_denom = total_spend if total_spend > 0 else 1
         budget_json = {
             "total_budget": total_spend,
+            "per_person_total": tl_budget["per_person_total"],
             "daily_average": total_spend / num_days if num_days > 0 else total_spend,
-            "budget_status": "comfortable" if budget >= total_spend else "tight",
+            "budget_status": "over" if tl_budget["is_over_target"] else "comfortable",
+            "budget_status_label": tl_budget["budget_status_label"],
             "breakdown": {
-                "fuel": {"amount": fuel_cost, "percentage": (fuel_cost / budget_pct_denom) * 100, "details": f"Estimated fuel cost for travel mode: {transport.title()}"},
-                "entry_fees": {"amount": entry_fees, "percentage": (entry_fees / budget_pct_denom) * 100, "details": "Entry fees for selected attractions"},
-                "food": {"amount": food_cost, "percentage": (food_cost / budget_pct_denom) * 100, "details": f"Food allowance for {num_travelers} traveler(s)"},
-                "hotel": {"amount": hotel_cost, "percentage": (hotel_cost / budget_pct_denom) * 100, "details": f"Accommodation for {num_days} day(s)"},
-                "shopping": {"amount": shopping_cost, "percentage": (shopping_cost / budget_pct_denom) * 100, "details": "Estimated shopping/miscellaneous expense"}
+                "fuel": {"amount": fuel_cost, "percentage": (fuel_cost / budget_pct_denom) * 100, "details": f"Selected transit: {timeline['transit']['title']} (₹{tl_budget['transit_per_person']}/person)"},
+                "entry_fees": {"amount": entry_fees, "percentage": (entry_fees / budget_pct_denom) * 100, "details": f"Entry fees for {len(selected_attractions)} selected sights (₹{tl_budget['entry_per_person']}/person)"},
+                "food": {"amount": food_cost, "percentage": (food_cost / budget_pct_denom) * 100, "details": f"Food allowance for {num_travelers} traveler(s) (₹{tl_budget['food_per_person']}/person)"},
+                "hotel": {"amount": hotel_cost, "percentage": (hotel_cost / budget_pct_denom) * 100, "details": f"Stay for {tl_budget['nights']} night(s) (₹{tl_budget['stay_per_person']}/person)"},
+                "shopping": {"amount": shopping_cost, "percentage": (shopping_cost / budget_pct_denom) * 100, "details": f"Miscellaneous (₹{tl_budget['misc_per_person']}/person)"}
             },
             "saving_tips": [
                 "Utilize local or public transport for sightseeing when possible.",
@@ -764,7 +830,8 @@ def save_wizard():
             "selected_attractions": selected_attractions,
             "day_planner": day_planner,
             "base_camp_stay": data.get("selected_stay") or {},
-            "transit": data.get("transit_details") or {}
+            "transit": timeline["transit"],
+            "timeline": timeline
         }
         
         # Populate live weather details
@@ -1213,6 +1280,8 @@ def view_trip(trip_id: int):
 def delete_trip_route(trip_id: int):
     """Delete a user's trip."""
     delete_trip(trip_id, session["user_id"])
+    if request.is_json or request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return jsonify({"success": True, "trip_id": trip_id})
     flash("Trip deleted.", "success")
     return redirect(url_for("main.dashboard"))
 
@@ -1428,13 +1497,15 @@ def geocode_proxy():
     usage policy, so all geocoding requests are routed through here.
     """
     import requests as req
-    q     = request.args.get("q", "").strip()
-    limit = request.args.get("limit", "8")
+    q            = request.args.get("q", "").strip()
+    limit        = request.args.get("limit", "8")
+    countrycodes = request.args.get("countrycodes", "in").strip()
     if not q:
         return jsonify([])
     url = (
         "https://nominatim.openstreetmap.org/search"
         f"?q={req.utils.quote(q)}&format=json&limit={limit}&addressdetails=1"
+        + (f"&countrycodes={req.utils.quote(countrycodes)}" if countrycodes else "")
     )
     try:
         resp = req.get(
@@ -1493,4 +1564,65 @@ def overpass_proxy():
 
     # All mirrors failed
     return jsonify({"elements": []})
+
+
+@planner_bp.route("/api/timeline/build", methods=["POST"])
+def build_timeline_api():
+    """Single-source-of-truth timeline & budget endpoint for Stage 4, Map, Finalize & WhatsApp."""
+    from backend.services.itinerary.timeline_builder import build_timeline
+    payload = request.get_json(silent=True) or {}
+    try:
+        tl = build_timeline(payload)
+        return jsonify({"status": "success", "timeline": tl})
+    except Exception as exc:
+        return jsonify({"status": "error", "error": str(exc)}), 500
+
+
+@planner_bp.route("/api/pdf_draft", methods=["POST"])
+def download_pdf_draft():
+    """Generate and stream a real PDF file for an unbooked wizard draft in < 2s."""
+    from io import BytesIO
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+    from backend.services.itinerary.timeline_builder import build_timeline
+
+    payload = request.get_json(silent=True) or {}
+    tl = build_timeline(payload)
+    b = tl["budget"]
+
+    buf = BytesIO()
+    c = canvas.Canvas(buf, pagesize=A4)
+    w, h = A4
+    y = h - 48
+
+    def _line(text: str, font="Helvetica", size=10, step=15):
+        nonlocal y
+        if y < 56:
+            c.showPage()
+            y = h - 48
+        c.setFont(font, size)
+        c.drawString(40, y, str(text)[:105])
+        y -= step
+
+    _line(f"Yatrika Trip Plan (Unbooked Draft): {tl['source']} -> {tl['destination']}", "Helvetica-Bold", 14, 22)
+    _line(f"Dates: {tl['dates_label']} | {b['num_days']} Days | {b['travelers']} Travelers", "Helvetica", 10, 16)
+    _line(f"Transit: {tl['transit']['title']} (Dep {tl['transit']['departure']} -> Arr {tl['transit']['arrival']}, {tl['transit']['distance_km']} km, {tl['transit']['duration_label']})", "Helvetica", 10, 16)
+    _line(f"Total: Rs.{b['per_person_total']:,}/person | Group: Rs.{b['group_total']:,} ({b['budget_status_label']} vs Rs.{b['budget_target']:,})", "Helvetica-Bold", 10, 20)
+
+    for day in tl["days"]:
+        _line(f"Day {day['day']} ({day['date'] or 'Date not set'}) — Local drive: {day['day_distance_km']} km ({day['day_drive_label']})", "Helvetica-Bold", 11, 16)
+        for ev in day["events"]:
+            _line(f"  {ev['start_time']} - {ev['end_time']}  {ev['title']} ({ev['duration_label']})", "Helvetica", 9, 13)
+        y -= 6
+
+    c.save()
+    buf.seek(0)
+    dest_slug = (tl["destination"] or "Trip").replace(" ", "_")
+    return send_file(
+        buf,
+        as_attachment=True,
+        download_name=f"Yatrika_{dest_slug}_Draft.pdf",
+        mimetype="application/pdf",
+    )
+
 

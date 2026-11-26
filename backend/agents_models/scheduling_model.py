@@ -178,12 +178,31 @@ class ItinerarySchedulingModel:
                     sub = sub.sort_values(by="Google Review Rating", ascending=False).head(45)
 
                 seen_sight_keys = set()
+                is_coorg = any(k in dest_lower for k in ("coorg", "kodagu", "madikeri"))
+                is_mysuru = any(k in dest_lower for k in ("mysuru", "mysore"))
+                _COORG_OUT = ("bekal", "kannur", "kasaragod", "wayanad", "thalassery", "mysore", "mysuru", "ooty", "bangalore", "bengaluru", "hassan", "belur", "chikmagalur", "thirunelli")
+                _MYSURU_OUT = ("bangalore", "bengaluru", "coorg", "kodagu", "madikeri", "ooty", "wayanad", "hampi", "chikmagalur", "shravanabelagola", "hassan", "belur")
                 for idx, (_, row) in enumerate(sub.iterrows()):
                     nm = str(row["Name"]).strip()
                     if is_generic_or_placeholder_name(nm):
                         continue
+                    nm_low = nm.lower()
+                    city_low = str(row.get("City", "")).lower()
+                    state_low = str(row.get("State", "")).lower()
+                    if is_coorg and (any(b in nm_low or b in city_low for b in _COORG_OUT) or "kerala" in state_low):
+                        continue
+                    if is_mysuru and (any(b in nm_low or b in city_low for b in _MYSURU_OUT) or "kerala" in state_low or "tamil nadu" in state_low):
+                        continue
                     import re as _re
-                    dedup_key = _re.sub(r"[^a-z0-9]", "", nm.lower().replace("irupu", "iruppu"))[:16]
+                    dedup_key = _re.sub(r"[^a-z0-9]", "", nm_low.replace("iruppu", "irupu").replace("abbi", "abbey"))[:16]
+                    if "dubare" in dedup_key:
+                        dedup_key = "dubare"
+                    elif "honnamana" in dedup_key:
+                        dedup_key = "honnamana"
+                    elif "irupu" in dedup_key:
+                        dedup_key = "irupu"
+                    elif "abbey" in dedup_key:
+                        dedup_key = "abbey"
                     if dedup_key in seen_sight_keys:
                         continue
                     seen_sight_keys.add(dedup_key)

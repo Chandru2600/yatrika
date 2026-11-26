@@ -1427,7 +1427,7 @@ function buildAttractionCard(a) {
         <div class="ac-meta-item"><i class="bi bi-clock me-1"></i>${fmtHrs(a.dur)}</div>
         ${distanceHtml}
         <div class="ac-meta-item"><i class="bi bi-people me-1"></i>${a.difficulty}</div>
-        ${a.opening !== 'Check locally' ? `<div class="ac-meta-item"><i class="bi bi-door-open me-1"></i>${a.opening}</div>` : ''}
+        ${a.opening && a.opening !== 'Check locally' && a.opening !== 'null' ? `<div class="ac-meta-item"><i class="bi bi-door-open me-1"></i>${a.opening}</div>` : ''}
       </div>
       <div class="d-flex gap-2 mt-2">
         <button class="btn btn-sm rounded-pill d-inline-flex align-items-center gap-1" onclick="window.focusAttractionOnMap('${a.lat}', '${a.lon}', '${(a.name||'').replace(/'/g, "\\'")}'); event.stopPropagation();" style="font-size:0.75rem; background:#f0fdfa; color:#0f766e; border:1px solid #99f6e4; font-weight:600;" title="View on Map">
@@ -2310,7 +2310,7 @@ function openDrawer(id) {
         </div>` : `<div class="di-item"><div class="di-label">📍 Distance</div><div class="di-value">${a.dist} km</div></div>`}
         <div class="di-item"><div class="di-label">⭐ Rating</div><div class="di-value">${a.rating}/5.0</div></div>
         <div class="di-item"><div class="di-label">💪 Difficulty</div><div class="di-value">${a.difficulty}</div></div>
-        <div class="di-item"><div class="di-label">🕐 Opening</div><div class="di-value">${a.opening}</div></div>
+        <div class="di-item"><div class="di-label">🕐 Opening</div><div class="di-value">${a.opening && a.opening !== 'null' ? a.opening : 'Check locally'}</div></div>
         ${a.website?`<div class="di-item"><div class="di-label">🌐 Website</div><div class="di-value"><a href="${a.website}" target="_blank" class="text-primary">Visit</a></div></div>`:''}
       </div>
     </div>
