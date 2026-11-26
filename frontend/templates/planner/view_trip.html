@@ -572,7 +572,7 @@
         <div class="ticket-specs-row">
           <div class="spec-col">
             <div class="spec-lbl">Travel Dates</div>
-            <div class="spec-val">{{ trip.start_date }} → {{ trip.end_date }}</div>
+            <div class="spec-val">{% if trip.start_date %}{{ trip.start_date }} → {{ trip.end_date }}{% else %}Dates not set{% endif %}</div>
           </div>
           <div class="spec-col">
             <div class="spec-lbl">Duration</div>
@@ -580,11 +580,11 @@
           </div>
           <div class="spec-col">
             <div class="spec-lbl">Travelers</div>
-            <div class="spec-val">{{ trav }} Traveler{{ 's' if trav > 1 else '' }} (Confirmed)</div>
+            <div class="spec-val">{{ trav }} Traveler{{ 's' if trav > 1 else '' }} (Draft Plan)</div>
           </div>
           <div class="spec-col">
             <div class="spec-lbl">Base Camp Stay</div>
-            <div class="spec-val text-truncate text-turquoise" style="max-width: 190px;" title="{{ stay_name }}">{{ stay_name }}</div>
+            <div class="spec-val text-truncate" style="max-width: 190px; color: #a7f3d0; font-weight: 700;" title="{{ stay_name }}">{{ stay_name }}</div>
           </div>
         </div>
       </div>
@@ -601,7 +601,7 @@
       <div class="ticket-stub-body">
         <div class="stub-header">
           <span class="stub-tag">PASSENGER STUB</span>
-          <span class="stub-class-badge">{% if 'FLIGHT' in t_mode %}ECONOMY PREMIER{% elif 'TRAIN' in t_mode %}EXECUTIVE CHAIR{% else %}DELUXE COACH{% endif %}</span>
+          <span class="stub-class-badge">{% if 'FLIGHT' in t_mode %}ECONOMY PREMIER{% elif 'TRAIN' in t_mode %}EXECUTIVE CHAIR{% elif 'CAR' in t_mode or 'CAB' in t_mode %}PRIVATE CAB{% else %}DELUXE COACH{% endif %}</span>
         </div>
 
         <!-- Authentic SVG Vector QR Code Tile (Compact) -->
@@ -1571,7 +1571,9 @@
               <h4 class="dossier-section-title">
                 <i class="bi bi-pie-chart text-turquoise"></i> Budget Allocation
               </h4>
-              <canvas id="budgetPieChart" height="280"></canvas>
+              <div style="position: relative; height: 280px; width: 100%;">
+                <canvas id="budgetPieChart"></canvas>
+              </div>
             </div>
           </div>
 
@@ -1609,8 +1611,8 @@
                   <span class="extra-small" style="color: #64748B;">Per Traveler:</span>
                   <div class="fs-5 fw-extrabold text-turquoise" id="perTravelerSummaryVal">₹{{ "{:,.0f}".format((budget_sum / trip.num_travelers)|float) }}</div>
                 </div>
-                <span class="badge bg-success-subtle text-success border border-success-subtle">
-                  Cost Verified
+                <span class="badge bg-info-subtle text-info border border-info-subtle">
+                  Estimated Total
                 </span>
               </div>
             </div>
