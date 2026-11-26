@@ -134,19 +134,20 @@ def _query_overpass_nearby_stays(dest_lat: float, dest_lon: float, destination: 
             # Realistic price spread around user's budget by property type
             mult = 0.72 if "hostel" in t_type.lower() else (0.9 if "guest" in t_type.lower() else (1.35 if "resort" in t_type.lower() else 1.05))
             est_price = max(800, int(round((budget_per_night * mult) / 50.0) * 50))
-            amenities = ["Free WiFi", "24/7 Front Desk"]
-            if tags.get("internet_access") in ("wlan", "yes"):
-                amenities.append("High-Speed WiFi")
-            if tags.get("air_conditioning") == "yes" or est_price >= 1800:
+            amenities = ["Free WiFi"] if tags.get("internet_access") in ("wlan", "yes") else []
+            if tags.get("air_conditioning") == "yes":
                 amenities.append("AC")
-            amenities.append("Parking" if idx % 2 == 0 else "Power Backup")
+            if tags.get("parking") or tags.get("amenity") == "parking":
+                amenities.append("Parking")
+            if not amenities:
+                amenities = ["Standard Check-in"]
 
             stays.append({
                 "name": name,
                 "type": t_type,
                 "price_per_night": est_price,
-                "rating": round(4.2 + ((idx % 6) * 0.1), 1),
-                "reviews_count": 95 + (idx * 28),
+                "rating": _safe_float(tags.get("stars"), 0.0) or 4.0,
+                "reviews_count": 0,
                 "address": addr,
                 "lat": round(float(lat), 5),
                 "lon": round(float(lon), 5),
@@ -340,9 +341,35 @@ def _query_agent_fallback_stays(destination: str, dest_lat: float, dest_lon: flo
                     if is_match:
                         price = _safe_float(row.get("price_per_night_inr"), 2200.0)
                         rating = _safe_float(row.get("star_rating"), 4.3)
-                        # Slightly jitter coordinates for distinct map pins around the anchor
-                        jitter_lat = dest_lat + ((len(candidates) % 5 - 2) * 0.008)
-                        jitter_lon = dest_lon + (((len(candidates) * 3) % 5 - 2) * 0.008)
+                        addr_str = row.get("address") or f"{destination.title()}, India"
+                        addr_low = addr_str.lower()
+                        # Map known Bengaluru localities to real centroids instead of faking office coords
+                        _BLR_LOCALITIES = {
+                            "whitefield": (12.9698, 77.7500),
+                            "electronic city": (12.8399, 77.6770),
+                            "koramangala": (12.9352, 77.6245),
+                            "indiranagar": (12.9784, 77.6408),
+                            "mg road": (12.9756, 77.6066),
+                            "brigade road": (12.9716, 77.6074),
+                            "hsr": (12.9121, 77.6446),
+                            "silk board": (12.9177, 77.6238),
+                            "bommanahalli": (12.9030, 77.6245),
+                            "marathahalli": (12.9591, 77.6974),
+                            "yelahanka": (13.1007, 77.5963),
+                            "hebbal": (13.0354, 77.5988),
+                            "jayanagar": (12.9299, 77.5824),
+                            "sankey road": (12.9965, 77.5844),
+                        }
+                        s_lat, s_lon = dest_lat, dest_lon
+                        matched_loc = False
+                        for loc_k, (llat, llon) in _BLR_LOCALITIES.items():
+                            if loc_k in addr_low or loc_k in p_name:
+                                s_lat, s_lon = llat, llon
+                                matched_loc = True
+                                break
+                        if not matched_loc:
+                            s_lat = dest_lat + ((len(candidates) % 5 - 2) * 0.008)
+                            s_lon = dest_lon + (((len(candidates) * 3) % 5 - 2) * 0.008)
 
                         candidates.append({
                             "name": (row.get("property_name") or "City Executive Stay").title(),
@@ -350,10 +377,10 @@ def _query_agent_fallback_stays(destination: str, dest_lat: float, dest_lon: flo
                             "price_per_night": max(600, int(price)),
                             "rating": round(rating, 1),
                             "reviews_count": 120 + (len(candidates) * 35),
-                            "address": row.get("address") or f"{destination.title()}, India",
-                            "lat": round(jitter_lat, 5),
-                            "lon": round(jitter_lon, 5),
-                            "amenities": ["Free WiFi", "Parking", "24/7 Front Desk", "Hot Water"]
+                            "address": addr_str,
+                            "lat": round(s_lat, 5),
+                            "lon": round(s_lon, 5),
+                            "amenities": ["Free WiFi", "24/7 Front Desk"]
                         })
                         if len(candidates) >= 15:
                             break
@@ -520,12 +547,12 @@ def find_managed_stays(source: str, destination: str, checkin: str = "", checkou
             # Compute road distance & drive time to destination anchor
             dist_km = _haversine_distance_km(dest_lat, dest_lon, s_lat, s_lon)
             road_km = round(max(0.6, dist_km * 1.35), 1)
-            drive_mins = max(4, int(round((road_km / 35.0) * 60)))
+            drive_mins = max(4, int(round((road_km / (21.0 if road_km < 35.0 else 42.0)) * 60)))
 
             rate_per_night = max(600, _safe_int(s.get("price_per_night"), int(budget_per_night)))
             price_per_person_day = int(round(rate_per_night / max(1, travelers)))
             total_stay_cost = rate_per_night * nights
-            is_over_budget = price_per_person_day > budget_per_night or rate_per_night > budget_per_night
+            is_over_budget = rate_per_night > budget_per_night
 
             if price_per_person_day < 2200:
                 stay_tier = "Budget"
@@ -536,6 +563,8 @@ def find_managed_stays(source: str, destination: str, checkin: str = "", checkou
 
             # Clean garbled concatenated addresses (e.g. "WhitefieldBangalore 560048" -> "Whitefield, Bangalore 560048")
             raw_addr = str(s.get("address") or f"{dest.title()}, India")
+            if "mysur" in (dest + raw_addr).lower() or "mysor" in (dest + raw_addr).lower():
+                raw_addr = raw_addr.replace("561006", "570001")
             clean_addr = re.sub(r"([a-z])([A-Z])", r"\1, \2", raw_addr)
             clean_addr = re.sub(r"([A-Za-z])(\d{6})", r"\1 \2", clean_addr)
             clean_addr = re.sub(r"\s{2,}", " ", clean_addr).strip(" ,")
@@ -576,6 +605,29 @@ def find_managed_stays(source: str, destination: str, checkin: str = "", checkou
             results.append(clean_item)
             if len(results) >= 10:
                 break
+        # Enrich with real OSRM Table road distances & realistic urban drive times
+        if results:
+            try:
+                coords_str = ";".join(
+                    [f"{dest_lon},{dest_lat}"] + [f"{r['lon']},{r['lat']}" for r in results]
+                )
+                osrm_url = f"http://router.project-osrm.org/table/v1/driving/{coords_str}?sources=0&annotations=distance,duration"
+                resp = requests.get(osrm_url, timeout=3)
+                if resp.status_code == 200:
+                    tdata = resp.json()
+                    dists = (tdata.get("distances") or [[]])[0]
+                    durs = (tdata.get("durations") or [[]])[0]
+                    for i, r in enumerate(results):
+                        if i + 1 < len(dists) and dists[i + 1] is not None:
+                            r_km = round(max(0.3, dists[i + 1] / 1000.0), 1)
+                            r["distance_km"] = r_km
+                            raw_m = max(4, round((durs[i + 1] or 240) / 60.0)) if i + 1 < len(durs) else r["drive_mins"]
+                            if r_km < 35.0:
+                                r["drive_mins"] = max(raw_m, int(round((r_km / 21.0) * 60)))
+                            else:
+                                r["drive_mins"] = raw_m
+            except Exception as exc:
+                logger.debug("[Stay Service] OSRM table batch lookup skipped: %s", exc)
         return results
 
     deduped_stays = _process_raw_stays(raw_stays)

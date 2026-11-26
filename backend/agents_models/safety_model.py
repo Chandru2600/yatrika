@@ -17,14 +17,14 @@ DEFAULT_STAYS = {
     "coorg": {
         "name": "Evolve Back Chikkana Halli Estate",
         "type": "Heritage Plantation Resort",
-        "price_per_night": 4500,
+        "price_per_night": 43600,
         "star_rating": 4.8,
         "safety_score": 9.6,
         "address": "Karadigodu Post, Siddapur, Coorg, Karnataka 571253",
         "latitude": 12.3375,
         "longitude": 75.8069,
         "amenities": ["Coffee Plantation Tour", "Ayurvedic Spa", "Swimming Pool", "Kodava Dining"],
-        "badge": "Top Rated Base Camp"
+        "badge": "Luxury Estate"
     },
     "samse": {
         "name": "Bella Vista Tea Estate Homestay",
@@ -81,9 +81,9 @@ class AccommodationsSafetyModel:
         dest_key = destination.lower().strip()
         dest_lat, dest_lon = resolve_destination_coords(destination)
 
-        # Check specialized curated stays first
+        # Check specialized curated stays first (only if within budget envelope)
         for k, stay in DEFAULT_STAYS.items():
-            if k in dest_key:
+            if k in dest_key and float(stay.get("price_per_night", 0)) <= max_price * 1.5:
                 return self._enrich_stay_with_ml(stay)
 
         # Query 150,000 accommodations dataset
@@ -98,13 +98,16 @@ class AccommodationsSafetyModel:
                         city = row.get("city", "").lower()
                         if dest_key in city or city in dest_key:
                             lv = str(row.get("last_verified", "")).strip() or "2026-01-15"
+                            raw_addr = row.get("address", f"{destination.title()}, India")
+                            if "mysur" in (city + raw_addr).lower() or "mysor" in (city + raw_addr).lower():
+                                raw_addr = raw_addr.replace("561006", "570001")
                             candidates.append({
                                 "name": row.get("property_name", "").title(),
                                 "type": row.get("tier", "Hotel").title(),
                                 "price_per_night": float(row.get("price_per_night_inr", 2500) or 2500),
                                 "star_rating": float(row.get("star_rating", 4.5) or 4.5),
                                 "safety_score": float(row.get("safety_score", 9.2) or 9.2),
-                                "address": row.get("address", f"{destination.title()}, India"),
+                                "address": raw_addr,
                                 "latitude": dest_lat,
                                 "longitude": dest_lon,
                                 "amenities": ["Free High-Speed WiFi", "Hot Water", "Complimentary Breakfast", "24/7 Front Desk"],
@@ -166,8 +169,8 @@ class AccommodationsSafetyModel:
 
         # Emergency nodes
         res["emergency_support"] = {
-            "nearest_hospital": f"{res['name'].split()[0]} Community Health Center (1.4 km)",
-            "police_station": "Local Sub-Division Police Station (2.1 km)",
+            "nearest_hospital": "Nearest District / Community Hospital (check map)",
+            "police_station": "Local Police Station (dial 112)",
             "emergency_helpline": "112 (National Emergency)",
             "safety_rating": f"{res['safety_score']}/10 (High Safety Index)"
         }
