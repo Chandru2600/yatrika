@@ -225,10 +225,10 @@ VERIFIED_IRCTC_CORRIDORS = {
             "origin_station": "KSR Bengaluru City Junction (SBC)",
             "dest_station": "Mysuru Junction (MYS)",
             "classes_info": [
-                {"code": "CC", "name": "AC Chair Car", "fare": 515, "status": "AVAILABLE - 85"},
-                {"code": "EC", "name": "Executive Class", "fare": 985, "status": "AVAILABLE - 16"}
+                {"code": "CC", "name": "AC Chair Car", "fare": 565, "status": "AVAILABLE - 85"},
+                {"code": "EC", "name": "Executive Class", "fare": 1080, "status": "AVAILABLE - 16"}
             ],
-            "fare_per_seat": 515,
+            "fare_per_seat": 565,
             "is_direct": True
         },
         {
@@ -242,10 +242,10 @@ VERIFIED_IRCTC_CORRIDORS = {
             "origin_station": "KSR Bengaluru City Junction (SBC)",
             "dest_station": "Mysuru Junction (MYS)",
             "classes_info": [
-                {"code": "2S", "name": "Second Sitting", "fare": 85, "status": "AVAILABLE - 140"},
-                {"code": "CC", "name": "AC Chair Car", "fare": 320, "status": "AVAILABLE - 34"}
+                {"code": "2S", "name": "Second Sitting", "fare": 75, "status": "AVAILABLE - 98"},
+                {"code": "CC", "name": "AC Chair Car", "fare": 295, "status": "AVAILABLE - 24"}
             ],
-            "fare_per_seat": 85,
+            "fare_per_seat": 75,
             "is_direct": True
         },
         {
@@ -259,10 +259,10 @@ VERIFIED_IRCTC_CORRIDORS = {
             "origin_station": "KSR Bengaluru City Junction (SBC)",
             "dest_station": "Mysuru Junction (MYS)",
             "classes_info": [
-                {"code": "2S", "name": "Second Sitting", "fare": 85, "status": "AVAILABLE - 120"},
-                {"code": "CC", "name": "AC Chair Car", "fare": 320, "status": "AVAILABLE - 42"}
+                {"code": "2S", "name": "Second Sitting", "fare": 95, "status": "AVAILABLE - 112"},
+                {"code": "CC", "name": "AC Chair Car", "fare": 340, "status": "AVAILABLE - 38"}
             ],
-            "fare_per_seat": 85,
+            "fare_per_seat": 95,
             "is_direct": True
         }
     ],
@@ -713,6 +713,17 @@ def fetch_railway_ai_fares(source: str, dest: str, dist_km: float, travelers: in
             ]
 
     selected_sched = schedules[0]
+    if selected_sched.get("classes_info"):
+        class_tiers = [
+            {
+                "code": ci["code"],
+                "name": f"{ci['name']} ({ci['code']})",
+                "price_per_seat": ci["fare"],
+                "total": (ci["fare"] * travelers) + transfer_cab_fee,
+                "status": ci.get("status", "AVAILABLE"),
+            }
+            for ci in selected_sched["classes_info"]
+        ]
     arrival_time_str = selected_sched["arrival"]
     source_tag = "IRCTC Official Live Timetable"
 

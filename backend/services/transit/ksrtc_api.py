@@ -141,9 +141,11 @@ def fetch_ksrtc_bus_fares(source: str, dest: str, dist_km: float, travelers: int
     schedules = []
 
     # 1. State RTC Superfast/Airavat Overnight
+    dur_mins_1 = max(30, int(round(travel_hours * 60)))
     dep_time_1 = "21:30"
-    arr_mins_1 = (21 * 60 + 30) + int(travel_hours * 60)
+    arr_mins_1 = (21 * 60 + 30) + dur_mins_1
     arr_time_1 = f"{(arr_mins_1 // 60) % 24:02d}:{arr_mins_1 % 60:02d}"
+    dur_str_1 = f"{dur_mins_1 // 60}h {dur_mins_1 % 60:02d}m"
     rtc_premium_tier = classes_available[-1] if classes_available else {"code": "Airavat Club Class", "price_per_seat": fare_per_seat, "total": total_cost}
     schedules.append({
         "operator": f"{corp_display} {rtc_premium_tier['code']}",
@@ -153,7 +155,7 @@ def fetch_ksrtc_bus_fares(source: str, dest: str, dist_km: float, travelers: int
         "ratings_count": 3420,
         "departure": dep_time_1,
         "arrival": arr_time_1,
-        "duration": duration_str,
+        "duration": dur_str_1,
         "boarding_point": src_hub["bus_terminal_name"],
         "dropoff_point": dst_hub["bus_terminal_name"],
         "fare_per_seat": rtc_premium_tier["price_per_seat"],
@@ -164,9 +166,11 @@ def fetch_ksrtc_bus_fares(source: str, dest: str, dist_km: float, travelers: int
     })
 
     # 2. State RTC Daytime Express / Sarige
+    dur_mins_2 = max(30, int(round((travel_hours + 0.5) * 60)))
     dep_time_2 = "07:00"
-    arr_mins_2 = (7 * 60) + int((travel_hours + 0.5) * 60)
+    arr_mins_2 = (7 * 60) + dur_mins_2
     arr_time_2 = f"{(arr_mins_2 // 60) % 24:02d}:{arr_mins_2 % 60:02d}"
+    dur_str_2 = f"{dur_mins_2 // 60}h {dur_mins_2 % 60:02d}m"
     rtc_budget_tier = classes_available[0] if classes_available else rtc_premium_tier
     schedules.append({
         "operator": f"{corp_display} {rtc_budget_tier['code']}",
@@ -176,7 +180,7 @@ def fetch_ksrtc_bus_fares(source: str, dest: str, dist_km: float, travelers: int
         "ratings_count": 5120,
         "departure": dep_time_2,
         "arrival": arr_time_2,
-        "duration": f"{hours_int}h {(mins_int + 30) % 60:02d}m",
+        "duration": dur_str_2,
         "boarding_point": src_hub["bus_terminal_name"],
         "dropoff_point": dst_hub["bus_terminal_name"],
         "fare_per_seat": rtc_budget_tier["price_per_seat"],
@@ -189,9 +193,11 @@ def fetch_ksrtc_bus_fares(source: str, dest: str, dist_km: float, travelers: int
     # 3. Top Private Operator (VRL Travels / SRS / Orange)
     pvt_op1 = next((p for p in pvt_tiers if "VRL" in p["corporation_name"]), pvt_tiers[0])
     pvt_op1_fare = max(180, round(80 + dist_km * pvt_op1["rate_per_km"]))
+    dur_mins_3 = max(30, int(round(max(0.5, travel_hours - 0.2) * 60)))
     dep_time_3 = "22:15"
-    arr_mins_3 = (22 * 60 + 15) + int((travel_hours - 0.2) * 60)
+    arr_mins_3 = (22 * 60 + 15) + dur_mins_3
     arr_time_3 = f"{(arr_mins_3 // 60) % 24:02d}:{arr_mins_3 % 60:02d}"
+    dur_str_3 = f"{dur_mins_3 // 60}h {dur_mins_3 % 60:02d}m"
     schedules.append({
         "operator": f"VRL Travels — {pvt_op1['bus_service_tier']}",
         "operator_type": "Private Fleet (RedBus Top Rated)",
@@ -200,7 +206,7 @@ def fetch_ksrtc_bus_fares(source: str, dest: str, dist_km: float, travelers: int
         "ratings_count": 8940,
         "departure": dep_time_3,
         "arrival": arr_time_3,
-        "duration": duration_str,
+        "duration": dur_str_3,
         "boarding_point": f"{source.title()} Anand Rao Circle / Main Hub",
         "dropoff_point": f"{dest.title()} Central Bus Stand",
         "fare_per_seat": pvt_op1_fare,

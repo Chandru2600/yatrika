@@ -42,8 +42,8 @@ def fetch_flight_fares(source: str, dest: str, dist_km: float, travelers: int = 
         except Exception:
             pass
 
-    # Gate out intra-city and short-distance routes (< 160 km) where commercial flights don't apply
-    if dist_km < 160:
+    # Gate out intra-city and short-distance routes (< 160 km) or BLR<->MYQ where commercial flights don't apply
+    if dist_km < 160 or {src_iata, dst_iata} == {"BLR", "MYQ"}:
         return {
             "mode": "flight",
             "available": False,
