@@ -100,3 +100,18 @@ def test_shimla_flight_routes_via_chandigarh_and_filters_junk_sights():
         {}
     )
     assert pdf_path and pdf_path.endswith(".pdf")
+
+
+def test_pan_india_geospatial_hub_resolver():
+    from backend.services.transit.location_resolver import resolve_location_hubs
+    halebidu = resolve_location_hubs("Halebidu")
+    assert halebidu["nearest_airport_code"] in ("MYQ", "IXE", "BLR")
+    assert halebidu["nearest_station_code"] in ("MYS", "SBC", "MAJN")
+
+    kasauli = resolve_location_hubs("Kasauli")
+    assert kasauli["nearest_airport_code"] in ("IXC", "DED")
+    assert kasauli["nearest_station_code"] != "KASA"
+
+    aizawl = resolve_location_hubs("Aizawl")
+    assert aizawl["nearest_airport_code"] in ("IXS", "IXA", "IMF", "GAU")
+    assert aizawl["nearest_station_code"] != "AIZA"

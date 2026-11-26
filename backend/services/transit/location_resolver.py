@@ -517,10 +517,166 @@ MAJOR_METRO_AIRPORTS = {
 }
 
 
+# Comprehensive Pan-India Commercial Airports (name, iata, lat, lon)
+INDIAN_COMMERCIAL_AIRPORTS = [
+    ("Kempegowda Int'l Airport, Bengaluru", "BLR", 13.1986, 77.7066),
+    ("Chhatrapati Shivaji Maharaj Int'l Airport, Mumbai", "BOM", 19.0896, 72.8656),
+    ("Indira Gandhi Int'l Airport, Delhi", "DEL", 28.5562, 77.1000),
+    ("Chennai Int'l Airport", "MAA", 12.9941, 80.1709),
+    ("Rajiv Gandhi Int'l Airport, Hyderabad", "HYD", 17.2403, 78.4294),
+    ("Netaji Subhas Chandra Bose Int'l Airport, Kolkata", "CCU", 22.6547, 88.4467),
+    ("Cochin Int'l Airport, Kochi", "COK", 10.1520, 76.4019),
+    ("Sardar Vallabhbhai Patel Int'l Airport, Ahmedabad", "AMD", 23.0772, 72.6347),
+    ("Pune Airport", "PNQ", 18.5822, 73.9197),
+    ("Goa Dabolim Airport", "GOI", 15.3808, 73.8314),
+    ("Manohar Int'l Airport, Mopa (North Goa)", "GOX", 15.7408, 73.8689),
+    ("Jaipur Int'l Airport", "JAI", 26.8242, 75.8122),
+    ("Chaudhary Charan Singh Int'l Airport, Lucknow", "LKO", 26.7606, 80.8893),
+    ("Chandigarh Int'l Airport", "IXC", 30.6735, 76.7885),
+    ("Sri Guru Ram Dass Jee Int'l Airport, Amritsar", "ATQ", 31.7096, 74.7973),
+    ("Lokpriya Gopinath Bordoloi Int'l Airport, Guwahati", "GAU", 26.1061, 91.5859),
+    ("Lal Bahadur Shastri Int'l Airport, Varanasi", "VNS", 25.4524, 82.8593),
+    ("Jay Prakash Narayan Airport, Patna", "PAT", 25.5913, 85.0880),
+    ("Biju Patnaik Int'l Airport, Bhubaneswar", "BBI", 20.2444, 85.8178),
+    ("Trivandrum Int'l Airport", "TRV", 8.4821, 76.9200),
+    ("Calicut Int'l Airport, Kozhikode", "CCJ", 11.1368, 75.9553),
+    ("Kannur Int'l Airport", "CNN", 11.9186, 75.5472),
+    ("Mangalore Int'l Airport", "IXE", 12.9613, 74.8901),
+    ("Coimbatore Int'l Airport", "CJB", 11.0300, 77.0434),
+    ("Madurai Airport", "IXM", 9.8345, 78.0934),
+    ("Tiruchirappalli Int'l Airport", "TRZ", 10.7654, 78.7097),
+    ("Visakhapatnam Int'l Airport", "VTZ", 17.7212, 83.2245),
+    ("Vijayawada Airport", "VGA", 16.5304, 80.7968),
+    ("Tirupati Airport", "TIR", 13.6325, 79.5433),
+    ("Dr. Babasaheb Ambedkar Int'l Airport, Nagpur", "NAG", 21.0922, 79.0472),
+    ("Raja Bhoj Airport, Bhopal", "BHO", 23.2875, 77.3374),
+    ("Devi Ahilya Bai Holkar Airport, Indore", "IDR", 22.7218, 75.8011),
+    ("Swami Vivekananda Airport, Raipur", "RPR", 21.1804, 81.7388),
+    ("Birsa Munda Airport, Ranchi", "IXR", 23.3143, 85.3217),
+    ("Bagdogra Airport, Siliguri", "IXB", 26.6812, 88.3286),
+    ("Jolly Grant Airport, Dehradun", "DED", 30.1897, 78.1803),
+    ("Pantnagar Airport", "PGH", 29.0334, 79.4737),
+    ("Kullu Bhuntar Airport", "KUU", 31.8767, 77.1544),
+    ("Kangra Airport (Gaggal), Dharamshala", "DHM", 32.1651, 76.2634),
+    ("Sheikh ul-Alam Int'l Airport, Srinagar", "SXR", 33.9871, 74.7742),
+    ("Jammu Airport", "IXJ", 32.6891, 74.8374),
+    ("Kushok Bakula Rimpochee Airport, Leh", "IXL", 34.1359, 77.5465),
+    ("Maharana Pratap Airport, Udaipur", "UDR", 24.6177, 73.8961),
+    ("Jodhpur Airport", "JDH", 26.2511, 73.0489),
+    ("Jaisalmer Airport", "JSA", 26.8887, 70.8650),
+    ("Surat Int'l Airport", "STV", 21.1141, 72.7418),
+    ("Vadodara Airport", "BDQ", 22.3362, 73.2263),
+    ("Rajkot Int'l Airport", "HSR", 22.3092, 70.7795),
+    ("Bhuj Airport", "BHJ", 23.2878, 69.6702),
+    ("Aurangabad Airport", "IXU", 19.8627, 75.3981),
+    ("Shirdi Airport", "SAG", 19.6887, 74.3789),
+    ("Hubballi Airport", "HBX", 15.3617, 75.0849),
+    ("Belagavi Airport", "IXG", 15.8593, 74.6183),
+    ("Mysuru Airport", "MYQ", 12.2300, 76.6497),
+    ("Pakyong Airport, Gangtok", "PYG", 27.2263, 88.5877),
+    ("Maharaja Bir Bikram Airport, Agartala", "IXA", 23.8870, 91.2404),
+    ("Imphal Int'l Airport", "IMF", 24.7600, 93.8967),
+    ("Dibrugarh Airport", "DIB", 27.4839, 95.0169),
+    ("Jorhat Airport", "JRH", 26.7315, 94.1755),
+    ("Silchar Airport", "IXS", 24.9129, 92.9787),
+    ("Dimapur Airport", "DMU", 25.8839, 93.7711),
+    ("Veer Savarkar Int'l Airport, Port Blair", "IXZ", 11.6412, 92.7297),
+    ("Agatti Airport, Lakshadweep", "AGX", 10.8237, 72.1760),
+    ("Khajuraho Airport", "HJR", 24.8172, 79.9186),
+    ("Gwalior Airport", "GWL", 26.2933, 78.2278),
+    ("Jabalpur Airport", "JLR", 23.1778, 80.0520),
+    ("Gorakhpur Airport", "GOP", 26.7397, 83.4497),
+    ("Prayagraj Airport", "IXD", 25.4401, 81.7339),
+    ("Agra Airport", "AGR", 27.1558, 77.9609),
+]
+
+INDIAN_RAIL_JUNCTIONS = [
+    ("KSR Bengaluru City Junction", "SBC", 12.9781, 77.5696),
+    ("New Delhi Railway Station", "NDLS", 28.6429, 77.2191),
+    ("Mumbai CSMT", "CSMT", 18.9398, 72.8355),
+    ("Chennai Central", "MAS", 13.0827, 80.2750),
+    ("Howrah Junction, Kolkata", "HWH", 22.5839, 88.3426),
+    ("Secunderabad Junction", "SC", 17.4344, 78.5013),
+    ("Pune Junction", "PUNE", 18.5289, 73.8744),
+    ("Ahmedabad Junction", "ADI", 23.0265, 72.6006),
+    ("Jaipur Junction", "JP", 26.9196, 75.7880),
+    ("Lucknow Charbagh", "LKO", 26.8318, 80.9214),
+    ("Varanasi Junction", "BSB", 25.3267, 82.9866),
+    ("Patna Junction", "PNBE", 25.6033, 85.1376),
+    ("Bhubaneswar", "BBS", 20.2662, 85.8436),
+    ("Guwahati", "GHY", 26.1816, 91.7495),
+    ("Ernakulam Junction, Kochi", "ERS", 9.9698, 76.2908),
+    ("Thiruvananthapuram Central", "TVC", 8.4875, 76.9525),
+    ("Kozhikode", "CLT", 11.2468, 75.7818),
+    ("Mangalore Junction", "MAJN", 12.8606, 74.8806),
+    ("Mysuru Junction", "MYS", 12.3168, 76.6448),
+    ("Coimbatore Junction", "CBE", 10.9972, 76.9669),
+    ("Madurai Junction", "MDU", 9.9195, 78.1095),
+    ("Visakhapatnam Junction", "VSKP", 17.7219, 83.2899),
+    ("Nagpur Junction", "NGP", 21.1522, 79.0888),
+    ("Bhopal Junction", "BPL", 23.2683, 77.4126),
+    ("Indore Junction", "INDB", 22.7177, 75.8685),
+    ("Chandigarh Junction", "CDG", 30.7016, 76.8213),
+    ("Kalka", "KLK", 30.8375, 76.9355),
+    ("Ambala Cantt", "UMB", 30.3401, 76.8300),
+    ("Amritsar Junction", "ASR", 31.6331, 74.8673),
+    ("Jammu Tawi", "JAT", 32.7070, 74.8797),
+    ("Dehradun", "DDN", 30.3143, 78.0332),
+    ("Haridwar", "HW", 29.9479, 78.1558),
+    ("Kathgodam", "KGM", 29.2665, 79.5469),
+    ("New Jalpaiguri (NJP)", "NJP", 26.6836, 88.4437),
+    ("Udaipur City", "UDZ", 24.5686, 73.6976),
+    ("Jodhpur Junction", "JU", 26.2836, 73.0219),
+    ("Jaisalmer", "JSM", 26.9122, 70.9234),
+    ("Madgaon Junction, Goa", "MAO", 15.2689, 73.9692),
+    ("Hospet Junction (Hampi)", "HPT", 15.2695, 76.3871),
+    ("Hubballi Junction", "UBL", 15.3458, 75.1497),
+    ("Gokarna Road / Kumta", "GOK", 14.5364, 74.3612),
+    ("Agra Cantt", "AGC", 27.1578, 77.9901),
+    ("Jhansi (VGLJ)", "VGLJ", 25.4426, 78.5541),
+    ("Ranchi", "RNC", 23.3522, 85.3340),
+    ("Raipur Junction", "R", 21.2571, 81.6295),
+    ("Surat", "ST", 21.2054, 72.8408),
+    ("Vadodara Junction", "BRC", 22.3106, 73.1812),
+    ("Pathankot Cantt", "PTKC", 32.2573, 75.6476),
+    ("Mettupalayam", "MTP", 11.2989, 76.9378),
+    ("Kodaikanal Road", "KQN", 10.1753, 77.8825),
+]
+
+
+def _haversine_hub_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    import math
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat / 2.0) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2.0) ** 2
+    return 6371.0 * 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
+
+
+def _osrm_transfer(lat1: float, lon1: float, lat2: float, lon2: float) -> tuple[int, float]:
+    """Return (road_km, drive_hours) via OSRM with realistic hill/highway fallback."""
+    import requests
+    try:
+        url = f"http://router.project-osrm.org/route/v1/driving/{lon1},{lat1};{lon2},{lat2}?overview=false"
+        resp = requests.get(url, timeout=3)
+        if resp.status_code == 200:
+            data = resp.json()
+            if data.get("code") == "Ok" and data.get("routes"):
+                rt = data["routes"][0]
+                km = max(1, int(round(rt["distance"] / 1000.0)))
+                hrs = round(max(0.3, rt["duration"] / 3600.0), 1)
+                return km, hrs
+    except Exception:
+        pass
+    air_km = _haversine_hub_km(lat1, lon1, lat2, lon2)
+    road_km = max(1, int(round(air_km * 1.4)))
+    hrs = round(max(0.3, road_km / 42.0), 1)
+    return road_km, hrs
+
+
 def resolve_location_hubs(city_name: str) -> dict:
     """
     Resolve commercial airport, railway junction, and bus terminal for ANY Indian location.
-    If location has no airport or railway, returns nearest verified commercial hub + transfer distance & cab cost.
+    If location has no airport or railway, returns nearest verified commercial hub + OSRM transfer distance & cab cost.
     """
     c_clean = city_name.strip().lower()
 
@@ -550,21 +706,42 @@ def resolve_location_hubs(city_name: str) -> dict:
                 "bus_terminal_name": f"{city_name.title()} Central Bus Terminal"
             }
 
-    # 3. Dynamic Fallback: Query nearest hub from national datasets if available
+    # 3. Dynamic Pan-India Geospatial Fallback: geocode & find nearest real airport + railhead + OSRM transfer
+    from backend.agents_models.coord_resolver import resolve_destination_coords
+    lat, lon = resolve_destination_coords(city_name)
+
+    best_air = min(INDIAN_COMMERCIAL_AIRPORTS, key=lambda a: _haversine_hub_km(lat, lon, a[2], a[3]))
+    air_km_straight = _haversine_hub_km(lat, lon, best_air[2], best_air[3])
+    has_airport = air_km_straight <= 35.0
+    if has_airport:
+        air_dist_km, air_hrs, air_cab = 0, 0, 0
+    else:
+        air_dist_km, air_hrs = _osrm_transfer(lat, lon, best_air[2], best_air[3])
+        air_cab = max(500, int(round(air_dist_km * 22)))
+
+    best_rail = min(INDIAN_RAIL_JUNCTIONS, key=lambda r: _haversine_hub_km(lat, lon, r[2], r[3]))
+    rail_km_straight = _haversine_hub_km(lat, lon, best_rail[2], best_rail[3])
+    has_rail = rail_km_straight <= 25.0
+    if has_rail:
+        rail_dist_km, rail_hrs, rail_cab = 0, 0, 0
+    else:
+        rail_dist_km, rail_hrs = _osrm_transfer(lat, lon, best_rail[2], best_rail[3])
+        rail_cab = max(400, int(round(rail_dist_km * 20)))
+
     return {
         "name": city_name.title(),
-        "has_airport": False,
-        "nearest_airport_name": f"Nearest Regional Airport to {city_name.title()}",
-        "nearest_airport_code": "DEL" if any(x in c_clean for x in ["north", "uttar", "haryana", "punjab"]) else "BLR",
-        "airport_dist_km": 75,
-        "airport_transfer_hours": 2.0,
-        "airport_transfer_cab_cost": 1600,
-        "has_railway": True,
-        "nearest_station_name": f"{city_name.title()} Railway Station",
-        "nearest_station_code": city_name[:4].upper() if len(city_name) >= 4 else "NDLS",
-        "rail_dist_km": 0,
-        "rail_transfer_hours": 0,
-        "rail_transfer_cab_cost": 0,
+        "has_airport": has_airport,
+        "nearest_airport_name": best_air[0],
+        "nearest_airport_code": best_air[1],
+        "airport_dist_km": air_dist_km,
+        "airport_transfer_hours": air_hrs,
+        "airport_transfer_cab_cost": air_cab,
+        "has_railway": has_rail,
+        "nearest_station_name": best_rail[0],
+        "nearest_station_code": best_rail[1],
+        "rail_dist_km": rail_dist_km,
+        "rail_transfer_hours": rail_hrs,
+        "rail_transfer_cab_cost": rail_cab,
         "has_bus": True,
         "bus_terminal_name": f"{city_name.title()} Interstate Bus Terminal"
     }
