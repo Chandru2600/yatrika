@@ -27,17 +27,55 @@ def fetch_flight_fares(source: str, dest: str, dist_km: float, travelers: int = 
     dst_iata = dst_hub["nearest_airport_code"]
     api_used = False
 
-    if FLIGHT_API_KEY:
+    api_key = os.getenv("FLIGHT_API_KEY") or FLIGHT_API_KEY
+    api_schedules = []
+    live_zero_direct = False
+
+    if api_key and dist_km >= 160 and {src_iata, dst_iata} != {"BLR", "MYQ"}:
         try:
-            headers = {
-                "X-RapidAPI-Key": FLIGHT_API_KEY,
-                "X-RapidAPI-Host": "flight-api.p.rapidapi.com"
-            }
-            params = {"origin": src_iata, "destination": dst_iata}
-            resp = requests.get(FLIGHT_API_URL, headers=headers, params=params, timeout=5)
+            resp = requests.get(
+                "http://api.aviationstack.com/v1/flights",
+                params={"access_key": api_key, "dep_iata": src_iata, "arr_iata": dst_iata, "limit": 5},
+                timeout=5,
+            )
             if resp.status_code == 200:
-                data = resp.json()
-                if data.get("flights"):
+                payload = resp.json()
+                flights = payload.get("data") or []
+                total_found = (payload.get("pagination") or {}).get("total", len(flights))
+                if total_found == 0 and not flights:
+                    live_zero_direct = True
+                for fl in flights[:4]:
+                    air = fl.get("airline") or {}
+                    f_info = fl.get("flight") or {}
+                    dep_info = fl.get("departure") or {}
+                    arr_info = fl.get("arrival") or {}
+                    dep_s = str(dep_info.get("scheduled") or "")
+                    arr_s = str(arr_info.get("scheduled") or "")
+                    dep_hhmm = dep_s[11:16] if len(dep_s) >= 16 else "08:30"
+                    arr_hhmm = arr_s[11:16] if len(arr_s) >= 16 else "11:00"
+                    try:
+                        dh, dm = map(int, dep_hhmm.split(":"))
+                        ah, am = map(int, arr_hhmm.split(":"))
+                        d_mins = (ah * 60 + am) - (dh * 60 + dm)
+                        if d_mins <= 0:
+                            d_mins += 24 * 60
+                        d_str = f"{d_mins // 60}h {d_mins % 60:02d}m"
+                    except Exception:
+                        d_str = "2h 15m"
+                    a_name = air.get("name") or "IndiGo"
+                    f_num = f_info.get("iata") or air.get("iata") or ""
+                    api_schedules.append({
+                        "airline": f"{a_name} ({src_iata} ➔ {dst_iata})" + (f" · {f_num}" if f_num else ""),
+                        "airline_code": air.get("iata") or "6E",
+                        "type": "Non-stop (Live AviationStack)",
+                        "departure": dep_hhmm,
+                        "arrival": arr_hhmm,
+                        "duration": d_str,
+                        "price_per_seat": None,
+                        "total": None,
+                        "baggage": "Cabin: 7kg, Check-in: 15kg included",
+                    })
+                if api_schedules:
                     api_used = True
         except Exception:
             pass
@@ -54,7 +92,7 @@ def fetch_flight_fares(source: str, dest: str, dist_km: float, travelers: int = 
         (dst_iata in _REGIONAL_HUB_ALLOWLIST and src_iata not in _REGIONAL_HUB_ALLOWLIST[dst_iata])
         or (src_iata in _REGIONAL_HUB_ALLOWLIST and dst_iata not in _REGIONAL_HUB_ALLOWLIST[src_iata])
     )
-    if dist_km < 160 or {src_iata, dst_iata} == {"BLR", "MYQ"} or no_direct_regional:
+    if dist_km < 160 or {src_iata, dst_iata} == {"BLR", "MYQ"} or no_direct_regional or live_zero_direct:
         return {
             "mode": "flight",
             "available": False,
@@ -99,7 +137,14 @@ def fetch_flight_fares(source: str, dest: str, dist_km: float, travelers: int = 
     total_cost = (fare_per_seat * travelers) + transfer_cab_fee
 
     dur_str = f"{flight_mins // 60}h {flight_mins % 60:02d}m"
-    schedules = [
+    if api_used and api_schedules:
+        for idx_s, s in enumerate(api_schedules):
+            p_seat = round(fare_per_seat * (1.0 if idx_s == 0 else (1.04 if idx_s == 1 else 0.96)))
+            s["price_per_seat"] = p_seat
+            s["total"] = (p_seat * travelers) + transfer_cab_fee
+        schedules = api_schedules
+    else:
+        schedules = [
         {
             "airline": f"IndiGo ({src_iata} ➔ {dst_iata})",
             "airline_code": "6E",
