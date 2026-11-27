@@ -8,12 +8,12 @@ from backend.services.weather.weather_service import get_forecast
 @pytest.mark.parametrize(
     "source,dest,mode,days,trav,budget",
     [
-        ("Bengaluru", "Coorg", "bus", 3, 2, 30000),
-        ("Bengaluru", "Mysuru", "train", 2, 2, 15000),
-        ("Bengaluru", "Shimla", "flight", 4, 2, 30000),
-        ("Bengaluru", "Varanasi", "train", 4, 2, 30000),
-        ("Bengaluru", "Agra", "bus", 4, 2, 30000),
-        ("Mangaluru", "Hampi", "car", 4, 3, 50000),
+        ("Pune", "Udaipur", "train", 3, 2, 28000),
+        ("Kolkata", "Darjeeling", "train", 4, 2, 32000),
+        ("Chennai", "Pondicherry", "bus", 2, 2, 14000),
+        ("Hyderabad", "Rishikesh", "flight", 4, 2, 40000),
+        ("Ahmedabad", "Jaisalmer", "bus", 3, 3, 35000),
+        ("Delhi", "Gangtok", "flight", 5, 2, 48000),
     ],
 )
 def test_pan_india_pipeline_invariants(source, dest, mode, days, trav, budget):
@@ -44,7 +44,7 @@ def test_pan_india_pipeline_invariants(source, dest, mode, days, trav, budget):
 
 
 def test_open_meteo_daily_minmax_forecast():
-    fc = get_forecast("Agra", days=4)
+    fc = get_forecast("Udaipur", days=4)
     assert fc.get("forecast")
     day0 = fc["forecast"][0]
     assert "temp_min" in day0 and "temp_max" in day0
