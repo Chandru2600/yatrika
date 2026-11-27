@@ -248,14 +248,48 @@ def build_timeline(trip: dict) -> dict:
     # Normalize selected sights
     raw_sights = trip.get("selected_attractions") or []
     sights = []
-    _TREK_KEYWORDS = ("trek", "peak", "tadiandamol", "tadiyandmol", "kudremukh", "mullayanagiri", "triund", "kedarkantha")
+    _TREK_KEYWORDS = (
+        "trek", "peak", "tadiandamol", "tadiyandmol", "kudremukh",
+        "mullayanagiri", "triund", "kedarkantha", "kumara parvatha",
+        "brahmagiri", "chembra", "kodachadri", "skandagiri"
+    )
+    _KNOWN_TREK_KM = {
+        "kudremukh": 22.0,
+        "kumara parvatha": 22.0,
+        "kedarkantha": 20.0,
+        "triund": 18.0,
+        "tadiandamol": 16.0,
+        "tadiyandmol": 16.0,
+        "brahmagiri": 16.0,
+        "kodachadri": 14.0,
+        "mullayanagiri": 12.0,
+        "chembra": 12.0,
+    }
     for a in raw_sights:
         lat = float(a["lat"]) if a.get("lat") is not None else None
         lon = float(a["lon"]) if a.get("lon") is not None else None
         dur_m = _parse_duration_mins(a.get("dur") or a.get("duration_mins") or 120, 120)
         s_name = a.get("name", "Sight")
-        if any(tk in s_name.lower() for tk in _TREK_KEYWORDS):
-            dur_m = max(dur_m, 360)  # Treks/peaks require >= 6h, never 1h viewpoint
+        s_low = s_name.lower()
+        if any(tk in s_low for tk in _TREK_KEYWORDS):
+            trek_km = float(a.get("trek_km") or a.get("round_trip_km") or 0)
+            if not trek_km:
+                for k, km_val in _KNOWN_TREK_KM.items():
+                    if k in s_low:
+                        trek_km = km_val
+                        break
+            if not trek_km:
+                m_km = re.search(r"(\d+(?:\.\d+)?)\s*km", s_low)
+                if m_km:
+                    trek_km = float(m_km.group(1))
+            if trek_km > 20.0:
+                dur_m = max(dur_m, 450)  # > 20km round trip -> 7.5h
+            elif trek_km > 15.0:
+                dur_m = max(dur_m, 360)  # > 15km round trip -> 6h
+            elif trek_km > 10.0:
+                dur_m = max(dur_m, 300)  # > 10km round trip -> 5h
+            else:
+                dur_m = max(dur_m, 300)  # Default trek/peak minimum -> 5h
         sights.append({
             "id": a.get("id", ""),
             "name": s_name,

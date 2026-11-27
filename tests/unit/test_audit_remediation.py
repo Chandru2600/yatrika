@@ -169,3 +169,23 @@ def test_hampi_no_ixe_vdy_flight_and_sunset_placed_last():
         ],
     })
     assert tl["days"][0]["sights"][-1]["name"] == "Anjanadri Hills Sunset Point"
+
+
+def test_trek_duration_tiers_by_round_trip_km():
+    from backend.services.itinerary.timeline_builder import build_timeline
+    base = {
+        "source": "Bengaluru",
+        "destination": "Chikmagalur",
+        "num_days": 3,
+        "num_travelers": 2,
+        "budget": 25000,
+        "transport": "car",
+        "stay": {"name": "Base Camp", "price_per_night": 2500, "lat": 13.31, "lon": 75.77},
+        "transit": {"mode": "car", "title": "Sedan", "fare_per_person": 2000, "departure": "06:00", "duration_mins": 120, "distance_km": 240},
+    }
+    tl1 = build_timeline({**base, "selected_attractions": [{"id": "t1", "name": "Mullayanagiri Peak", "trek_km": 12, "dur": 60, "fee": 0, "lat": 13.39, "lon": 75.72}]})
+    tl2 = build_timeline({**base, "selected_attractions": [{"id": "t2", "name": "Tadiandamol Peak", "trek_km": 16, "dur": 60, "fee": 0, "lat": 13.35, "lon": 75.74}]})
+    tl3 = build_timeline({**base, "selected_attractions": [{"id": "t3", "name": "Kudremukh Trek", "trek_km": 22, "dur": 60, "fee": 0, "lat": 13.33, "lon": 75.75}]})
+    assert [s for d in tl1["days"] for s in d["sights"]][0]["dur_mins"] == 300
+    assert [s for d in tl2["days"] for s in d["sights"]][0]["dur_mins"] == 360
+    assert [s for d in tl3["days"] for s in d["sights"]][0]["dur_mins"] == 450
