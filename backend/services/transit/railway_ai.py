@@ -675,18 +675,49 @@ def fetch_railway_ai_fares(source: str, dest: str, dist_km: float, travelers: in
     dst_code = dst_hub["nearest_station_code"].upper()
     api_used = False
 
-    # 1. External Rail API Check (if user configured API key)
-    if RAILWAY_AI_API_KEY:
+    api_key = os.getenv("RAILWAY_AI_API_KEY") or os.getenv("RAPIDAPI_KEY") or RAILWAY_AI_API_KEY
+    api_schedules = []
+
+    # 1. Live IRCTC RapidAPI Check (irctc1.p.rapidapi.com)
+    if api_key:
         try:
             headers = {
-                "X-RapidAPI-Key": RAILWAY_AI_API_KEY,
-                "X-RapidAPI-Host": "railway-ai.p.rapidapi.com"
+                "X-RapidAPI-Key": api_key,
+                "X-RapidAPI-Host": os.getenv("RAILWAY_RAPIDAPI_HOST", "irctc1.p.rapidapi.com"),
             }
-            params = {"fromStation": src_code, "toStation": dst_code}
-            resp = requests.get(RAILWAY_AI_URL, headers=headers, params=params, timeout=4)
+            url = os.getenv("RAILWAY_AI_URL", "https://irctc1.p.rapidapi.com/api/v3/trainBetweenStations")
+            params = {"fromStationCode": src_code, "toStationCode": dst_code}
+            resp = requests.get(url, headers=headers, params=params, timeout=5)
             if resp.status_code == 200:
-                data = resp.json()
-                if data.get("success") and data.get("trains"):
+                payload = resp.json()
+                raw_trains = payload.get("data") or payload.get("trains") or []
+                for t in raw_trains[:5]:
+                    t_num = str(t.get("train_number") or t.get("trainNo") or "").strip()
+                    t_name = str(t.get("train_name") or t.get("trainName") or "Express Train").strip()
+                    dep = str(t.get("from_std") or t.get("departureTime") or "06:30")[:5]
+                    arr = str(t.get("to_sta") or t.get("arrivalTime") or "12:00")[:5]
+                    dur_raw = str(t.get("duration") or "5:00")
+                    if ":" in dur_raw and "h" not in dur_raw:
+                        dh, dm = dur_raw.split(":")[:2]
+                        dur_str = f"{int(dh)}h {int(dm):02d}m"
+                    else:
+                        dur_str = dur_raw
+                    cls_codes = t.get("class_type") or ["SL", "3A", "2A"]
+                    api_schedules.append({
+                        "train_number": t_num or "IRCTC",
+                        "train_name": t_name,
+                        "train_type": str(t.get("train_type") or "IRCTC Express"),
+                        "departure": dep,
+                        "arrival": arr,
+                        "duration": dur_str,
+                        "runs_on": ", ".join(t.get("run_days", [])) if isinstance(t.get("run_days"), list) else "Check IRCTC",
+                        "origin_station": f"{t.get('from_station_name', src_hub['nearest_station_name'])} ({src_code})",
+                        "dest_station": f"{t.get('to_station_name', dst_hub['nearest_station_name'])} ({dst_code})",
+                        "classes_info": [{"code": c, "name": c, "fare": None, "status": "Live IRCTC"} for c in cls_codes],
+                        "fare_per_seat": None,
+                        "is_direct": True,
+                    })
+                if api_schedules:
                     api_used = True
         except Exception:
             pass
@@ -745,7 +776,15 @@ def fetch_railway_ai_fares(source: str, dest: str, dist_km: float, travelers: in
         corridor_key = ("CSMT", "MAO")
 
     schedules = []
-    if corridor_key in VERIFIED_IRCTC_CORRIDORS:
+    if api_used and api_schedules:
+        for s in api_schedules:
+            for ci in s.get("classes_info", []):
+                if ci.get("fare") is None:
+                    ci["fare"] = calc_irctc_app_fare(ci.get("code", "SL"))
+            if s.get("fare_per_seat") is None:
+                s["fare_per_seat"] = s["classes_info"][0]["fare"] if s.get("classes_info") else fare_per_seat
+        schedules = api_schedules
+    elif corridor_key in VERIFIED_IRCTC_CORRIDORS:
         schedules = list(VERIFIED_IRCTC_CORRIDORS[corridor_key])
     else:
         # Check if 2-Train Connecting Alternative exists
