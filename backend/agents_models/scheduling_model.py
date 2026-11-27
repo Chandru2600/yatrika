@@ -53,7 +53,9 @@ BARE_GENERIC_NAMES = {
     "unknown", "unnamed", "place", "site", "heritage site", "tourist spot", "tourist attraction",
     "scenic spot", "scenic point", "point", "hill", "peak", "river", "forest", "safari",
     "gate", "arch", "tomb", "dome", "tank", "pool", "top", "home", "reef", "memorial",
-    "attraction", "sights", "sightseeing"
+    "attraction", "sights", "sightseeing", "hanging bridge", "bridge",
+    "ridge point", "toy train", "vintage cars", "cliff jumping point",
+    "temple elephant bathing", "banaras locomotive works", "free view point",
 }
 
 def is_generic_or_placeholder_name(name: str) -> bool:
@@ -187,8 +189,10 @@ class ItinerarySchedulingModel:
                 seen_sight_keys = set()
                 is_coorg = any(k in dest_lower for k in ("coorg", "kodagu", "madikeri"))
                 is_mysuru = any(k in dest_lower for k in ("mysuru", "mysore"))
-                _COORG_OUT = ("bekal", "kannur", "kasaragod", "wayanad", "thalassery", "mysore", "mysuru", "ooty", "bangalore", "bengaluru", "hassan", "belur", "chikmagalur", "thirunelli")
+                is_agra = "agra" in dest_lower
+                _COORG_OUT = ("bekal", "kannur", "kasaragod", "wayanad", "thalassery", "mysore", "mysuru", "ooty", "bangalore", "bengaluru", "hassan", "belur", "chikmagalur", "thirunelli", "kukke", "subramanya")
                 _MYSURU_OUT = ("bangalore", "bengaluru", "coorg", "kodagu", "madikeri", "ooty", "wayanad", "hampi", "chikmagalur", "shravanabelagola", "hassan", "belur")
+                _AGRA_OUT = ("chausath khamba", "new delhi", "delhi")
                 for idx, (_, row) in enumerate(sub.iterrows()):
                     nm = str(row["Name"]).strip()
                     if is_generic_or_placeholder_name(nm):
@@ -199,6 +203,8 @@ class ItinerarySchedulingModel:
                     if is_coorg and (any(b in nm_low or b in city_low for b in _COORG_OUT) or "kerala" in state_low):
                         continue
                     if is_mysuru and (any(b in nm_low or b in city_low for b in _MYSURU_OUT) or "kerala" in state_low or "tamil nadu" in state_low):
+                        continue
+                    if is_agra and any(b in nm_low or b in city_low for b in _AGRA_OUT):
                         continue
                     import re as _re
                     dedup_key = _re.sub(r"[^a-z0-9]", "", nm_low.replace("iruppu", "irupu").replace("abbi", "abbey"))[:16]
@@ -236,6 +242,33 @@ class ItinerarySchedulingModel:
                     dist_km = round(float(row.get("calc_dist", 8.0)) * 1.25, 1)
                     rating = round(float(row.get("Google Review Rating", 4.5)), 1)
                     fee = int(float(row.get("Entrance Fee in INR", 0)))
+                    # Pan-India category duration & fee normalization
+                    rt_low = raw_type.lower()
+                    if any(k in nm_low or k in rt_low for k in ("trek", "peak", "trail")) and "viewpoint" not in nm_low:
+                        dur_hrs = max(dur_hrs, 4.0)
+                    elif any(k in nm_low or k in rt_low for k in ("palace", "museum")) and "city palace" not in nm_low:
+                        dur_hrs = min(max(dur_hrs, 0.75), 1.5)
+                    if any(k in nm_low or k in rt_low for k in ("temple", "church", "mosque", "gurudwara", "shrine", "ghat", "viewpoint")) and not any(k in nm_low for k in ("unesco", "asi", "safari", "national park")):
+                        if fee > 30:
+                            fee = 0
+                    if "tadiandamol" in nm_low or "tadiyandmol" in nm_low:
+                        fee = max(fee, 250)
+                        dur_hrs = max(dur_hrs, 6.0)
+                    elif "nalknad" in nm_low:
+                        fee = 10 if fee >= 100 else fee
+                        dur_hrs = min(dur_hrs, 0.75)
+                    elif "virupaksha" in nm_low:
+                        fee = 0
+                    elif "belur" in nm_low or "chennakeshava" in nm_low:
+                        fee = 0
+                    elif "mullayanagiri" in nm_low or "mullayyanagiri" in nm_low:
+                        fee = 0
+                    elif "agra fort" in nm_low:
+                        fee = 50
+                    elif "taj mahal" in nm_low:
+                        fee = 50
+                        if str(row.get("Closed Days", "None")).strip().lower() in ("none", ""):
+                            closed_days = "Friday"
                     last_verified = str(row.get("last_verified", "")).strip() or "2026-01-15"
                     closed_days = str(row.get("Closed Days", "None")).strip()
 
@@ -366,6 +399,8 @@ class ItinerarySchedulingModel:
             # Feed real OSRM road geometry and drive durations into day schedule
             pois_for_route = [morning_poi, afternoon_poi, evening_poi]
             day_route = build_day_route(stay_info, pois_for_route)
+            day_route["day"] = day
+            day_route["day_number"] = day
             legs = day_route.get("legs", [])
 
             leg0_dur = legs[0].get("duration_minutes", 20) if len(legs) > 0 else 20

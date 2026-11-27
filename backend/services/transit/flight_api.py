@@ -93,10 +93,21 @@ def fetch_flight_fares(source: str, dest: str, dist_km: float, travelers: int = 
         or (src_iata in _REGIONAL_HUB_ALLOWLIST and dst_iata not in _REGIONAL_HUB_ALLOWLIST[src_iata])
     )
     if dist_km < 160 or {src_iata, dst_iata} == {"BLR", "MYQ"} or no_direct_regional or live_zero_direct:
+        is_short = dist_km < 160
+        title_msg = (
+            "No direct flights for this short-distance route"
+            if is_short
+            else f"No direct commercial flights ({src_iata} → {dst_iata}); road/rail or nearest-hub transfer required"
+        )
+        notice_msg = (
+            f"No commercial flights needed/available for a {dist_km} km route."
+            if is_short
+            else f"No direct commercial flights between {source} and {dest} ({dist_km} km). Use road, rail, or fly to nearest major airport + cab."
+        )
         return {
             "mode": "flight",
             "available": False,
-            "mode_title": "No direct flights for this short-distance route",
+            "mode_title": title_msg,
             "api_source": "Route Distance Gate",
             "airline": "Not available",
             "departure_airport": src_hub.get("nearest_airport_name", source),
@@ -111,9 +122,9 @@ def fetch_flight_fares(source: str, dest: str, dist_km: float, travelers: int = 
             "total_cost": 0,
             "class_tiers": [],
             "schedules": [],
-            "location_notice": f"No commercial flights needed/available for a {dist_km} km route.",
+            "location_notice": notice_msg,
             "has_direct_hub": False,
-            "details_summary": "No commercial flights available for short-distance route"
+            "details_summary": title_msg
         }
 
     air_dist = max(dist_km * 0.72, 120)

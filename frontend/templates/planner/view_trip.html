@@ -449,6 +449,59 @@
       max-height: calc(100vh - 128px) !important;
     }
   }
+  .dossier-cards-scroll-wrap {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .trip-hero-card {
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 55%, #0D4F56 100%);
+    color: #F8FAFC;
+    border-radius: 20px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+  }
+  .trip-hero-kpi {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 12px 14px;
+    height: 100%;
+  }
+  .tl-rail {
+    position: relative;
+    padding-left: 24px;
+    border-left: 2px solid #CBD5E1;
+    margin-left: 10px;
+  }
+  .tl-item {
+    position: relative;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    transition: all 0.18s ease;
+  }
+  .tl-item:hover {
+    border-color: #0284C7;
+    background: #F0F9FF;
+  }
+  .tl-dot {
+    position: absolute;
+    left: -33px;
+    top: 14px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #0D9488;
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 0 0 2px #CBD5E1;
+  }
+  .tl-dot.tl-travel { background: #0284C7; }
+  .tl-dot.tl-food { background: #F59E0B; }
+  .tl-dot.tl-hotel { background: #8B5CF6; }
+  .tl-dot.tl-leisure { background: #94A3B8; }
 </style>
 {% endblock %}
 
@@ -520,307 +573,138 @@
     {% set per_person_fare = (budget_sum / trav)|round|int %}
     {% set t_mode = (trip.transport or 'transit')|upper %}
 
-    <div class="dossier-boarding-pass shadow-2xl" id="dossierTicket">
-      <!-- Left: Main Boarding Pass (72%) -->
-      <div class="ticket-main-body">
-        <!-- Header: Operator & Draft Status -->
-        <div class="ticket-header-row">
-          <div class="ticket-airline-brand">
-            <i class="bi {% if 'FLIGHT' in t_mode or 'AIR' in t_mode %}bi-airplane-engines-fill{% elif 'TRAIN' in t_mode %}bi-train-front-fill{% else %}bi-bus-front-fill{% endif %} text-turquoise fs-5"></i>
-            <span class="ticket-brand-text">YATRIKA TRIP ITINERARY</span>
-            <span class="ticket-carrier-pill">ESTIMATED PLAN</span>
+    {% set tl_obj = itinerary.get("timeline") if itinerary is mapping else None %}
+    {% set tl_budget = tl_obj.get("budget") if tl_obj is mapping else None %}
+    {% set tl_transit = tl_obj.get("transit") if tl_obj is mapping else None %}
+    {% set attractions = itinerary.get("selected_attractions", []) if itinerary is mapping else [] %}
+    {% set disp_total = (tl_budget.group_total if tl_budget else budget_sum)|round|int %}
+    {% set disp_pp = (tl_budget.per_person_total if tl_budget else per_person_fare)|round|int %}
+    {% set disp_dur = tl_transit.duration_label if (tl_transit and tl_transit.duration_label) else (transit_dur ~ 'h') %}
+    {% set disp_dist = tl_transit.distance_km if (tl_transit and tl_transit.distance_km) else transit_dist %}
+    {% set disp_mode_title = tl_transit.title if (tl_transit and tl_transit.title) else transit_title %}
+
+    <div class="trip-hero-card" id="dossierTicket">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(20, 184, 166, 0.2); color: #5EEAD4; font-size: 0.72rem;">
+              <i class="bi bi-compass-fill me-1"></i>YATRIKA EXPEDITION PLAN
+            </span>
+            <span class="badge rounded-pill bg-white bg-opacity-10 text-white-50 px-2 py-1" style="font-size: 0.72rem;">DRAFT #{{ trip.id }}</span>
+            {% if tl_budget %}
+            <span class="badge rounded-pill px-2 py-1 fw-bold" style="background: {{ 'rgba(245, 158, 11, 0.2)' if tl_budget.is_over_target else 'rgba(16, 185, 129, 0.2)' }}; color: {{ '#FCD34D' if tl_budget.is_over_target else '#6EE7B7' }}; font-size: 0.72rem;">
+              {{ tl_budget.budget_status_label }} (Target ₹{{ "{:,.0f}".format(tl_budget.budget_target) }})
+            </span>
+            {% endif %}
           </div>
-          <div class="ticket-pnr-badge">
-            <span class="pnr-lbl">STATUS</span>
-            <span class="pnr-code">DRAFT #{{ trip.id }}</span>
+          <h2 class="fw-extrabold mb-1 text-white" style="font-size: 1.75rem; letter-spacing: -0.02em;">
+            {{ src_city }} <span class="text-info">→</span> {{ dest_city }}
+          </h2>
+          <div class="text-white-50 small">
+            {% if trip.start_date %}{{ trip.start_date }} to {{ trip.end_date }} · {% endif %}{{ trip.num_days }} Days / {{ nights }} Nights · {{ trav }} Traveler{{ 's' if trav > 1 else '' }}
           </div>
         </div>
 
-        <!-- Route Corridor -->
-        <div class="ticket-corridor-row">
-          <div class="corridor-station origin-station">
-            <div class="station-code">{{ src_code }}</div>
-            <div class="station-city">{{ src_city }}</div>
-            <div class="station-sub"><i class="bi bi-geo-alt-fill text-turquoise me-1"></i>Origin Terminal</div>
-          </div>
-
-          <div class="corridor-path-wrapper">
-            <div class="corridor-duration-badge">
-              <i class="bi bi-clock-history me-1"></i>{{ transit_dur }}h Direct Transit · ~{{ transit_dist }} km
+        <div class="d-flex flex-column align-items-md-end gap-2">
+          <div class="text-md-end">
+            <div class="text-white-50 extra-small text-uppercase fw-bold">Estimated Trip Cost</div>
+            <div class="d-flex align-items-baseline gap-2 justify-content-md-end">
+              <span class="fs-3 fw-extrabold text-white" id="stubTotalFare">₹{{ "{:,.0f}".format(disp_total) }}</span>
+              <span class="small text-info fw-semibold">(<span id="stubPerPersonFare">₹{{ "{:,.0f}".format(disp_pp) }}</span>/person)</span>
             </div>
-            <div class="corridor-flight-line">
-              <div class="corridor-dot start-dot"></div>
-              <div class="corridor-track"></div>
-              <div class="corridor-transit-icon">
-                <i class="bi {% if 'FLIGHT' in t_mode or 'AIR' in t_mode %}bi-airplane-fill{% elif 'TRAIN' in t_mode %}bi-train-front-fill{% else %}bi-bus-front-fill{% endif %}"></i>
-              </div>
-              <div class="corridor-track"></div>
-              <div class="corridor-dot end-dot"></div>
-            </div>
-            <div class="corridor-mode-pill">
-              {{ transit_title }}
-            </div>
           </div>
-
-          <div class="corridor-station dest-station text-end">
-            <div class="station-code text-turquoise">{{ dest_code }}</div>
-            <div class="station-city">{{ dest_city }}</div>
-            <div class="station-sub"><i class="bi bi-flag-fill text-coral me-1"></i>Base Camp Gate</div>
-          </div>
-        </div>
-
-        <!-- Specs Row -->
-        <div class="ticket-specs-row">
-          <div class="spec-col">
-            <div class="spec-lbl">Travel Dates</div>
-            <div class="spec-val">{% if trip.start_date %}{{ trip.start_date }} → {{ trip.end_date }}{% else %}Dates not set{% endif %}</div>
-          </div>
-          <div class="spec-col">
-            <div class="spec-lbl">Duration</div>
-            <div class="spec-val">{{ trip.num_days }} Days · {{ nights }} Nights</div>
-          </div>
-          <div class="spec-col">
-            <div class="spec-lbl">Travelers</div>
-            <div class="spec-val">{{ trav }} Traveler{{ 's' if trav > 1 else '' }} (Draft Plan)</div>
-          </div>
-          <div class="spec-col">
-            <div class="spec-lbl">Base Camp Stay</div>
-            <div class="spec-val text-truncate" style="max-width: 190px; color: #a7f3d0; font-weight: 700;" title="{{ stay_name }}">{{ stay_name }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Center: Perforated Tear-Off Divider with Cutout Notches -->
-      <div class="ticket-perforation-divider">
-        <div class="notch-cutout notch-top"></div>
-        <div class="perforation-dashed-line"></div>
-        <div class="notch-cutout notch-bottom"></div>
-      </div>
-
-      <!-- Right: Passenger Tear-off Stub (28%) -->
-      <!-- Right: Passenger Tear-off Stub (Compact 3-Action Dock) -->
-      <div class="ticket-stub-body">
-        <div class="stub-header">
-          <span class="stub-tag">PASSENGER STUB</span>
-          <span class="stub-class-badge">{% if 'FLIGHT' in t_mode %}ECONOMY PREMIER{% elif 'TRAIN' in t_mode %}EXECUTIVE CHAIR{% elif 'CAR' in t_mode or 'CAB' in t_mode %}PRIVATE CAB{% else %}DELUXE COACH{% endif %}</span>
-        </div>
-
-        <!-- Authentic SVG Vector QR Code Tile (Compact) -->
-        <div class="stub-qr-container">
-          <div class="stub-qr-box" style="width: 30px; height: 30px;">
-            <svg viewBox="0 0 33 33" width="26" height="26" fill="#07192F" xmlns="http://www.w3.org/2000/svg">
-              <rect x="0" y="0" width="11" height="11" rx="2" fill="#07192F"/>
-              <rect x="2" y="2" width="7" height="7" rx="1" fill="#FFFFFF"/>
-              <rect x="4" y="4" width="3" height="3" fill="#07192F"/>
-              <rect x="22" y="0" width="11" height="11" rx="2" fill="#07192F"/>
-              <rect x="24" y="2" width="7" height="7" rx="1" fill="#FFFFFF"/>
-              <rect x="26" y="4" width="3" height="3" fill="#07192F"/>
-              <rect x="0" y="22" width="11" height="11" rx="2" fill="#07192F"/>
-              <rect x="2" y="24" width="7" height="7" rx="1" fill="#FFFFFF"/>
-              <rect x="4" y="26" width="3" height="3" fill="#07192F"/>
-              <rect x="13" y="1" width="2" height="2"/>
-              <rect x="17" y="1" width="2" height="2"/>
-              <rect x="13" y="5" width="2" height="2"/>
-              <rect x="17" y="5" width="2" height="2"/>
-              <rect x="15" y="7" width="2" height="2"/>
-              <rect x="13" y="9" width="2" height="2"/>
-              <rect x="1" y="13" width="2" height="2"/>
-              <rect x="5" y="13" width="2" height="2"/>
-              <rect x="9" y="13" width="2" height="2"/>
-              <rect x="13" y="13" width="3" height="3"/>
-              <rect x="18" y="13" width="2" height="2"/>
-              <rect x="22" y="13" width="2" height="2"/>
-              <rect x="26" y="13" width="2" height="2"/>
-              <rect x="30" y="13" width="2" height="2"/>
-              <rect x="3" y="17" width="2" height="2"/>
-              <rect x="7" y="17" width="2" height="2"/>
-              <rect x="14" y="17" width="2" height="2"/>
-              <rect x="18" y="17" width="3" height="3"/>
-              <rect x="24" y="17" width="2" height="2"/>
-              <rect x="28" y="17" width="2" height="2"/>
-              <rect x="13" y="22" width="2" height="2"/>
-              <rect x="17" y="22" width="2" height="2"/>
-              <rect x="23" y="22" width="2" height="2"/>
-              <rect x="27" y="22" width="2" height="2"/>
-              <rect x="15" y="26" width="2" height="2"/>
-              <rect x="19" y="26" width="2" height="2"/>
-              <rect x="25" y="26" width="2" height="2"/>
-              <rect x="29" y="26" width="2" height="2"/>
-              <rect x="13" y="30" width="3" height="2"/>
-              <rect x="18" y="30" width="2" height="2"/>
-              <rect x="22" y="30" width="2" height="2"/>
-              <rect x="26" y="30" width="3" height="2"/>
-            </svg>
-          </div>
-          <div class="stub-pnr-micro font-monospace">TRIP SUMMARY</div>
-        </div>
-
-        <!-- Fare Block -->
-        <div class="stub-fare-block">
-          <div class="stub-fare-lbl">1-PERSON FARE</div>
-          <div class="stub-fare-val" id="stubPerPersonFare">₹{{ "{:,.0f}".format(per_person_fare) }}</div>
-          <div class="stub-fare-group">Per person rate (individual pass)</div>
-        </div>
-
-        <!-- Quick Action Dock: 3 Essential High-Priority Actions -->
-        <div class="stub-actions-dock">
-          <!-- 1. Download PDF Dossier (User choice: keep download) -->
-          <button type="button" class="btn-stub btn-save-trip btn-pdf-download" data-destination="{{ trip.destination }}" onclick="window.location.href='{{ url_for('planner.download_pdf', trip_id=trip.id) }}'" title="Download complete trip itinerary dossier as printable PDF">
-            <i class="bi bi-file-earmark-pdf-fill text-danger"></i> Download PDF Dossier
-          </button>
-
-          <!-- 2. WhatsApp Share (User choice: keep WhatsApp, Feature 5) -->
-          {% if whatsapp_share_url %}
-          <a href="{{ whatsapp_share_url }}" target="_blank" rel="noopener noreferrer" class="btn-stub btn-whatsapp-action" id="btnShareWhatsApp" title="Share travel itinerary to WhatsApp with live links">
-            <i class="bi bi-whatsapp"></i> Share on WhatsApp
-          </a>
-          {% endif %}
-
-          <!-- 3. Actionable Booking Hub (Feature 1 - Direct Stays & Transit Deep Links) -->
-          <div class="dropdown stub-booking-dropdown w-100">
-            <button class="btn-stub btn-booking-hub-toggle dropdown-toggle w-100" type="button" id="btnBookStaysTransit" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" title="Book verified stays, train seats, and bus tickets">
-              <i class="bi bi-ticket-perforated-fill"></i> Book Stays &amp; Transit
+          <div class="d-flex flex-wrap gap-2">
+            {% if not is_shared %}
+            <button type="button" class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3" id="btnSaveTripHero" data-bs-toggle="modal" data-bs-target="#saveModal">
+              <i class="bi bi-bookmark-heart-fill me-1"></i>Save Trip
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow-2xl p-2" id="bookingDropdownMenu" aria-labelledby="btnBookStaysTransit" style="min-width: 280px; border-radius: 14px; border: 1.5px solid #E2E8F0;">
-              <li class="dropdown-header text-uppercase fw-bold text-muted small px-3 py-1">Hotels &amp; Stays</li>
-              {% for h_link in (booking_links.hotels if booking_links else []) %}
-              <li>
-                <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 rounded-2" href="{{ h_link.url }}" target="_blank" rel="noopener noreferrer">
-                  <span><i class="bi {{ h_link.icon }} me-2 text-primary"></i>{{ h_link.name }}</span>
-                  <span class="badge bg-light text-dark border extra-small">{{ h_link.badge }}</span>
-                </a>
-              </li>
-              {% endfor %}
-              <li><hr class="dropdown-divider my-1"></li>
-              <li class="dropdown-header text-uppercase fw-bold text-muted small px-3 py-1">Trains</li>
-              {% for t_link in (booking_links.trains if booking_links else []) %}
-              <li>
-                <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 rounded-2" href="{{ t_link.url }}" target="_blank" rel="noopener noreferrer">
-                  <span><i class="bi {{ t_link.icon }} me-2 text-success"></i>{{ t_link.name }}</span>
-                  <span class="badge bg-light text-dark border extra-small">{{ t_link.badge }}</span>
-                </a>
-              </li>
-              {% endfor %}
-              <li><hr class="dropdown-divider my-1"></li>
-              <li class="dropdown-header text-uppercase fw-bold text-muted small px-3 py-1">Buses</li>
-              {% for b_link in (booking_links.buses if booking_links else []) %}
-              <li>
-                <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 rounded-2" href="{{ b_link.url }}" target="_blank" rel="noopener noreferrer">
-                  <span><i class="bi {{ b_link.icon }} me-2 text-danger"></i>{{ b_link.name }}</span>
-                  <span class="badge bg-light text-dark border extra-small">{{ b_link.badge }}</span>
-                </a>
-              </li>
-              {% endfor %}
-            </ul>
+            {% endif %}
+            <button type="button" class="btn btn-sm btn-light fw-bold rounded-pill px-3 btn-pdf-download" data-destination="{{ trip.destination }}" onclick="window.location.href='{{ url_for('planner.download_pdf', trip_id=trip.id) }}'">
+              <i class="bi bi-file-earmark-pdf-fill text-danger me-1"></i>PDF Dossier
+            </button>
+            {% if whatsapp_share_url %}
+            <a href="{{ whatsapp_share_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-success fw-bold rounded-pill px-3" id="btnShareWhatsApp">
+              <i class="bi bi-whatsapp me-1"></i>Share on WhatsApp
+            </a>
+            {% endif %}
+            <button type="button" class="btn btn-sm btn-outline-light fw-bold rounded-pill px-3" id="btnTransportDetails" data-bs-toggle="modal" data-bs-target="#transportDetailsModal">
+              <i class="bi bi-signpost-split-fill text-warning me-1"></i>Transport Details
+            </button>
+            <div class="dropdown stub-booking-dropdown" style="position: relative; z-index: 1080;">
+              <button class="btn btn-sm btn-info text-dark fw-bold rounded-pill px-3 dropdown-toggle" type="button" id="btnBookStaysTransit" aria-expanded="false">
+                <i class="bi bi-ticket-perforated-fill me-1"></i>Book Stays &amp; Transit
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-2xl p-2" id="bookingDropdownMenu" aria-labelledby="btnBookStaysTransit" style="min-width: 280px; border-radius: 14px; border: 1.5px solid #E2E8F0; position: absolute; right: 0; top: 100%; margin-top: 6px; z-index: 1090;">
+                <li class="dropdown-header text-uppercase fw-bold text-muted small px-3 py-1">Hotels &amp; Stays</li>
+                {% for h_link in (booking_links.hotels if booking_links else []) %}
+                <li>
+                  <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 rounded-2" href="{{ h_link.url }}" target="_blank" rel="noopener noreferrer">
+                    <span><i class="bi {{ h_link.icon }} me-2 text-primary"></i>{{ h_link.name }}</span>
+                    <span class="badge bg-light text-dark border extra-small">{{ h_link.badge }}</span>
+                  </a>
+                </li>
+                {% endfor %}
+                <li><hr class="dropdown-divider my-1"></li>
+                <li class="dropdown-header text-uppercase fw-bold text-muted small px-3 py-1">Trains</li>
+                {% for t_link in (booking_links.trains if booking_links else []) %}
+                <li>
+                  <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 rounded-2" href="{{ t_link.url }}" target="_blank" rel="noopener noreferrer">
+                    <span><i class="bi {{ t_link.icon }} me-2 text-success"></i>{{ t_link.name }}</span>
+                    <span class="badge bg-light text-dark border extra-small">{{ t_link.badge }}</span>
+                  </a>
+                </li>
+                {% endfor %}
+                <li><hr class="dropdown-divider my-1"></li>
+                <li class="dropdown-header text-uppercase fw-bold text-muted small px-3 py-1">Buses</li>
+                {% for b_link in (booking_links.buses if booking_links else []) %}
+                <li>
+                  <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 rounded-2" href="{{ b_link.url }}" target="_blank" rel="noopener noreferrer">
+                    <span><i class="bi {{ b_link.icon }} me-2 text-danger"></i>{{ b_link.name }}</span>
+                    <span class="badge bg-light text-dark border extra-small">{{ b_link.badge }}</span>
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-2 mt-1">
+        <div class="col-md-4">
+          <div class="trip-hero-kpi">
+            <div class="text-white-50 extra-small text-uppercase fw-bold mb-1"><i class="bi bi-house-heart-fill text-info me-1"></i>Base Camp Stay</div>
+            <div class="fw-bold text-white text-truncate" title="{{ stay_name }}">{{ stay_name }}</div>
+            <div class="extra-small text-white-50">₹{{ "{:,.0f}".format(stay_price|int) }}/night · Safety {{ stay_safety }}/10</div>
+            <div class="text-white-50" style="font-size: 0.68rem; opacity: 0.8;">*Prices may increase or decrease — contact hotel for exact rates</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="trip-hero-kpi" role="button" data-bs-toggle="modal" data-bs-target="#transportDetailsModal" style="cursor: pointer;" title="Click for step-by-step route &amp; transit details">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-white-50 extra-small text-uppercase fw-bold"><i class="bi bi-signpost-2-fill text-warning me-1"></i>Inter-City Transit</span>
+              <span class="badge bg-warning text-dark extra-small fw-bold">Route Details →</span>
+            </div>
+            <div class="fw-bold text-white text-truncate" title="{{ disp_mode_title }}">{{ disp_mode_title }}</div>
+            <div class="extra-small text-white-50">{{ disp_dur }} · {{ disp_dist }} km{% if tl_transit and tl_transit.fare_per_person %} · ₹{{ "{:,.0f}".format(tl_transit.fare_per_person) }}/pax (RT){% endif %}</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="trip-hero-kpi">
+            {% set fc0 = weather.forecast[0] if (weather and weather.forecast and weather.forecast|length > 0) else None %}
+            <div class="text-white-50 extra-small text-uppercase fw-bold mb-1"><i class="bi bi-cloud-sun-fill text-success me-1"></i>Local Weather &amp; Sights</div>
+            <div class="fw-bold text-white">
+              {% if fc0 and fc0.temp_max is defined %}
+                Day {{ fc0.temp_max|round|int }}°C / Night {{ fc0.temp_min|round|int }}°C · {{ fc0.description or 'Pleasant' }}
+              {% else %}
+                {{ weather.current.temperature if (weather and weather.current and weather.current.temperature is defined) else '24' }}°C · {{ weather.current.description if (weather and weather.current and weather.current.description is defined) else 'Pleasant' }}
+              {% endif %}
+            </div>
+            <div class="extra-small text-white-50">{{ attractions|length if attractions else trip.num_days * 3 }} Curated Sights · {{ trip.travel_style|title }} Style</div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- ══════ 2. THE 4-PILLAR EXPEDITION INTELLIGENCE SPOTLIGHT ══════ -->
-    <section class="bento-briefing-grid">
-      <!-- 1: Base Camp Stay -->
-      <div class="bento-briefing-card card-stay">
-        <div>
-          <div class="bento-card-badge">
-            <i class="bi bi-house-check-fill text-success"></i> Curated Sanctuary
-          </div>
-          <div class="bento-card-val text-truncate" title="{{ stay_name }}">
-            {{ stay_name }}
-          </div>
-          <div class="bento-card-desc mb-2 text-truncate" title="{{ stay_addr }}">
-            <i class="bi bi-geo-alt me-1 text-success"></i>{{ stay_addr|truncate(48) }}
-          </div>
-        </div>
-        <div class="bento-card-footer">
-          <span class="badge bg-success-subtle text-success border border-success-subtle small">
-            🛡️ Safety Index: {{ stay_safety }}/10
-          </span>
-          <span class="fw-bold text-success">
-            ₹{{ ((stay_price|int) / (trav or 1))|round|int }}<span class="text-muted small"> / person / day</span>
-          </span>
-        </div>
-        <div class="mt-2 pt-2 border-top d-flex gap-2 flex-wrap">
-          {% for h_link in (booking_links.hotels if booking_links else [])[:2] %}
-          <a href="{{ h_link.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success py-1 px-2 rounded-pill fw-semibold" style="font-size: 0.75rem;">
-            <i class="bi bi-box-arrow-up-right me-1"></i>{{ h_link.name }}
-          </a>
-          {% endfor %}
-        </div>
-      </div>
-
-      <!-- 2: Door-to-Door Transit -->
-      <div class="bento-briefing-card card-transit">
-        <div>
-          <div class="bento-card-badge">
-            <i class="bi bi-signpost-2-fill text-primary"></i> Connected Transit
-          </div>
-          <div class="bento-card-val text-truncate">
-            {{ transit_title }}
-          </div>
-          <div class="bento-card-desc mb-2">
-            {{ src_city }} ➔ {{ dest_city }} · ~{{ transit_dist }} km (~{{ transit_dur }} hrs)
-          </div>
-        </div>
-        <div class="bento-card-footer">
-          <span class="badge bg-info-subtle text-info border border-info-subtle small">Direct Corridor</span>
-          <span class="fw-bold text-primary">₹{{ transit_info.get("estimated_fare", 1250) if transit_info else 1250 }}<span class="text-muted small"> / seat</span></span>
-        </div>
-        <div class="mt-2 pt-2 border-top d-flex gap-2 flex-wrap">
-          {% for t_link in (booking_links.trains if booking_links else [])[:1] %}
-          <a href="{{ t_link.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary py-1 px-2 rounded-pill fw-semibold" style="font-size: 0.75rem;">
-            <i class="bi bi-box-arrow-up-right me-1"></i>{{ t_link.name }}
-          </a>
-          {% endfor %}
-          {% for b_link in (booking_links.buses if booking_links else [])[:1] %}
-          <a href="{{ b_link.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-danger py-1 px-2 rounded-pill fw-semibold" style="font-size: 0.75rem;">
-            <i class="bi bi-box-arrow-up-right me-1"></i>RedBus
-          </a>
-          {% endfor %}
-        </div>
-      </div>
-
-      <!-- 3: Financial & Expense Estimator -->
-      <div class="bento-briefing-card card-budget">
-        <div>
-          <div class="bento-card-badge">
-            <i class="bi bi-wallet2 text-warning"></i> Financial Blueprint
-          </div>
-          <div class="bento-card-val text-warning">
-            ₹{{ "{:,.0f}".format(per_person_fare) }} <span class="text-muted fs-6 fw-normal">/ traveler</span>
-          </div>
-          <div class="bento-card-desc mb-2">
-            Group Grand Total: ₹{{ "{:,.0f}".format(budget_sum|float) }} for {{ trav }} traveler{{ 's' if trav > 1 else '' }}.
-          </div>
-        </div>
-        <div class="bento-card-footer">
-          <span class="badge bg-success-subtle text-success border border-success-subtle small">
-            ✓ Stay-First Allocation
-          </span>
-          <span class="fw-bold text-secondary small">Target: ₹{{ "{:,.0f}".format(per_person_fare) }}</span>
-        </div>
-      </div>
-
-      <!-- 4: Sightseeing Footprint -->
-      {% set attractions = itinerary.get("selected_attractions", []) %}
-      <div class="bento-briefing-card card-sights">
-        <div>
-          <div class="bento-card-badge">
-            <i class="bi bi-compass-fill text-purple" style="color: #8B5CF6;"></i> Curated Sight Loops
-          </div>
-          <div class="bento-card-val">
-            {{ attractions|length if attractions else trip.num_days * 3 }} Verified Sights
-          </div>
-          <div class="bento-card-desc mb-2">
-            Grouped by proximity to your selected stay.
-          </div>
-        </div>
-        <div class="bento-card-footer">
-          <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">Curated Local Spots</span>
-          <span class="fw-bold small" style="color: #8B5CF6;">Estimated Costs</span>
-        </div>
-      </div>
-    </section>
 
     <!-- ── 3. Consolidated 4-Pillar Luxury Tab Navigation ─────────── -->
     <div class="pillar-tabs-container sticky-tabs-bar" id="itineraryTabs" role="tablist">
@@ -916,6 +800,55 @@
                 <span class="small fw-semibold" style="color: #64748B;">Anchored to Base Camp</span>
               </div>
 
+              {% set tl_days = tl_obj.get("days", []) if tl_obj is mapping else [] %}
+              {% if tl_days %}
+                {% if tl_obj.get("warnings") %}
+                <div class="alert alert-warning rounded-3 py-2 px-3 small mb-3">
+                  <i class="bi bi-info-circle-fill me-1"></i>
+                  {% for w in tl_obj.get("warnings", [])[:3] %}
+                    <div>{{ w }}</div>
+                  {% endfor %}
+                </div>
+                {% endif %}
+                {% for td in tl_days %}
+                <div class="daily-loop-card mb-4">
+                  <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom" style="border-color: #E2E8F0 !important;">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                      <span class="badge rounded-pill bg-turquoise text-dark fw-bold px-3 py-1">Day {{ td.day }}</span>
+                      <h5 class="fw-bold mb-0" style="color: #0F172A;">{{ td.date or ('Day ' ~ td.day ~ ' Schedule') }}</h5>
+                      {% if td.day_distance_km and td.day_distance_km > 0 %}
+                      <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 extra-small fw-semibold">
+                        🚗 {{ td.day_distance_km }} km local drive · {{ td.day_drive_label }}
+                      </span>
+                      {% endif %}
+                    </div>
+                    <span class="small fw-medium d-none d-sm-inline" style="color: #64748B;">
+                      <i class="bi bi-geo-alt me-1 text-turquoise"></i>{{ td.sights|length if td.sights else 0 }} sight{{ 's' if (td.sights|length if td.sights else 0) != 1 else '' }}
+                    </span>
+                  </div>
+                  <div class="tl-rail">
+                    {% for ev in td.get("events", []) %}
+                    <div class="tl-item {% if ev.type == 'attraction' %}activity-card-interactive{% endif %}" {% if ev.type == 'attraction' %}data-id="{{ ev.attractionId or '' }}" data-name="{{ ev.title|e }}" onclick="window.focusCardElementOnMap(this)"{% endif %}>
+                      <span class="tl-dot {% if ev.type == 'travel' %}tl-travel{% elif ev.type == 'food' %}tl-food{% elif ev.type == 'hotel' %}tl-hotel{% elif ev.type == 'leisure' %}tl-leisure{% endif %}"></span>
+                      <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+                        <div>
+                          <div class="extra-small fw-bold text-muted font-monospace">
+                            {{ ev.start_time }} – {{ ev.end_time }} · {{ ev.duration_label }}
+                            {% if ev.distance_km and ev.distance_km > 0 %} · <span class="text-primary">{{ ev.distance_km }} km</span>{% endif %}
+                          </div>
+                          <div class="fw-bold text-dark">{{ ev.icon }} {{ ev.title }}</div>
+                          <div class="extra-small text-muted">{{ ev.subtitle }}</div>
+                        </div>
+                        {% if ev.type == 'attraction' %}
+                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle extra-small">View on Map</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+                {% endfor %}
+              {% else %}
               {% set days_list = itinerary.get("days", []) %}
               {% if days_list %}
                 {% for d in days_list %}
@@ -1132,6 +1065,7 @@
                   {% endif %}
                 </div>
                 {% endfor %}
+              {% endif %}
               {% endif %}
             </div>
 
@@ -1749,6 +1683,108 @@
   </div>
 </div>
 
+<!-- Google Maps-Style Transport Details Modal -->
+<div class="modal fade" id="transportDetailsModal" tabindex="-1" aria-labelledby="transportDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+      <div class="modal-header text-white border-0" style="background: linear-gradient(135deg, #0F172A 0%, #0D4F56 100%);">
+        <div>
+          <span class="badge bg-warning text-dark fw-bold extra-small mb-1">DOOR-TO-DOOR TRANSIT ROUTE</span>
+          <h5 class="modal-title fw-bold mb-0" id="transportDetailsModalLabel">
+            {{ src_city }} <i class="bi bi-arrow-right text-info mx-1"></i> {{ stay_name }} ({{ dest_city }})
+          </h5>
+          <div class="extra-small text-white-50 mt-1">
+            {{ disp_mode_title }} · {{ disp_dist }} km · {{ disp_dur }}{% if tl_transit and tl_transit.fare_per_person %} · ₹{{ "{:,.0f}".format(tl_transit.fare_per_person) }}/person (Round-Trip){% endif %}
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4" style="background: #F8FAFC;">
+        {% if transit_info and transit_info.get("location_notice") %}
+        <div class="alert alert-info rounded-3 py-2 px-3 small mb-3">
+          <i class="bi bi-info-circle-fill me-1"></i>{{ transit_info.get("location_notice") }}
+        </div>
+        {% endif %}
+
+        <!-- Google Maps-style Step-by-Step Route Rail -->
+        <div class="bg-white p-3 p-md-4 rounded-4 border">
+          <div class="fw-bold text-navy small text-uppercase mb-3">
+            <i class="bi bi-map-fill text-primary me-1"></i>Outbound Journey (Where to Where &amp; How)
+          </div>
+          <div class="tl-rail">
+            <!-- Origin Step -->
+            <div class="tl-item">
+              <span class="tl-dot tl-hotel"></span>
+              <div class="extra-small fw-bold text-muted font-monospace">DEPART {{ tl_transit.departure if tl_transit else (transit_info.get("departure_time", "06:00") if transit_info else "06:00") }}</div>
+              <div class="fw-bold text-dark">📍 Origin: {{ src_city }} ({{ transit_info.get("origin_station", src_city) if transit_info else src_city }})</div>
+              <div class="extra-small text-muted">Board {{ disp_mode_title }} · Arrive 30 mins prior for smooth boarding</div>
+            </div>
+
+            <!-- Inter-City Legs -->
+            {% set t_legs = transit_info.get("legs", []) if transit_info else [] %}
+            {% if t_legs and t_legs is sequence and t_legs|length > 0 %}
+              {% for leg in t_legs %}
+              <div class="tl-item">
+                <span class="tl-dot tl-travel"></span>
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                  <div>
+                    <div class="extra-small fw-bold text-primary font-monospace">
+                      {{ leg.get("departure", "") }}{% if leg.get("arrival") %} – {{ leg.get("arrival") }}{% endif %}
+                      {% if leg.get("duration") %} · {{ leg.get("duration") }}{% endif %}
+                      {% if leg.get("distance_km") %} · {{ leg.get("distance_km") }} km{% endif %}
+                    </div>
+                    <div class="fw-bold text-dark">
+                      🚆 {{ leg.get("operator") or leg.get("train_name") or leg.get("airline") or leg.get("mode", disp_mode_title) }}
+                      {% if leg.get("train_number") %} ({{ leg.get("train_number") }}){% endif %}
+                    </div>
+                    <div class="extra-small text-muted">
+                      {{ leg.get("from", src_city) }} ➔ {{ leg.get("to", dest_city) }}
+                      {% if leg.get("type") %} · {{ leg.get("type") }}{% endif %}
+                      {% if leg.get("details") %} · {{ leg.get("details") }}{% endif %}
+                    </div>
+                  </div>
+                  {% if leg.get("fare_per_seat") or leg.get("fare_inr") %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    ₹{{ "{:,.0f}".format((leg.get("fare_per_seat") or leg.get("fare_inr"))|int) }}
+                  </span>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="tl-item">
+                <span class="tl-dot tl-travel"></span>
+                <div class="extra-small fw-bold text-primary font-monospace">{{ disp_dur }} · {{ disp_dist }} km</div>
+                <div class="fw-bold text-dark">🚆 {{ disp_mode_title }}</div>
+                <div class="extra-small text-muted">{{ src_city }} ➔ {{ dest_city }}</div>
+              </div>
+            {% endif %}
+
+            <!-- Arrival at Base Camp -->
+            <div class="tl-item mb-0">
+              <span class="tl-dot"></span>
+              <div class="extra-small fw-bold text-success font-monospace">ARRIVE {{ tl_transit.arrival if tl_transit else (transit_info.get("arrival_time", "") if transit_info else "") }}</div>
+              <div class="fw-bold text-dark">🏨 Base Camp: {{ stay_name }}</div>
+              <div class="extra-small text-muted">{{ stay_addr }}</div>
+            </div>
+          </div>
+
+          <hr class="my-3" />
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 small">
+            <div>
+              <span class="fw-bold text-dark">🔄 Return Journey (Day {{ trip.num_days }}):</span>
+              <span class="text-muted">{{ stay_name }} ➔ {{ src_city }} ({{ disp_dur }} · {{ disp_dist }} km)</span>
+            </div>
+            <a href="https://www.google.com/maps/dir/?api=1&origin={{ src_city|urlencode }}&destination={{ (stay_name ~ ', ' ~ dest_city)|urlencode }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary rounded-pill fw-semibold">
+              <i class="bi bi-google me-1"></i>Open in Google Maps
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Save Notes Modal -->
 <div class="modal fade" id="saveModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -1915,6 +1951,9 @@ const STYLE = "{{ trip.travel_style }}";
 {% if budget.breakdown %}
 const BUDGET_LABELS = {{ budget.breakdown.keys()|list|tojson }};
 const BUDGET_DATA   = {{ budget.breakdown.values()|map(attribute='amount')|list|tojson }};
+{% elif tl_budget %}
+const BUDGET_LABELS = ["accommodation", "transportation", "food_and_dining", "sightseeing_and_activities", "emergency_and_buffer"];
+const BUDGET_DATA   = [{{ tl_budget.stay_group|default(0) }}, {{ tl_budget.transit_group|default(0) }}, {{ tl_budget.food_group|default(0) }}, {{ tl_budget.entry_group|default(0) }}, {{ tl_budget.misc_group|default(0) }}];
 {% else %}
 const BUDGET_LABELS = [];
 const BUDGET_DATA   = [];
@@ -1971,5 +2010,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="{{ url_for('static', filename='js/trip_view.js') }}?v=1.3"></script>
 {% endblock %}

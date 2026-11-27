@@ -604,8 +604,8 @@ def build_connecting_train_alternative(src_station_code: str, dst_station_code: 
         }
         connecting_alternatives.append(conn_sched2)
 
-    # Route: Dharwad / Hubballi -> Mysuru (Gateway to Coorg / Wayanad)
-    elif dst_c == "MYS" or "coorg" in dst_hub.get("name", "").lower() or "madikeri" in dst_hub.get("name", "").lower():
+    # Route: Dharwad / Hubballi -> Mysuru (Gateway to Coorg / Wayanad) — ONLY from UBL/DWR/DVG
+    elif src_c in ("UBL", "DWR", "DVG") and (dst_c == "MYS" or "coorg" in dst_hub.get("name", "").lower() or "madikeri" in dst_hub.get("name", "").lower()):
         interchange_hub = "KSR Bengaluru Junction (SBC)"
         leg1 = {
             "leg_type": "train",
@@ -808,8 +808,8 @@ def fetch_railway_ai_fares(source: str, dest: str, dist_km: float, travelers: in
             schedules = [
                 {
                     "train_number": "Check IRCTC",
-                    "train_name": f"Express Train ({src_code} → {dst_code})",
-                    "train_type": "Superfast Express (Estimated)",
+                    "train_name": f"Connecting Rail via Hub ({src_code} → {dst_code}, Sleeper Class)",
+                    "train_type": "Multi-Train / Rail+Bus (Estimated Sleeper)",
                     "departure": "06:30",
                     "arrival": arr_str,
                     "duration": f"{est_mins // 60}h {est_mins % 60:02d}m",

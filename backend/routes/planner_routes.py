@@ -543,7 +543,7 @@ def new_trip():
         budget        = float(request.form.get("budget") or 25000)
         num_travelers = int(request.form.get("num_travelers") or 2)
         travel_style  = request.form.get("travel_style", "adventure")
-        transport     = request.form.get("transport", "train")
+        transport     = request.form.get("transport", "auto")
         interests     = request.form.getlist("interests")
         special_reqs  = request.form.getlist("special_requirements")
 

@@ -118,6 +118,9 @@ class InterCityTransitAgent:
         min_cost = min([opt["total_cost"] for opt in all_options.values()] or [500])
 
         for mode, opt in all_options.items():
+            if opt.get("available") is False:
+                scores[mode] = 0.0
+                continue
             # Cost score (inverse)
             cost_val = opt["total_cost"]
             cost_score = 10.0 * (1.0 - (cost_val - min_cost) / (max_cost - min_cost + 1.0))

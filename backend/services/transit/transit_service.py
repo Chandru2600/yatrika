@@ -46,6 +46,29 @@ def estimate_distance_km(source: str, dest: str) -> float:
     return 280.0
 
 
+def estimate_mode_distance_km(source: str, dest: str, mode: str, road_km: float | None = None) -> float:
+    """Compute mode-appropriate distance: great-circle air, rail corridor, or OSRM road."""
+    m = (mode or "car").lower()
+    if m in ("car", "bus", "bike"):
+        return road_km if road_km is not None else estimate_distance_km(source, dest)
+    try:
+        from backend.agents_models.coord_resolver import resolve_destination_coords
+        s_lat, s_lon = resolve_destination_coords(source)
+        d_lat, d_lon = resolve_destination_coords(dest)
+        if s_lat and s_lon and d_lat and d_lon:
+            dlat = math.radians(d_lat - s_lat)
+            dlon = math.radians(d_lon - s_lon)
+            a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(s_lat)) * math.cos(math.radians(d_lat)) * math.sin(dlon / 2) ** 2
+            air_gc = 6371.0 * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+            if m == "flight":
+                return round(max(120.0, air_gc * 1.08), 1)
+            if m == "train":
+                return round(max(40.0, air_gc * 1.18), 1)
+    except Exception:
+        pass
+    return road_km if road_km is not None else estimate_distance_km(source, dest)
+
+
 from .railway_ai import fetch_railway_ai_fares
 from .flight_api import fetch_flight_fares
 from .ksrtc_api import fetch_ksrtc_bus_fares
@@ -182,7 +205,9 @@ def calculate_intercity_transit(source: str, dest: str, selected_mode: str = "ca
     Returns multi-criteria optimization, carbon footprint, door-to-door metrics, IBM Granite rationale,
     and Day-1 timeline auto-locking status.
     """
-    dist_km = estimate_distance_km(source, dest)
+    road_dist_km = estimate_distance_km(source, dest)
+    air_dist_km = estimate_mode_distance_km(source, dest, "flight", road_dist_km)
+    rail_dist_km = estimate_mode_distance_km(source, dest, "train", road_dist_km)
 
     # Class defaults per mode if not specified
     if not selected_class:
@@ -192,12 +217,13 @@ def calculate_intercity_transit(source: str, dest: str, selected_mode: str = "ca
         else: selected_class = "Fuel & Tolls"
 
     options = {
-        "flight": calculate_flight_transit(source, dest, dist_km, travelers, selected_class if selected_mode.lower() == "flight" else "Economy"),
-        "train": calculate_train_transit(source, dest, dist_km, travelers, selected_class if selected_mode.lower() == "train" else "3A"),
-        "bus": calculate_bus_transit(source, dest, dist_km, travelers, selected_class if selected_mode.lower() == "bus" else "AC Sleeper"),
-        "car": calculate_vehicle_transit(source, dest, dist_km, "car"),
-        "bike": calculate_vehicle_transit(source, dest, dist_km, "bike")
+        "flight": calculate_flight_transit(source, dest, air_dist_km, travelers, selected_class if selected_mode.lower() == "flight" else "Economy"),
+        "train": calculate_train_transit(source, dest, rail_dist_km, travelers, selected_class if selected_mode.lower() == "train" else "3A"),
+        "bus": calculate_bus_transit(source, dest, road_dist_km, travelers, selected_class if selected_mode.lower() == "bus" else "AC Sleeper"),
+        "car": calculate_vehicle_transit(source, dest, road_dist_km, "car"),
+        "bike": calculate_vehicle_transit(source, dest, road_dist_km, "bike")
     }
+    dist_km = chosen_dist if False else (air_dist_km if selected_mode.lower() == "flight" else (rail_dist_km if selected_mode.lower() == "train" else road_dist_km))
 
     # Run Autonomous Agent Reasoning Loop
     agent_res = transit_agent.run_agent_workflow(source, dest, options, selected_mode, travelers, total_budget, travel_style)

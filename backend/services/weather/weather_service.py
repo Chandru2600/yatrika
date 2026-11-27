@@ -85,15 +85,63 @@ def get_mock_forecast(city: str, days: int = 7) -> dict:
     return {"city": city, "forecast": forecast_list, "error": None}
 
 
+def get_open_meteo_current(city: str) -> dict | None:
+    """Zero-key real current weather via Open-Meteo for any Indian city."""
+    try:
+        from backend.agents_models.coord_resolver import resolve_destination_coords
+        lat, lon = resolve_destination_coords(city)
+        resp = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": lat,
+                "longitude": lon,
+                "current": "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code",
+                "timezone": "Asia/Kolkata",
+            },
+            timeout=4,
+        )
+        if not resp.ok:
+            return None
+        cur = resp.json().get("current") or {}
+        if cur.get("temperature_2m") is None:
+            return None
+        code = int(cur.get("weather_code", 0) or 0)
+        if code == 0:
+            desc = "Clear Sky"
+        elif code <= 2:
+            desc = "Mostly Sunny"
+        elif code == 3:
+            desc = "Partly Cloudy"
+        elif code in (45, 48):
+            desc = "Misty"
+        else:
+            desc = "Light Rain"
+        return {
+            "city": city.title(),
+            "country": "IN",
+            "temperature": round(float(cur["temperature_2m"]), 1),
+            "feels_like": round(float(cur.get("apparent_temperature", cur["temperature_2m"])), 1),
+            "humidity": int(cur.get("relative_humidity_2m", 65)),
+            "wind_speed": round(float(cur.get("wind_speed_10m", 3.5)) / 3.6, 1),
+            "description": desc,
+            "icon": "01d" if code <= 1 else ("02d" if code <= 3 else "10d"),
+            "visibility": 10,
+            "pressure": 1012,
+            "error": None,
+            "source": "open-meteo",
+        }
+    except Exception:
+        return None
+
+
 def get_current_weather(city: str) -> dict:
     """
-    Fetch current weather for a city using OpenWeatherMap.
-    Falls back to mock weather deterministically if API key is invalid/missing.
+    Fetch current weather for a city using OpenWeatherMap, Open-Meteo fallback, then deterministic mock.
     """
     cfg = get_config()
     key = cfg.WEATHER_API_KEY
     if not key or key.strip() == "" or "your_openweathermap_api" in key.lower():
-        return get_mock_current_weather(city)
+        return get_open_meteo_current(city) or get_mock_current_weather(city)
 
     try:
         url = f"{cfg.WEATHER_BASE_URL}/weather"

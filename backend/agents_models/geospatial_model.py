@@ -15,27 +15,92 @@ class GeospatialTransitModel:
         self.osrm_url = osrm_url
 
     def calculate_door_to_door_transit(self, source: str, destination: str, stay_info: dict,
-                                      travelers: int = 2, selected_mode: str = "train") -> dict:
+                                      travelers: int = 2, selected_mode: str = "auto",
+                                      total_budget: float = 25000.0, num_days: int = 3) -> dict:
         """
         Calculates transit from source city directly to Base Camp stay entrance.
-        Leverages Ixigo multimodal engine with IRCTC trains, RTC buses, and road connectors.
+        When selected_mode is 'auto' (or unavailable), picks the best available mode
+        that fits the remaining trip budget after stay, food, and incidentals.
         """
+        req_mode = (selected_mode or "auto").lower().strip()
         transit_calc = calculate_intercity_transit(
             source=source,
             dest=destination,
-            selected_mode=selected_mode,
+            selected_mode="train" if req_mode == "auto" else req_mode,
             travelers=travelers,
-            selected_class="standard",
-            total_budget=25000,
+            selected_class=None,
+            total_budget=total_budget,
             travel_style="adventure"
         )
 
         chosen = transit_calc.get("chosen_details", {})
         all_modes = transit_calc.get("all_options", {})
+        dist_km = round(float(chosen.get("distance_km") or transit_calc.get("distance_km") or 0), 1)
+
+        def _rt_group_cost(m_key: str, opt: dict) -> float:
+            scheds = opt.get("schedules") or []
+            f_sched = scheds[0] if scheds else {}
+            if m_key == "car":
+                sedan = next((s for s in scheds if "sedan" in (s.get("operator") or "").lower() or "sedan" in (s.get("type") or "").lower()), f_sched)
+                one_way = float(sedan.get("fare_per_seat") or opt.get("total_cost") or 0)
+                return one_way * 2.0
+            pp_one = float(
+                opt.get("fare_per_traveler")
+                or opt.get("min_fare_per_seat")
+                or f_sched.get("fare_per_seat")
+                or f_sched.get("price_per_seat")
+                or (float(opt.get("total_cost") or 0) / max(1, travelers))
+            )
+            return pp_one * max(1, travelers) * 2.0
+
+        if req_mode == "auto" or chosen.get("available") is False:
+            nights = max(1, int(num_days or 3) - 1)
+            stay_est = float(stay_info.get("price_per_night") or 0) * nights
+            food_est = 600.0 * int(num_days or 3) * max(1, travelers)
+            misc_est = 500.0 * max(1, travelers)
+            transit_budget = max(1500.0, float(total_budget or 25000.0) - stay_est - food_est - misc_est)
+
+            candidates = []
+            for m_key in ("flight", "car", "train", "bus"):
+                opt = all_modes.get(m_key)
+                if not opt or opt.get("available") is False:
+                    continue
+                rt_cost = _rt_group_cost(m_key, opt)
+                candidates.append((m_key, rt_cost))
+
+            fitting = [(m, c) for m, c in candidates if c <= transit_budget]
+            picked = None
+            if fitting:
+                fit_map = dict(fitting)
+                if "flight" in fit_map and dist_km >= 350:
+                    picked = "flight"
+                elif "car" in fit_map and (dist_km <= 500 or travelers >= 3):
+                    picked = "car"
+                elif "train" in fit_map:
+                    picked = "train"
+                elif "bus" in fit_map:
+                    picked = "bus"
+                else:
+                    picked = fitting[0][0]
+            elif candidates:
+                picked = min(candidates, key=lambda x: x[1])[0]
+
+            if picked and picked in all_modes:
+                selected_mode = picked
+                chosen = dict(all_modes[picked])
+                if req_mode == "auto":
+                    chosen["location_notice"] = (
+                        f"Auto-selected {chosen.get('mode_title', picked.title())} to fit your ₹{int(total_budget):,} budget "
+                        f"(est. ₹{int(_rt_group_cost(picked, chosen)):,} round-trip for {travelers} pax)."
+                    )
+                else:
+                    orig_notice = all_modes.get(req_mode, {}).get("location_notice") or f"No direct {req_mode} service available."
+                    chosen["location_notice"] = f"{orig_notice} Switched to {chosen.get('mode_title', picked.title())}."
+
         schedules = chosen.get("schedules") or []
         first_sched = schedules[0] if schedules else {}
 
-        dist_km = round(float(transit_calc.get("distance_km") or chosen.get("distance_km") or 0), 1)
+        dist_km = round(float(chosen.get("distance_km") or transit_calc.get("distance_km") or 0), 1)
         dur_str = chosen.get("travel_duration") or chosen.get("flight_duration") or first_sched.get("duration") or "4h 30m"
         one_way_pp = float(
             chosen.get("fare_per_traveler")
@@ -76,7 +141,8 @@ class GeospatialTransitModel:
             "destination": destination.title(),
             "stay_name": stay_info.get("name", "Base Camp"),
             "stay_address": stay_info.get("address", ""),
-            "selected_mode": selected_mode,
+            "mode": chosen.get("mode", selected_mode),
+            "selected_mode": chosen.get("mode", selected_mode),
             "available": chosen.get("available", True),
             "mode_title": operator_title,
             "operator": operator_title,

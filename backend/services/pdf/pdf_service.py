@@ -289,7 +289,8 @@ def _build_boarding_pass(trip: dict, itinerary: dict, budget: dict, hotels: dict
     transit_dist = transit_info.get("distance_km", 280)
     transit_dur = transit_info.get("duration_hours", 5.5)
 
-    budget_sum = (budget.get("total_budget") or budget.get("total_budget_inr") or trip.get("budget")) or 25000
+    tl_b = (itinerary.get("timeline") or {}).get("budget") if isinstance(itinerary.get("timeline"), dict) else {}
+    budget_sum = (tl_b.get("group_total") or budget.get("committed_total_inr") or budget.get("total_budget") or budget.get("total_budget_inr") or trip.get("budget")) or 25000
     try:
         budget_sum = float(budget_sum)
     except Exception:
@@ -429,7 +430,8 @@ def _build_bento_grid(trip: dict, itinerary: dict, budget: dict, hotels: dict, s
     transit_dur = transit_info.get("duration_hours", 5.5)
     transit_fare = transit_info.get("estimated_fare", 1250)
 
-    budget_sum = (budget.get("total_budget") or budget.get("total_budget_inr") or trip.get("budget")) or 25000
+    tl_b = (itinerary.get("timeline") or {}).get("budget") if isinstance(itinerary.get("timeline"), dict) else {}
+    budget_sum = (tl_b.get("group_total") or budget.get("committed_total_inr") or budget.get("total_budget") or budget.get("total_budget_inr") or trip.get("budget")) or 25000
     try:
         budget_sum = float(budget_sum)
     except Exception:
@@ -845,6 +847,12 @@ def _build_hotels_section(base_stay: dict, hotels: dict, trip: dict, styles: dic
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ]))
         story.append(alt_table)
+
+    story.append(Spacer(1, 4))
+    story.append(Paragraph(
+        "<i>*Disclaimer: Stay/hotel prices shown are indicative estimates and may increase or decrease based on travel dates, room availability, and seasonal demand. Please contact the hotel or check the booking link directly for live rates.</i>",
+        styles["small"]
+    ))
 
     return KeepTogether(story)
 

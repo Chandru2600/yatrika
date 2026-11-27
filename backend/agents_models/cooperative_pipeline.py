@@ -59,8 +59,14 @@ class MultiAgentCooperativePipeline:
             destination=dest,
             stay_info=base_camp_stay,
             travelers=travelers,
-            selected_mode=transport
+            selected_mode=transport,
+            total_budget=budget,
+            num_days=days,
         )
+
+        chosen_mode = (transit_info.get("mode") or transit_info.get("selected_mode") or transport).lower()
+        if transit_info.get("available") is False and chosen_mode == "flight":
+            chosen_mode = "car"
 
         approx_distance = float(transit_info.get("distance_km") or 0)
         if not approx_distance:
@@ -68,9 +74,17 @@ class MultiAgentCooperativePipeline:
             if legs:
                 approx_distance = sum(float(l.get("distance_km", 0)) for l in legs)
 
-        dur_str = transit_info.get("duration_str") or "4h 30m"
+        dur_str = transit_info.get("duration_str") or ""
         from backend.services.itinerary.timeline_builder import _parse_duration_mins, build_timeline
-        dur_mins = _parse_duration_mins(dur_str, 270)
+        if not dur_str or dur_str.strip() in ("—", "-", "N/A"):
+            speed_kmh = {"car": 55.0, "bike": 45.0, "train": 55.0, "bus": 45.0, "flight": 620.0}.get(chosen_mode, 50.0)
+            est_mins = max(60, int(round((max(approx_distance, 50.0) / speed_kmh) * 60)))
+            if chosen_mode == "flight":
+                est_mins += 90
+            dur_mins = est_mins
+            dur_str = f"{dur_mins // 60}h {dur_mins % 60:02d}m"
+        else:
+            dur_mins = _parse_duration_mins(dur_str, 270)
         dur_hours = round(dur_mins / 60.0, 1)
 
         fare_inr = int(float(transit_info.get("estimated_fare_inr") or 0))
@@ -80,12 +94,12 @@ class MultiAgentCooperativePipeline:
         if not transit_info.get("has_direct_hub", True):
             from backend.services.transit.location_resolver import resolve_location_hubs
             dst_hub = resolve_location_hubs(dest)
-            if transport.lower() == "flight":
+            if chosen_mode == "flight" and transit_info.get("available", True):
                 dur_mins += int(round(float(dst_hub.get("airport_transfer_hours", 0)) * 60))
-            elif transport.lower() == "train":
+            elif chosen_mode == "train":
                 dur_mins += int(round(float(dst_hub.get("rail_transfer_hours", 0)) * 60))
             dur_hours = round(dur_mins / 60.0, 1)
-        op_title = transit_info.get("mode_title") or f"{transport.title()}"
+        op_title = transit_info.get("mode_title") or f"{chosen_mode.title()}"
         transit_info.update({
             "origin": source.title(),
             "destination": dest.title(),
@@ -240,10 +254,11 @@ class MultiAgentCooperativePipeline:
             "num_days": days,
             "num_travelers": travelers,
             "budget": budget,
-            "transport": transport,
+            "transport": chosen_mode,
             "stay": base_camp_stay,
             "transit": {
-                "mode": transport,
+                "mode": chosen_mode,
+                "available": transit_info.get("available", True),
                 "title": op_title,
                 "fare_per_person": round_trip_pp,
                 "departure": transit_info.get("departure_time", "06:00"),
@@ -278,7 +293,7 @@ class MultiAgentCooperativePipeline:
                     "transportation": {
                         "amount": float(budget_analysis["transit_cost_inr"]),
                         "percentage": round((float(budget_analysis["transit_cost_inr"]) / denom) * 100, 1),
-                        "details": f"Round-trip {transport} transit ({travelers} pax)",
+                        "details": f"Round-trip {chosen_mode} transit ({travelers} pax)",
                     },
                     "food_and_dining": {
                         "amount": float(budget_analysis["food_cost_inr"]),

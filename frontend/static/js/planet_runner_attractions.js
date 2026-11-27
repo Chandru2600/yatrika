@@ -795,35 +795,12 @@
   global.hideGlobalScoutLoader = global.PlanetRunner.hideModal;
   global.withGlobalScoutLoader = global.PlanetRunner.withLoading;
 
-  // Auto-intercept PDF downloads and long-running trip generation actions site-wide
+  // Only show loading modal for slow AI/network trip generation POST requests (never on PDF downloads or navigation)
   document.addEventListener("DOMContentLoaded", () => {
-    // 1. Intercept PDF download clicks (anchor links & buttons)
-    document.addEventListener("click", (e) => {
-      const trigger = e.target.closest("a[href*='/pdf'], a[href*='download_pdf'], button[onclick*='download_pdf'], button[onclick*='/pdf'], .btn-pdf-download");
-      if (!trigger) return;
-
-      const destEl = document.querySelector("#dest-name-title, #tripDestination, .trip-title-dest, [data-destination]");
-      const dest = destEl ? (destEl.textContent || destEl.value || "").trim() : "Karnataka & All-India";
-
-      global.PlanetRunner.showModal(
-        "Preparing PDF Itinerary...",
-        dest,
-        "Assembling booking tables, weather tips & trip summary"
-      );
-
-      // Safe dismiss window after download dispatch
-      setTimeout(() => global.PlanetRunner.hideModal(), 4200);
-    });
-
-    // 2. Intercept forms that trigger real backend trip generation (ONLY POST methods, never GET search)
     document.addEventListener("submit", (e) => {
       const form = e.target;
       if (!form || !form.tagName || form.tagName.toLowerCase() !== "form") return;
-
-      // DO NOT show loader on GET navigation (e.g., search box on home page)
       if (form.method && form.method.toUpperCase() === "GET") return;
-
-      // DO NOT show global loader if page script prevents default to handle AJAX/inline preview
       if (e.defaultPrevented) return;
       if (form.id === "plannerForm" || form.dataset.hasCustomLoader === "true") return;
 
@@ -833,7 +810,7 @@
         global.PlanetRunner.showModal(
           `Preparing Itinerary for ${dest}...`,
           dest,
-          "Finding local stays, transit routes & sights"
+          "Waiting for route, stay & schedule response"
         );
       }
     });

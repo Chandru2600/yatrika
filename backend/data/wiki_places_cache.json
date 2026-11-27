@@ -4678,5 +4678,30 @@
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Mysore_Palace_Morning_View.jpg/800px-Mysore_Palace_Morning_View.jpg",
     "desc": null,
     "title": null
+  },
+  "ram_janmabhoomi_ayodhya": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7c/Ayodhya_celebrates_the_birth_of_Rama_and_his_brothers.jpg/330px-Ayodhya_celebrates_the_birth_of_Rama_and_his_brothers.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Ram Janmabhoomi is the site that, according to Hindu religious beliefs and texts, is the birthplace of Rama, the seventh avatar of the Hindu deity Vishnu. The Ramayana states that the location of Rama's birthplace is on the banks of the Sarayu river in a city called \"Ayodhya\". Modern-day Ayodhya is in the north Indian state of Uttar Pradesh. It is contested whether the Ayodhya mentioned in the Ramayana is the same as the modern city.",
+    "title": "Ram Janmabhoomi"
+  },
+  "ram_statue_ayodhya": {
+    "img": "https://upload.wikimedia.org/wikipedia/en/0/08/Shri_Ram_Janmabhoomi_Teerth_Kshetra.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail_unscaled",
+    "desc": "The Shri Ram Janmbhoomi Teerth Kshetra (SRJBTK) is a trust set up for the construction and management of Ram Mandir, a Hindu temple complex in Ayodhya by the Government of India in February 2020. The trust is composed of 15 trustees.",
+    "title": "Shri Ram Janmbhoomi Teerth Kshetra"
+  },
+  "darwan_lake_ayodhya": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "hanuman_garhi__saryu_river_ghat_ayodhya": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "ram_janmabhoomi_mandir_ayodhya_ayodhya": {
+    "img": null,
+    "desc": null,
+    "title": null
   }
 }

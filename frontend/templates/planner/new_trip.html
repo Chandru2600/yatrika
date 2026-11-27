@@ -458,24 +458,15 @@
                 </div>
               </div>
 
-              <!-- Advanced: Preferred Inter-City Transit -->
+              <!-- Inter-City Transit: Auto-Selected by Budget & Route -->
               <div class="mb-4">
-                <label class="form-label-modern mb-2">Preferred Inter-City Transit Mode</label>
-                <div class="row g-2">
-                  {% for mode, icon, label in [
-                    ("train", "bi-train-front text-turquoise", "Train (IRCTC Rail)"),
-                    ("bus", "bi-bus-front text-primary", "Bus (KSRTC / Private)"),
-                    ("car", "bi-car-front text-success", "Car / Outstation Cab"),
-                    ("flight", "bi-airplane text-coral", "Flight + Airport Taxi")
-                  ] %}
-                  <div class="col-6 col-md-3">
-                    <label class="transit-card-select d-block {% if mode == values.get('transport', 'train') %}selected{% endif %}">
-                      <input type="radio" name="transport" value="{{ mode }}" {% if mode == values.get('transport', 'train') %}checked{% endif %} hidden />
-                      <i class="bi {{ icon }} d-block fs-4 mb-1"></i>
-                      <span class="text-navy fw-semibold small">{{ label }}</span>
-                    </label>
+                <input type="hidden" name="transport" id="transportInput" value="auto" />
+                <div class="d-flex align-items-center gap-3 p-3 rounded-4 border" style="background: rgba(13, 148, 136, 0.06); border-color: rgba(13, 148, 136, 0.25) !important;">
+                  <div class="fs-3 text-turquoise"><i class="bi bi-magic"></i></div>
+                  <div>
+                    <div class="fw-bold text-navy small">Auto-Selected Transit Mode (Budget &amp; Route Smart Match)</div>
+                    <div class="text-muted" style="font-size: 0.78rem;">Express Auto-Pilot automatically picks the best available Flight, Train, Bus, or Car based on your total budget, distance, and route connectivity.</div>
                   </div>
-                  {% endfor %}
                 </div>
               </div>
 
@@ -562,7 +553,7 @@
               <div class="d-flex flex-wrap gap-2 mb-4" style="font-size: 0.75rem;">
                 <span class="badge bg-white text-dark py-1 px-2" id="previewDatesTag">3 Days · 2 Travelers</span>
                 <span class="badge bg-white text-dark py-1 px-2" id="previewStyleTag">Adventure</span>
-                <span class="badge bg-white text-dark py-1 px-2" id="previewTransportTag">Train</span>
+                <span class="badge bg-white text-dark py-1 px-2" id="previewTransportTag">Auto (Budget)</span>
               </div>
 
               <!-- Submit Button -->
@@ -857,9 +848,9 @@
     const pStyle = document.getElementById('previewStyleTag');
     if (pStyle) pStyle.textContent = style.charAt(0).toUpperCase() + style.slice(1);
 
-    const transport = document.querySelector('input[name="transport"]:checked')?.value || 'train';
+    const transport = document.getElementById('transportInput')?.value || 'auto';
     const pTrans = document.getElementById('previewTransportTag');
-    if (pTrans) pTrans.textContent = transport.charAt(0).toUpperCase() + transport.slice(1);
+    if (pTrans) pTrans.textContent = transport === 'auto' ? 'Auto (Budget)' : (transport.charAt(0).toUpperCase() + transport.slice(1));
   }
 
   async function fetchWeatherPreview(city) {

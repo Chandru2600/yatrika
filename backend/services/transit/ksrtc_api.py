@@ -48,36 +48,36 @@ def _load_bus_tariffs():
 
 
 def detect_state_rtc_corporation(source: str, dest: str) -> str:
-    """Detect matching State RTC corporation based on route keywords."""
-    txt = f"{source} {dest}".lower()
-    if any(w in txt for w in ["karnataka", "bangalore", "bengaluru", "mysore", "mysuru", "mangalore", "hubli", "hampi", "coorg", "gokarna", "chikmagalur", "udupi"]):
-        return "KSRTC_Karnataka"
-    elif any(w in txt for w in ["maharashtra", "mumbai", "pune", "nagpur", "nashik", "shirdi", "lonavala", "mahabaleshwar", "kolhapur"]):
-        return "MSRTC_Maharashtra"
-    elif any(w in txt for w in ["rajasthan", "jaipur", "udaipur", "jodhpur", "jaisalmer", "bikaner", "pushkar", "mount abu"]):
-        return "RSRTC_Rajasthan"
-    elif any(w in txt for w in ["uttar pradesh", "lucknow", "agra", "varanasi", "kanpur", "prayagraj", "ayodhya", "mathura"]):
-        return "UPSRTC_UttarPradesh"
-    elif any(w in txt for w in ["himachal", "manali", "shimla", "dharamshala", "kullu", "kasol", "dalhousie"]):
-        return "HRTC_Himachal"
-    elif any(w in txt for w in ["kerala", "kochi", "munnar", "alleppey", "wayanad", "trivandrum", "kovalam", "varkala"]):
-        return "KSRTC_Kerala"
-    elif any(w in txt for w in ["tamil nadu", "chennai", "madurai", "coimbatore", "ooty", "kodaikanal", "rameswaram", "kanyakumari"]):
-        return "TNSTC_TamilNadu"
-    elif any(w in txt for w in ["telangana", "hyderabad", "warangal"]):
-        return "TGSRTC_Telangana"
-    elif any(w in txt for w in ["andhra", "visakhapatnam", "vijayawada", "tirupati", "amaravati"]):
-        return "APSRTC_AndhraPradesh"
-    elif any(w in txt for w in ["gujarat", "ahmedabad", "surat", "vadodara", "rajkot", "somnath", "dwarka"]):
-        return "GSRTC_Gujarat"
-    elif any(w in txt for w in ["delhi", "chandigarh", "amritsar", "punjab", "haryana"]):
-        return "HRTC_Himachal"
-    elif any(w in txt for w in ["uttarakhand", "dehradun", "rishikesh", "haridwar", "nainital", "mussoorie"]):
-        return "UTC_Uttarakhand"
-    elif any(w in txt for w in ["west bengal", "kolkata", "darjeeling", "siliguri", "digha"]):
-        return "WBTC_SBSTC_WestBengal"
-    elif any(w in txt for w in ["goa", "panaji", "madgaon", "calangute"]):
-        return "Kadamba_KTCL_Goa"
+    """Detect matching State RTC corporation from origin state first, then destination."""
+    for txt in (source.lower(), dest.lower()):
+        if any(w in txt for w in ["karnataka", "bangalore", "bengaluru", "mysore", "mysuru", "mangalore", "hubli", "hampi", "coorg", "gokarna", "chikmagalur", "udupi"]):
+            return "KSRTC_Karnataka"
+        elif any(w in txt for w in ["maharashtra", "mumbai", "pune", "nagpur", "nashik", "shirdi", "lonavala", "mahabaleshwar", "kolhapur"]):
+            return "MSRTC_Maharashtra"
+        elif any(w in txt for w in ["rajasthan", "jaipur", "udaipur", "jodhpur", "jaisalmer", "bikaner", "pushkar", "mount abu"]):
+            return "RSRTC_Rajasthan"
+        elif any(w in txt for w in ["uttar pradesh", "lucknow", "agra", "varanasi", "kanpur", "prayagraj", "ayodhya", "mathura"]):
+            return "UPSRTC_UttarPradesh"
+        elif any(w in txt for w in ["himachal", "manali", "shimla", "dharamshala", "kullu", "kasol", "dalhousie"]):
+            return "HRTC_Himachal"
+        elif any(w in txt for w in ["kerala", "kochi", "munnar", "alleppey", "wayanad", "trivandrum", "kovalam", "varkala"]):
+            return "KSRTC_Kerala"
+        elif any(w in txt for w in ["tamil nadu", "chennai", "madurai", "coimbatore", "ooty", "kodaikanal", "rameswaram", "kanyakumari"]):
+            return "TNSTC_TamilNadu"
+        elif any(w in txt for w in ["telangana", "hyderabad", "warangal"]):
+            return "TGSRTC_Telangana"
+        elif any(w in txt for w in ["andhra", "visakhapatnam", "vijayawada", "tirupati", "amaravati"]):
+            return "APSRTC_AndhraPradesh"
+        elif any(w in txt for w in ["gujarat", "ahmedabad", "surat", "vadodara", "rajkot", "somnath", "dwarka"]):
+            return "GSRTC_Gujarat"
+        elif any(w in txt for w in ["delhi", "chandigarh", "amritsar", "punjab", "haryana"]):
+            return "HRTC_Himachal"
+        elif any(w in txt for w in ["uttarakhand", "dehradun", "rishikesh", "haridwar", "nainital", "mussoorie"]):
+            return "UTC_Uttarakhand"
+        elif any(w in txt for w in ["west bengal", "kolkata", "darjeeling", "siliguri", "digha"]):
+            return "WBTC_SBSTC_WestBengal"
+        elif any(w in txt for w in ["goa", "panaji", "madgaon", "calangute"]):
+            return "Kadamba_KTCL_Goa"
     return "KSRTC_Karnataka"
 
 

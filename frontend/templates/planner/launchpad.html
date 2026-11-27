@@ -798,30 +798,10 @@
     return true;
   }
 
-  // ── 4. Express AI Submission ────────────────────────────────
+  // ── 4. Express AI Submission (Auto-selects transit mode by budget) ──
   function submitExpressAI() {
     if (!validateInputs()) return;
-    const dest = document.getElementById('tripDestination').value.trim();
-    const source = document.getElementById('tripSource').value.trim() || 'Bengaluru';
-    const days = document.getElementById('tripDays').value || 3;
-    const travelers = document.getElementById('tripTravelers').value || 2;
-    const budget = document.getElementById('tripBudget').value || 30000;
-
-    const destTitleEl = document.getElementById('modalExpressDest');
-    if (destTitleEl) destTitleEl.textContent = dest;
-
-    const summaryEl = document.getElementById('lockedTripSummary');
-    if (summaryEl) {
-      summaryEl.textContent = `${source} ➔ ${dest} · ${days} Days · ${travelers} Traveler${travelers > 1 ? 's' : ''} · ₹${parseInt(budget).toLocaleString('en-IN')}`;
-    }
-
-    const modalEl = document.getElementById('expressTransitModal');
-    if (modalEl) {
-      const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-      modal.show();
-    } else {
-      executeExpressGeneration('train');
-    }
+    executeExpressGeneration('auto');
   }
 
   function executeExpressGeneration(mode) {

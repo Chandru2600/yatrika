@@ -41,7 +41,7 @@ DEFAULT_STAYS = {
     "chikmagalur": {
         "name": "Java Rain Coffee Resort & Spa",
         "type": "Luxury Coffee Resort",
-        "price_per_night": 3800,
+        "price_per_night": 13500,
         "star_rating": 4.7,
         "safety_score": 9.5,
         "address": "Giriprekshe, Mullayanagiri Road, Chikmagalur, Karnataka 577101",
@@ -51,6 +51,76 @@ DEFAULT_STAYS = {
         "badge": "Top Rated Base Camp"
     }
 }
+
+
+_SUBREGION_COORDS = {
+    "virajpet": (12.1956, 75.8035),
+    "bitangalla": (12.1956, 75.8035),
+    "571213": (12.1956, 75.8035),
+    "kushalnagar": (12.4569, 75.9597),
+    "bylakuppe": (12.4328, 75.9669),
+    "571234": (12.4569, 75.9597),
+    "siddapur": (12.3375, 75.8069),
+    "571253": (12.3375, 75.8069),
+    "gonikoppal": (12.1869, 75.9277),
+    "pollibetta": (12.2389, 75.9392),
+    "somwarpet": (12.5964, 75.8501),
+    "571236": (12.5964, 75.8501),
+    "napoklu": (12.3137, 75.6914),
+    "571214": (12.3137, 75.6914),
+    "madikeri": (12.4244, 75.7382),
+    "mercara": (12.4244, 75.7382),
+    "571201": (12.4244, 75.7382),
+}
+
+
+_GEOCODE_CACHE: dict[str, tuple[float, float]] = {}
+
+
+def _resolve_stay_coords(address: str, default_lat: float, default_lon: float) -> tuple[float, float]:
+    """Resolve sub-region/township coordinates from a hotel's address or pincode."""
+    addr_low = (address or "").lower()
+    for key, coords in _SUBREGION_COORDS.items():
+        if key in addr_low:
+            return coords
+    return default_lat, default_lon
+
+
+def _geocode_stay_address(name: str, address: str, destination: str, default_lat: float, default_lon: float) -> tuple[float, float]:
+    """Geocode any Indian hotel address via Geoapify when sub-region lookup isn't matched."""
+    sub_lat, sub_lon = _resolve_stay_coords(address, default_lat, default_lon)
+    if (sub_lat, sub_lon) != (default_lat, default_lon):
+        return sub_lat, sub_lon
+    api_key = os.getenv("GEOAPIFY_API_KEY", "").strip()
+    if not api_key:
+        return default_lat, default_lon
+    cache_key = f"{name}|{address}|{destination}".lower()[:160]
+    if cache_key in _GEOCODE_CACHE:
+        return _GEOCODE_CACHE[cache_key]
+    try:
+        import math, requests
+        resp = requests.get(
+            "https://api.geoapify.com/v1/geocode/search",
+            params={"text": f"{name}, {address}, {destination}, India", "limit": 1, "apiKey": api_key},
+            timeout=3,
+        )
+        if resp.ok:
+            feats = resp.json().get("features") or []
+            if feats:
+                props = feats[0].get("properties") or {}
+                lat, lon = props.get("lat"), props.get("lon")
+                if lat is not None and lon is not None:
+                    dlat = math.radians(float(lat) - default_lat)
+                    dlon = math.radians(float(lon) - default_lon)
+                    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(default_lat)) * math.cos(math.radians(float(lat))) * math.sin(dlon / 2) ** 2
+                    if 6371.0 * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a)) <= 65.0:
+                        res = (round(float(lat), 5), round(float(lon), 5))
+                        _GEOCODE_CACHE[cache_key] = res
+                        return res
+    except Exception:
+        pass
+    _GEOCODE_CACHE[cache_key] = (default_lat, default_lon)
+    return default_lat, default_lon
 
 
 class AccommodationsSafetyModel:
@@ -96,20 +166,33 @@ class AccommodationsSafetyModel:
                     r = csv.DictReader(f)
                     for row in r:
                         city = row.get("city", "").lower()
+                        prop_low = row.get("property_name", "").lower()
+                        if any(pg in prop_low for pg in ("ladies pg", "girls pg", "boys pg", "paying guest", "ladies hostel", "boys hostel")):
+                            continue
                         if dest_key in city or city in dest_key:
                             lv = str(row.get("last_verified", "")).strip() or "2026-01-15"
                             raw_addr = row.get("address", f"{destination.title()}, India")
                             if "mysur" in (city + raw_addr).lower() or "mysor" in (city + raw_addr).lower():
                                 raw_addr = raw_addr.replace("561006", "570001")
+                            s_lat, s_lon = _resolve_stay_coords(raw_addr, dest_lat, dest_lon)
+                            raw_price = float(row.get("price_per_night_inr", 2500) or 2500)
+                            star_r = float(row.get("star_rating", 4.5) or 4.5)
+                            tier_str = str(row.get("tier", "Hotel") or "Hotel").title()
+                            if ("luxury" in tier_str.lower() or "resort" in prop_low) and star_r >= 4.5 and raw_price < 5500:
+                                raw_price = 5500.0
+                            elif "resort" in prop_low and star_r >= 4.0 and raw_price < 4000:
+                                raw_price = 4000.0
                             candidates.append({
                                 "name": row.get("property_name", "").title(),
-                                "type": row.get("tier", "Hotel").title(),
-                                "price_per_night": float(row.get("price_per_night_inr", 2500) or 2500),
-                                "star_rating": float(row.get("star_rating", 4.5) or 4.5),
+                                "type": tier_str,
+                                "price_per_night": raw_price,
+                                "star_rating": star_r,
                                 "safety_score": float(row.get("safety_score", 9.2) or 9.2),
                                 "address": raw_addr,
-                                "latitude": dest_lat,
-                                "longitude": dest_lon,
+                                "latitude": s_lat,
+                                "longitude": s_lon,
+                                "lat": s_lat,
+                                "lon": s_lon,
                                 "amenities": ["Free High-Speed WiFi", "Hot Water", "Complimentary Breakfast", "24/7 Front Desk"],
                                 "badge": "Verified Stay",
                                 "last_verified": lv
@@ -122,6 +205,9 @@ class AccommodationsSafetyModel:
                     valid = [c for c in candidates if c["price_per_night"] <= max_price * 1.5]
                     valid = sorted(valid or candidates, key=lambda x: (x["safety_score"], x["star_rating"]), reverse=True)
                     best = valid[0]
+                    g_lat, g_lon = _geocode_stay_address(best["name"], best["address"], destination, dest_lat, dest_lon)
+                    best["latitude"] = best["lat"] = g_lat
+                    best["longitude"] = best["lon"] = g_lon
                     return self._enrich_stay_with_ml(best)
             except Exception as e:
                 print(f"[Agent 4] Dataset search error: {e}")

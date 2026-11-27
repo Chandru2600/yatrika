@@ -132,7 +132,8 @@ def _osrm_leg(p1: tuple[float, float] | None, p2: tuple[float, float] | None, fa
 def calculate_trip_total(trip: dict) -> dict:
     """Single source of truth for trip money totals across Stages 1-4, Finalize, Dossier & WhatsApp."""
     num_days = max(1, int(trip.get("num_days") or trip.get("days") or 3))
-    nights = max(1, num_days - 1) if num_days > 1 else 1
+    arr_day_offset = int(trip.get("_arr_day_offset") or 0)
+    nights = max(1, num_days - 1 - arr_day_offset) if num_days > 1 else 1
     travelers = max(1, int(trip.get("num_travelers") or trip.get("travelers") or 1))
     budget_target = float(trip.get("budget") or 15000)
 
@@ -151,6 +152,8 @@ def calculate_trip_total(trip: dict) -> dict:
     _HAMPI_ASI_COMBO = ("vittala", "vijaya vittala", "lotus mahal", "elephant stables", "horse stables")
     for s in sights:
         s_low = (s.get("name") or "").lower()
+        if s_low.strip() in ("hanging bridge", "bridge"):
+            continue
         fee = int(float(s.get("fee") or 0))
         if any(k in s_low for k in _HAMPI_ASI_COMBO):
             if not _hampi_combo_charged:
@@ -169,6 +172,21 @@ def calculate_trip_total(trip: dict) -> dict:
     per_person_total = stay_pp + transit_pp + entry_pp + food_pp + misc_pp
     group_total = stay_total_group + transit_group + entry_group + food_group + misc_group
     is_over_target = group_total > budget_target
+    if is_over_target:
+        verdict = (
+            f"The selected mode of transport is NOT possible on this ₹{round(budget_target):,} budget "
+            f"(estimated total: ₹{group_total:,})."
+        )
+        verdict_options = [
+            f"(a) Increase budget to ₹{group_total:,}",
+            "(b) Switch to Train/Bus for lower transit cost with longer travel time",
+        ]
+    else:
+        verdict = (
+            f"Fits within ₹{round(budget_target):,} budget "
+            f"(estimated total: ₹{group_total:,}; remaining buffer: ₹{round(budget_target) - group_total:,})."
+        )
+        verdict_options = []
 
     return {
         "num_days": num_days,
@@ -189,6 +207,8 @@ def calculate_trip_total(trip: dict) -> dict:
         "budget_target": round(budget_target),
         "is_over_target": is_over_target,
         "budget_status_label": "Over Target" if is_over_target else "Under Target",
+        "budget_verdict": verdict,
+        "budget_verdict_options": verdict_options,
     }
 
 
@@ -239,9 +259,11 @@ def build_timeline(trip: dict) -> dict:
 
     stay = trip.get("stay") or trip.get("selected_stay") or {}
     hotel_name = stay.get("name") or f"{destination} Base Camp"
+    s_lat = stay.get("lat") if stay.get("lat") is not None else stay.get("latitude")
+    s_lon = stay.get("lon") if stay.get("lon") is not None else stay.get("longitude")
     hotel_coords = (
-        (float(stay["lat"]), float(stay["lon"]))
-        if stay.get("lat") is not None and stay.get("lon") is not None
+        (float(s_lat), float(s_lon))
+        if s_lat is not None and s_lon is not None
         else None
     )
     early_checkin = bool(stay.get("early_checkin", False))
@@ -249,10 +271,26 @@ def build_timeline(trip: dict) -> dict:
     transit = trip.get("transit") or {}
     transit_mode = (transit.get("mode") or trip.get("transport") or "car").lower()
     transit_title = transit.get("title") or transit.get("mode_title") or transit_mode.title()
+    transit_available = transit.get("available", True) is not False
+    if (not transit_available or "no direct flight" in transit_title.lower()) and transit_mode == "flight":
+        transit_mode = "car"
+        transit_available = False
     transit_dep_str = transit.get("departure") or "06:00"
     dep_mins = _parse_time_to_mins(transit_dep_str, 6 * 60)
-    transit_dur_mins = _parse_duration_mins(transit.get("duration_mins") or transit.get("duration") or "4h 30m", 270)
     transit_dist_km = round(float(transit.get("distance_km") or 269.8), 1)
+    raw_dur = transit.get("duration_mins") or transit.get("duration")
+    if not raw_dur or str(raw_dur).strip() in ("—", "-", "N/A"):
+        speed_kmh = {"car": 55.0, "bike": 45.0, "train": 55.0, "bus": 45.0, "flight": 620.0}.get(transit_mode, 50.0)
+        transit_dur_mins = max(60, int(round((transit_dist_km / speed_kmh) * 60)))
+        if transit_mode == "flight" and transit_available:
+            transit_dur_mins += 90
+    else:
+        transit_dur_mins = _parse_duration_mins(raw_dur, 270)
+    if transit_dist_km > 0 and transit_mode in ("train", "bus", "car", "bike"):
+        max_spd = 75.0 if transit_mode in ("train", "car") else 65.0
+        min_realistic_mins = int(round((transit_dist_km / max_spd) * 60))
+        if transit_dur_mins < min_realistic_mins:
+            transit_dur_mins = max(transit_dur_mins, int(round((transit_dist_km / 55.0) * 60)))
     arrival_mins = dep_mins + transit_dur_mins
     arrival_time_str = _fmt_time(arrival_mins)
 
@@ -281,7 +319,11 @@ def build_timeline(trip: dict) -> dict:
         lon = float(a["lon"]) if a.get("lon") is not None else None
         dur_m = _parse_duration_mins(a.get("dur") or a.get("duration_mins") or 120, 120)
         s_name = a.get("name", "Sight")
-        s_low = s_name.lower()
+        s_low = s_name.lower().strip()
+        if s_low in ("hanging bridge", "bridge", "viewpoint", "waterfall", "temple", "unknown"):
+            continue
+        if "nalknad" in s_low:
+            dur_m = min(dur_m, 45)
         if any(tk in s_low for tk in _TREK_KEYWORDS):
             trek_km = float(a.get("trek_km") or a.get("round_trip_km") or 0)
             if not trek_km:
@@ -301,6 +343,7 @@ def build_timeline(trip: dict) -> dict:
                 dur_m = max(dur_m, 300)  # > 10km round trip -> 5h
             else:
                 dur_m = max(dur_m, 300)  # Default trek/peak minimum -> 5h
+        s_fee = int(float(a.get("fee") or 0))
         sights.append({
             "id": a.get("id", ""),
             "name": s_name,
@@ -310,7 +353,7 @@ def build_timeline(trip: dict) -> dict:
             "lon": lon,
             "coords": (lat, lon) if lat is not None and lon is not None else None,
             "dur_mins": dur_m,
-            "fee": int(float(a.get("fee") or 0)),
+            "fee": s_fee,
             "dist_from_hotel": float(a.get("dist") or 12.0),
             "opening": a.get("opening"),
             "closed_days": str(a.get("closed_days") or ("Friday" if any(k in s_low for k in ("taj mahal", "sarnath")) else "")).lower(),
@@ -326,12 +369,17 @@ def build_timeline(trip: dict) -> dict:
         )
 
     # Distribute sights across days when traveler is actually at destination
+    # Keep long treks (>= 4h) off the final departure day when earlier days exist
     sight_days = [idx for idx in range(num_days) if idx >= arr_day_offset]
     if not sight_days:
         sight_days = [num_days - 1]
+    non_dep_days = [idx for idx in sight_days if idx < num_days - 1] or sight_days
     per_day: list[list[dict]] = [[] for _ in range(num_days)]
     for i, s in enumerate(sights):
-        target_d = sight_days[i % len(sight_days)]
+        if s["dur_mins"] >= 240:
+            target_d = non_dep_days[i % len(non_dep_days)]
+        else:
+            target_d = sight_days[i % len(sight_days)]
         per_day[target_d].append(s)
 
     days_out: list[dict] = []
@@ -378,7 +426,36 @@ def build_timeline(trip: dict) -> dict:
             continue
 
         if day_num == 1:
-            # Outbound transit leg
+            if arr_day_offset >= 1:
+                day1_mins = max(60, (24 * 60) - dep_mins)
+                day1_dist = round(transit_dist_km * (day1_mins / max(1, transit_dur_mins)), 1)
+                events.append({
+                    "start_time": _fmt_time(dep_mins),
+                    "end_time": "23:59",
+                    "duration_mins": day1_mins,
+                    "duration_label": _fmt_duration(day1_mins),
+                    "distance_km": day1_dist,
+                    "distance_label": "home → hotel",
+                    "mode": transit_mode,
+                    "type": "travel",
+                    "icon": "🚗" if transit_mode == "car" else ("🚆" if transit_mode == "train" else ("🚌" if transit_mode == "bus" else "✈️")),
+                    "from_place": source,
+                    "to_place": destination,
+                    "title": f"{transit_title}: {source} ➔ {destination}",
+                    "subtitle": f"{transit_dist_km} km · {_fmt_duration(transit_dur_mins)} total · Arrives Day {arr_day_offset + 1} at {_fmt_time(arrival_mins % (24 * 60))}",
+                })
+                days_out.append({
+                    "day": day_num,
+                    "date": day_dates[d_idx],
+                    "sights": [],
+                    "events": events,
+                    "day_distance_km": 0.0,
+                    "day_drive_mins": 0,
+                    "day_drive_label": "0m",
+                })
+                continue
+
+            # Outbound transit leg (arrives same day)
             events.append({
                 "start_time": _fmt_time(dep_mins),
                 "end_time": arrival_time_str,
@@ -415,6 +492,61 @@ def build_timeline(trip: dict) -> dict:
                 })
                 cursor += 30
             else:
+                events.append({
+                    "start_time": _fmt_time(cursor),
+                    "end_time": _fmt_time(cursor + 30),
+                    "duration_mins": 30,
+                    "duration_label": "30m",
+                    "distance_km": 0.0,
+                    "distance_label": "",
+                    "mode": "hotel",
+                    "type": "hotel",
+                    "icon": "🏨",
+                    "from_place": hotel_name,
+                    "to_place": hotel_name,
+                    "title": f"Arrive & Check-in at {hotel_name}",
+                    "subtitle": "Room check-in & freshen up",
+                })
+                cursor += 30
+        elif arr_day_offset >= 1 and d_idx == arr_day_offset:
+            arr_local = arrival_mins % (24 * 60)
+            if arr_local < 12 * 60 and not early_checkin:
+                events.append({
+                    "start_time": _fmt_time(arr_local),
+                    "end_time": _fmt_time(arr_local + 30),
+                    "duration_mins": 30,
+                    "duration_label": "30m",
+                    "distance_km": 0.0,
+                    "distance_label": "",
+                    "mode": "hotel",
+                    "type": "hotel",
+                    "icon": "🧳",
+                    "from_place": hotel_name,
+                    "to_place": hotel_name,
+                    "title": f"Arrive at {hotel_name} — Early Luggage Drop",
+                    "subtitle": "Standard room check-in opens at 12:00 · Drop luggage & freshen up",
+                })
+                rest_end = max(arr_local + 30, 8 * 60)
+                _fill_gap_if_needed(events, arr_local + 30, rest_end, hotel_name)
+                cursor = rest_end
+                events.append({
+                    "start_time": _fmt_time(cursor),
+                    "end_time": _fmt_time(cursor + 30),
+                    "duration_mins": 30,
+                    "duration_label": "30m",
+                    "distance_km": 0.0,
+                    "distance_label": "",
+                    "mode": "food",
+                    "type": "food",
+                    "icon": "☕",
+                    "from_place": hotel_name,
+                    "to_place": hotel_name,
+                    "title": "Cafe Breakfast (Pre-Check-in)",
+                    "subtitle": f"Breakfast near {hotel_name} before 12:00 room check-in",
+                })
+                cursor += 30
+            else:
+                cursor = max(arr_local, 8 * 60)
                 events.append({
                     "start_time": _fmt_time(cursor),
                     "end_time": _fmt_time(cursor + 30),
@@ -479,9 +611,44 @@ def build_timeline(trip: dict) -> dict:
             is_hill_dest = any(k in destination.lower() for k in ("coorg", "madikeri", "shimla", "manali", "munnar", "ooty", "darjeeling", "gangtok", "wayanad", "chikmagalur"))
             if is_hill_dest and leg_km > 0:
                 leg_mins = max(leg_mins, int(round((leg_km / 32.0) * 60)))
+            elif leg_km >= 3.0 and leg_km < 30.0:
+                leg_mins = max(leg_mins, int(round((leg_km / 28.0) * 60)))
+            elif leg_km >= 30.0 and leg_km < 120.0:
+                leg_mins = max(leg_mins, int(round((leg_km / 45.0) * 60)))
             dist_lbl = "hotel → sight" if prev_place == hotel_name else "sight → sight"
 
-            # Insert lunch if crossing midday before travel/visit
+            # Wait until sunset/evening window for sunset points or Ganga Aarti
+            s_nm_low = s["name"].lower()
+            if ("sunset" in s_nm_low or "ganga aarti" in s_nm_low) and (cursor + leg_mins) < (16 * 60 + 30):
+                wait_to = (17 * 60 if "ganga aarti" in s_nm_low else 16 * 60 + 30) - leg_mins
+                if wait_to > cursor:
+                    _fill_gap_if_needed(events, cursor, wait_to, prev_place)
+                    cursor = wait_to
+
+            # Check if sight + return fits before closing/dark (18:30 max), 12h day limit, and 115 km/day ghat drive cap
+            lunch_offset = 45 if (not lunch_added and cursor >= 12 * 60) else 0
+            ret_km_est, ret_mins_est = _osrm_leg(s["coords"], hotel_coords, s["dist_from_hotel"])
+            if is_hill_dest and ret_km_est > 0:
+                ret_mins_est = max(ret_mins_est, int(round((ret_km_est / 32.0) * 60)))
+            projected_end = cursor + lunch_offset + leg_mins + s["dur_mins"]
+            max_cutoff = min(s["close_mins"], 18 * 60 + 30)
+            exceeds_drive_cap = is_hill_dest and (day_drive_km + leg_km + ret_km_est) > 115.0 and len(visited_sights) >= 1
+            if exceeds_drive_cap or projected_end > max_cutoff or (projected_end + ret_mins_est - (arrival_mins if day_num == 1 else 480)) > 12 * 60:
+                # Try moving to a later day if available
+                if d_idx + 1 < num_days:
+                    per_day[d_idx + 1].append(s)
+                    warnings.append(
+                        f"{s['name']} needs {_fmt_duration(leg_mins)} travel + {_fmt_duration(s['dur_mins'])} visit "
+                        f"(would end {_fmt_time(projected_end)}) — moved to Day {d_idx + 2}."
+                    )
+                    continue
+                warnings.append(
+                    f"{s['name']} needs {_fmt_duration(leg_mins)} travel + {_fmt_duration(s['dur_mins'])} visit "
+                    f"and does not fit before {_fmt_time(max_cutoff)} on Day {day_num} — removed from schedule."
+                )
+                continue
+
+            # Insert lunch if crossing midday before travel/visit (only after confirming sight fits today)
             if not lunch_added and cursor >= 12 * 60:
                 events.append({
                     "start_time": _fmt_time(cursor),
@@ -500,28 +667,6 @@ def build_timeline(trip: dict) -> dict:
                 })
                 cursor += 45
                 lunch_added = True
-
-            # Check if sight + return fits before closing/dark (18:30 max), 12h day limit, and 115 km/day ghat drive cap
-            ret_km_est, ret_mins_est = _osrm_leg(s["coords"], hotel_coords, s["dist_from_hotel"])
-            if is_hill_dest and ret_km_est > 0:
-                ret_mins_est = max(ret_mins_est, int(round((ret_km_est / 32.0) * 60)))
-            projected_end = cursor + leg_mins + s["dur_mins"]
-            max_cutoff = min(s["close_mins"], 18 * 60 + 30)
-            exceeds_drive_cap = is_hill_dest and (day_drive_km + leg_km + ret_km_est) > 115.0 and len(visited_sights) >= 1
-            if exceeds_drive_cap or projected_end > max_cutoff or (projected_end + ret_mins_est - (arrival_mins if day_num == 1 else 480)) > 12 * 60:
-                # Try moving to a later day if available
-                if d_idx + 1 < num_days:
-                    per_day[d_idx + 1].append(s)
-                    warnings.append(
-                        f"{s['name']} needs {_fmt_duration(leg_mins)} travel + {_fmt_duration(s['dur_mins'])} visit "
-                        f"(would end {_fmt_time(projected_end)}) — moved to Day {d_idx + 2}."
-                    )
-                    continue
-                warnings.append(
-                    f"{s['name']} needs {_fmt_duration(leg_mins)} travel + {_fmt_duration(s['dur_mins'])} visit "
-                    f"and does not fit before {_fmt_time(max_cutoff)} on Day {day_num} — removed from schedule."
-                )
-                continue
 
             # Travel leg to sight
             events.append({
@@ -569,6 +714,11 @@ def build_timeline(trip: dict) -> dict:
         if prev_place != hotel_name:
             last_dist_fb = visited_sights[-1]["dist_from_hotel"] if visited_sights else 4.0
             ret_km, ret_mins = _osrm_leg(prev_coords, hotel_coords, last_dist_fb)
+            is_hill_dest = any(k in destination.lower() for k in ("coorg", "madikeri", "shimla", "manali", "munnar", "ooty", "darjeeling", "gangtok", "wayanad", "chikmagalur"))
+            if is_hill_dest and ret_km > 0:
+                ret_mins = max(ret_mins, int(round((ret_km / 32.0) * 60)))
+            elif ret_km >= 3.0 and ret_km < 30.0:
+                ret_mins = max(ret_mins, int(round((ret_km / 28.0) * 60)))
             events.append({
                 "start_time": _fmt_time(cursor),
                 "end_time": _fmt_time(cursor + ret_mins),
@@ -645,7 +795,8 @@ def build_timeline(trip: dict) -> dict:
             })
             cursor += 15
 
-            buffer_mins = 90 if transit_mode == "flight" else 30
+            is_active_flight = (transit_mode == "flight" and transit_available)
+            buffer_mins = 90 if is_active_flight else 30
             ret_dep = max(cursor + buffer_mins, 20 * 60)
             _fill_gap_if_needed(events, cursor, ret_dep - buffer_mins, hotel_name)
             events.append({
@@ -657,10 +808,10 @@ def build_timeline(trip: dict) -> dict:
                 "distance_label": "",
                 "mode": transit_mode,
                 "type": "travel",
-                "icon": "🛂" if transit_mode == "flight" else "🎫",
+                "icon": "🛂" if is_active_flight else "🎫",
                 "from_place": hotel_name,
                 "to_place": hotel_name,
-                "title": f"{'Airport Check-in & Security Buffer' if transit_mode == 'flight' else 'Station / Boarding Buffer'}",
+                "title": f"{'Airport Check-in & Security Buffer' if is_active_flight else 'Departure Prep / Boarding Buffer'}",
                 "subtitle": f"Arrive {_fmt_duration(buffer_mins)} before {transit_mode} departure",
             })
             ret_arr = ret_dep + transit_dur_mins
@@ -703,14 +854,23 @@ def build_timeline(trip: dict) -> dict:
             "day_drive_label": _fmt_duration(day_drive_mins),
         })
 
-    totals = calculate_trip_total(trip)
+    scheduled_sights = [s for d in days_out for s in (d.get("sights") or [])]
+    trip_for_totals = dict(trip)
+    trip_for_totals["_arr_day_offset"] = arr_day_offset
+    if scheduled_sights:
+        trip_for_totals["selected_attractions"] = scheduled_sights
+    totals = calculate_trip_total(trip_for_totals)
+    if arr_day_offset >= 1:
+        warnings.append(
+            f"Outbound transit arrives Day {arr_day_offset + 1}: stay is billed only for {totals['nights']} occupied night(s) (no wasted hotel nights while in transit)."
+        )
     if totals["budget_target"] > 0 and totals["transit_group"] >= 0.75 * totals["budget_target"]:
         pct_t = round((totals["transit_group"] / totals["budget_target"]) * 100)
         warnings.append(
             f"Transit alone (₹{totals['transit_group']:,}) uses {pct_t}% of your ₹{totals['budget_target']:,} budget — consider Train/Bus or increasing your budget."
         )
 
-    return {
+    result = {
         "source": source,
         "destination": destination,
         "dates_label": dates_label,
@@ -719,6 +879,7 @@ def build_timeline(trip: dict) -> dict:
         "arrival_time": arrival_time_str,
         "transit": {
             "mode": transit_mode,
+            "available": transit_available,
             "title": transit_title,
             "departure": _fmt_time(dep_mins),
             "arrival": arrival_time_str,
@@ -728,6 +889,7 @@ def build_timeline(trip: dict) -> dict:
             "fare_per_person": totals["transit_per_person"],
         },
         "days": days_out,
+        "claimed_sight_count": sum(len(d.get("sights") or []) for d in days_out),
         "total_distance_km": round(total_ss_dist_km, 1),
         "total_drive_mins": total_ss_drive_mins,
         "total_drive_label": _fmt_duration(total_ss_drive_mins),
@@ -735,3 +897,6 @@ def build_timeline(trip: dict) -> dict:
         "warnings": warnings,
         "budget": totals,
     }
+    from backend.services.itinerary.feasibility_validator import repair_and_validate_timeline
+    result["feasibility"] = repair_and_validate_timeline(result)
+    return result

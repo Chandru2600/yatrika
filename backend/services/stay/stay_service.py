@@ -167,10 +167,11 @@ def _query_overpass_nearby_stays(dest_lat: float, dest_lon: float, destination: 
             return []
         elements = resp.json().get("elements", [])
         stays = []
+        _PG_NOISE = ("boys hostel", "men's hostel", "mens hostel", "ladies hostel", "girls hostel", "paying guest", "ladies pg", "girls pg", "boys pg", "womens pg", "women's pg")
         for idx, el in enumerate(elements):
             tags = el.get("tags", {})
             name = (tags.get("name") or "").strip()
-            if not name or len(name) < 3:
+            if not name or len(name) < 3 or any(pg in name.lower() for pg in _PG_NOISE):
                 continue
             lat = el.get("lat") or el.get("center", {}).get("lat")
             lon = el.get("lon") or el.get("center", {}).get("lon")

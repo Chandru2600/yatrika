@@ -145,8 +145,7 @@ def test_agra_long_bus_private_operator_and_no_impossible_transit_days():
     })
     assert "In Transit" in tl["days"][1]["events"][0]["title"]
     assert len(tl["days"][1]["sights"]) == 0
-    day1_dinner = [e for e in tl["days"][0]["events"] if "Dinner" in e["title"]][0]
-    assert "19:00" in day1_dinner["start_time"] or "19:" in day1_dinner["start_time"]
+    assert len(tl["days"][0]["sights"]) == 0
 
 
 def test_hampi_no_ixe_vdy_flight_and_sunset_placed_last():

@@ -952,8 +952,8 @@ window.renderRoute = function(targetDay) {
   const dayRoutes = State.dayRoutes || (ITINERARY_DATA.day_routes) || (ITINERARY_DATA.itinerary && ITINERARY_DATA.itinerary.day_routes) || [];
   const dayNum = targetDay || State.activeRouteDay || 1;
 
-  // Find matching route or fallback to first
-  let route = dayRoutes.find(r => parseInt(r.day || r.day_number) === dayNum) || dayRoutes[0];
+  // Find matching route by explicit day/day_number, else by array index (dayNum - 1)
+  let route = dayRoutes.find(r => parseInt(r.day || r.day_number) === dayNum) || dayRoutes[dayNum - 1] || dayRoutes[0];
 
   // If no pre-computed day_routes, synthesize from selectedAttractions
   if (!route) {
@@ -1114,7 +1114,7 @@ window.drawDayRouteOnMap = function(dayNum) {
 
   const dayRoutes = State.dayRoutes || (ITINERARY_DATA.day_routes) || (ITINERARY_DATA.itinerary && ITINERARY_DATA.itinerary.day_routes) || [];
   const targetDay = dayNum || State.activeRouteDay || 1;
-  const route = dayRoutes.find(r => parseInt(r.day || r.day_number) === targetDay) || dayRoutes[0];
+  const route = dayRoutes.find(r => parseInt(r.day || r.day_number) === targetDay) || dayRoutes[targetDay - 1] || dayRoutes[0];
 
   // Remove existing numbered markers
   if (State.routeMarkers) {
@@ -1172,6 +1172,8 @@ window.drawDayRouteOnMap = function(dayNum) {
       bounds.extend(pt);
       hasPoints = true;
     });
+  } else if (map.getSource('osrm-day-route')) {
+    map.getSource('osrm-day-route').setData({ type: "FeatureCollection", features: [] });
   }
 
   // 2. Render numbered markers in visit order
