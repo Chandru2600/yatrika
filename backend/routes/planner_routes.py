@@ -357,6 +357,31 @@ def search_attractions_api():
 
     from backend.services.wikipedia.wiki_places_service import batch_get_real_places, DESTINATION_AUTHENTIC_PHOTOS
 
+    # Supplement with live Geoapify Places sights when GEOAPIFY_API_KEY is configured
+    geo_key = os.getenv("GEOAPIFY_API_KEY", "").strip()
+    geo_openings = {}
+    if geo_key and lat is not None and lon is not None:
+        try:
+            g_resp = requests.get(
+                "https://api.geoapify.com/v2/places",
+                params={
+                    "categories": "tourism.sights,tourism.attraction",
+                    "filter": f"circle:{lon},{lat},{int(min(40, effective_radius) * 1000)}",
+                    "limit": 15,
+                    "apiKey": geo_key,
+                },
+                timeout=3,
+            )
+            if g_resp.ok:
+                for feat in (g_resp.json().get("features") or []):
+                    props = feat.get("properties") or {}
+                    gn = (props.get("name") or "").strip()
+                    oh = ((props.get("datasource") or {}).get("raw") or {}).get("opening_hours")
+                    if gn and oh:
+                        geo_openings[gn.lower()] = str(oh)
+        except Exception:
+            pass
+
     import re as _re
     seen_norm_names = set()
     candidates = []
@@ -468,7 +493,7 @@ def search_attractions_api():
             ],
             "nearbyFood": ["Local cuisine, coffee estates and refreshments nearby"],
             "review": reviews,
-            "opening": real_info.get("opening") or "Check locally",
+            "opening": geo_openings.get(nm.lower()) or real_info.get("opening") or "Check locally",
             "website": None,
             "phone": None
         })

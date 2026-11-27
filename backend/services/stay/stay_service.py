@@ -96,6 +96,53 @@ def _select_stay_photo(dest: str, stay_type: str, stay_name: str, idx: int = 0) 
     return STAY_PHOTO_POOL[idx % len(STAY_PHOTO_POOL)]
 
 
+def _query_geoapify_nearby_stays(dest_lat: float, dest_lon: float, destination: str,
+                                 budget_per_night: float) -> list:
+    """Fetch real nearby hotels/resorts/guest houses via Geoapify Places API when GEOAPIFY_API_KEY is set."""
+    import os
+    api_key = os.getenv("GEOAPIFY_API_KEY", "").strip()
+    if not api_key:
+        return []
+    try:
+        resp = requests.get(
+            "https://api.geoapify.com/v2/places",
+            params={
+                "categories": "accommodation.hotel,accommodation.guest_house,accommodation.resort",
+                "filter": f"circle:{dest_lon},{dest_lat},12000",
+                "limit": 10,
+                "apiKey": api_key,
+            },
+            timeout=4,
+        )
+        if not resp.ok:
+            return []
+        stays = []
+        for idx, feat in enumerate(resp.json().get("features") or []):
+            props = feat.get("properties") or {}
+            name = (props.get("name") or "").strip()
+            lat, lon = props.get("lat"), props.get("lon")
+            if not name or len(name) < 3 or lat is None or lon is None:
+                continue
+            cats = " ".join(props.get("categories") or [])
+            t_type = "Resort" if "resort" in cats else ("Guest House" if "guest_house" in cats else "Hotel")
+            mult = 0.9 if "guest" in t_type.lower() else (1.35 if "resort" in t_type.lower() else 1.05)
+            est_price = max(800, int(round((budget_per_night * mult) / 50.0) * 50))
+            stays.append({
+                "name": name,
+                "type": t_type,
+                "price_per_night": est_price,
+                "rating": 4.2,
+                "reviews_count": 0,
+                "address": props.get("formatted") or f"Near {destination}",
+                "lat": round(float(lat), 5),
+                "lon": round(float(lon), 5),
+                "amenities": ["Standard Check-in"],
+            })
+        return stays
+    except Exception:
+        return []
+
+
 def _query_overpass_nearby_stays(dest_lat: float, dest_lon: float, destination: str,
                                  budget_per_night: float) -> list:
     """Fetch real nearby hotels/lodges/guest houses around exact coordinates via OpenStreetMap Overpass."""
@@ -315,7 +362,9 @@ def _query_agent_fallback_stays(destination: str, dest_lat: float, dest_lon: flo
     model = AccommodationsSafetyModel()
     dest_key = destination.lower().strip()
     tokens = _extract_search_tokens(destination)
-    candidates = _query_overpass_nearby_stays(dest_lat, dest_lon, destination, budget_per_night)
+    candidates = _query_geoapify_nearby_stays(dest_lat, dest_lon, destination, budget_per_night)
+    if len(candidates) < 4:
+        candidates.extend(_query_overpass_nearby_stays(dest_lat, dest_lon, destination, budget_per_night))
 
     # 1. Query the 150,000 hotels dataset (match by city or full destination, never generic words in address)
     if HOTELS_CSV.exists():
