@@ -18,32 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ATT_CSV = BASE_DIR / "FACULTY_EVALUATION_DATASETS" / "1_All_India_Tourist_Attractions_10025.csv"
 HOT_CSV = BASE_DIR / "FACULTY_EVALUATION_DATASETS" / "2_All_India_Hotels_and_Accommodations_150000.csv"
 
-BARE_GENERIC = {
-    "temple", "church", "mosque", "masjid", "park", "lake", "falls", "waterfall",
-    "waterfalls", "hill", "hills", "fort", "palace", "museum", "beach", "garden",
-    "viewpoint", "view point", "peak", "cave", "bridge", "dam", "statue", "gate",
-}
-
-
-def is_junk_attraction(name: str) -> bool:
-    if not name or len(name.strip()) < 3:
-        return True
-    s = name.strip()
-    if re.search(r"(?i)ASI Monument|Monument\s*#|#\d+|Protected Heritage|ASI Protected|Protected Site", s):
-        return True
-    if re.match(r"^[\d\s\-_#]+$", s) or re.match(r"^\d+[A-Za-z\-_]+$", s) or re.match(r"^[A-Za-z0-9\-_]{1,4}$", s):
-        return True
-    if re.search(r"(?i)\b(?:H#|St\s*\d+|G\d+-\d+|Market ID|Plot No|Sector\s*\d+|Bus Stop|Traffic Signal|Police Station)\b", s):
-        return True
-    if re.search(r"\b(?:18|19|20)\d{2}\s*[-–]\s*\d{2,4}\b", s) or re.search(r"(?i)\b\d+rp\b", s):
-        return True
-    if len(s) > 55 or re.search(r"(?i)\b(?:to the (?:east|west|north|south) of|for climbers)\b", s):
-        return True
-    if any(b in s.lower() for b in ("cave of nightmares", "in my dream", "locomotive works", "free view point", "cliff jumping point", "temple elephant bathing", "sunset viewpoint with", "toy train", "vintage cars", "ridge point")):
-        return True
-    if s.lower() in BARE_GENERIC:
-        return True
-    return False
+from backend.agents_models.scheduling_model import is_generic_or_placeholder_name as is_junk_attraction
 
 
 def clean_attractions():

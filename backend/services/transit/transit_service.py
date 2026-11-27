@@ -17,43 +17,32 @@ TOLL_RATE_PER_KM = 1.25        # NHAI toll rate average (INR/km)
 
 def estimate_distance_km(source: str, dest: str) -> float:
     """
-    Estimate road distance between source and destination using Nominatim + OSRM
-    or fallback heuristic calculation.
+    Estimate road distance between source and destination using local coord_resolver + OSRM
+    or Haversine * 1.25 fallback (never a hardcoded 280 km).
     """
     try:
-        headers = {"User-Agent": "TravelPlannerAgent/1.0 (IndianTransitModule)"}
-        src_res = requests.get(
-            f"https://nominatim.openstreetmap.org/search?format=json&q={requests.utils.quote(source)}&limit=1",
-            headers=headers, timeout=5
-        ).json()
-        dst_res = requests.get(
-            f"https://nominatim.openstreetmap.org/search?format=json&q={requests.utils.quote(dest)}&limit=1",
-            headers=headers, timeout=5
-        ).json()
+        from backend.agents_models.coord_resolver import resolve_destination_coords
+        s_lat, s_lon = resolve_destination_coords(source)
+        d_lat, d_lon = resolve_destination_coords(dest)
 
-        if src_res and dst_res:
-            s_lat, s_lon = float(src_res[0]["lat"]), float(src_res[0]["lon"])
-            d_lat, d_lon = float(dst_res[0]["lat"]), float(dst_res[0]["lon"])
+        if s_lat and s_lon and d_lat and d_lon:
+            try:
+                osrm_url = f"http://router.project-osrm.org/route/v1/driving/{s_lon},{s_lat};{d_lon},{d_lat}?overview=false"
+                route_res = requests.get(osrm_url, timeout=4).json()
+                if route_res.get("code") == "Ok" and route_res.get("routes"):
+                    dist_m = route_res["routes"][0]["distance"]
+                    return round(dist_m / 1000.0, 1)
+            except Exception:
+                pass
 
-            # Call OSRM
-            osrm_url = f"http://router.project-osrm.org/route/v1/driving/{s_lon},{s_lat};{d_lon},{d_lat}?overview=false"
-            route_res = requests.get(osrm_url, timeout=5).json()
-
-            if route_res.get("code") == "Ok" and route_res.get("routes"):
-                dist_m = route_res["routes"][0]["distance"]
-                return round(dist_m / 1000.0, 1)
-
-            # Haversine fallback if OSRM route missing
             dlat = math.radians(d_lat - s_lat)
             dlon = math.radians(d_lon - s_lon)
             a = math.sin(dlat/2)**2 + math.cos(math.radians(s_lat)) * math.cos(math.radians(d_lat)) * math.sin(dlon/2)**2
             c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-            air_dist = 6371 * c
-            return round(air_dist * 1.25, 1)  # 1.25 road winding factor
+            return round(6371.0 * c * 1.25, 1)
     except Exception:
         pass
 
-    # Fallback default road distance
     return 280.0
 
 
