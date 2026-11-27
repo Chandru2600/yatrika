@@ -685,8 +685,13 @@ def fetch_railway_ai_fares(source: str, dest: str, dist_km: float, travelers: in
                 "X-RapidAPI-Key": api_key,
                 "X-RapidAPI-Host": os.getenv("RAILWAY_RAPIDAPI_HOST", "irctc1.p.rapidapi.com"),
             }
+            from datetime import date, timedelta
             url = os.getenv("RAILWAY_AI_URL", "https://irctc1.p.rapidapi.com/api/v3/trainBetweenStations")
-            params = {"fromStationCode": src_code, "toStationCode": dst_code}
+            params = {
+                "fromStationCode": src_code,
+                "toStationCode": dst_code,
+                "dateOfJourney": (date.today() + timedelta(days=2)).isoformat(),
+            }
             resp = requests.get(url, headers=headers, params=params, timeout=5)
             if resp.status_code == 200:
                 payload = resp.json()
