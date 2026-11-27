@@ -107,7 +107,7 @@ def _query_geoapify_nearby_stays(dest_lat: float, dest_lon: float, destination: 
         resp = requests.get(
             "https://api.geoapify.com/v2/places",
             params={
-                "categories": "accommodation.hotel,accommodation.guest_house,accommodation.resort",
+                "categories": "accommodation.hotel,accommodation.guest_house,accommodation.hostel",
                 "filter": f"circle:{dest_lon},{dest_lat},12000",
                 "limit": 10,
                 "apiKey": api_key,
