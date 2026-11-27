@@ -60,9 +60,9 @@
     "title": "Dubare"
   },
   "view_point_coorg": {
-    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/86/Ant-pen-map-Trinity-Peninsula.PNG/330px-Ant-pen-map-Trinity-Peninsula.PNG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
-    "desc": "View Point is 150m long eastern tip of a promontory, on Antarctica, forming the west side of the entrance to Duse Bay on the south coast of Trinity Peninsula, on the northern portion of the Antarctic Peninsula. Situated 6.79 km east of Skomlya Hill and 6.45 km southeast of Boil Point. Discovered by a party under J. Gunnar Andersson of the Swedish Antarctic Expedition, 1901–04. So named by the Falkland Islands Dependencies Survey (FIDS) following their survey of the area in 1945 because from this promontory, good panoramic photographs were obtained.",
-    "title": "View Point"
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Abbi_falls_coorg.jpg/800px-Abbi_falls_coorg.jpg",
+    "desc": null,
+    "title": null
   },
   "bylakuppe_namdroling_golden_temple_coorg": {
     "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/72/Namrodoling_Monastery_Bylakuppe2.jpg/330px-Namrodoling_Monastery_Bylakuppe2.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
@@ -275,9 +275,9 @@
     "title": null
   },
   "nehru_mantapa_coorg": {
-    "img": null,
-    "desc": "Karnataka, the sixth largest state in India, was ranked as the third most popular state in the country for tourism in 2014.\n It is home to 507 of the 3600 centrally protected monuments in India, second only to Uttar Pradesh. The State Directorate of Archaeology and Museums protects an additional 752 monuments and another 25,000 monuments are yet to receive protection.\n\nThe ancient sculptured temples, modern cities, hill ranges, forests and beaches are some tourism centers. Broadly, tourism in Karnataka is divided into four geographical regions: North Karnataka, the Hill Stations, Coastal Karnataka and South Karnataka.\nThe Karnataka government has introduced The Golden Chariot – a train which connects popular tourist destinations in the state and Goa.\nThe Karnataka State Tourism Development Corporation is the governmental body that works to promote tourism in Karnataka.",
-    "title": "Tourism in Karnataka"
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Abbi_falls_coorg.jpg/800px-Abbi_falls_coorg.jpg",
+    "desc": null,
+    "title": null
   },
   "ezharakund_waterfalls_coorg": {
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Abbi_falls_coorg.jpg/800px-Abbi_falls_coorg.jpg",
@@ -4281,6 +4281,401 @@
   },
   "chembirika_rocks_and_beach_coorg": {
     "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Abbi_falls_coorg.jpg/800px-Abbi_falls_coorg.jpg",
+    "desc": null,
+    "title": null
+  },
+  "honnammana_kere_coorg": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/91/Honnamana_Kere.jpg/330px-Honnamana_Kere.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Honnamana Kere is a lake and holy place in Doddamalthe near the village of Sulimalthe, 6 km away from Somwarpet town of Coorg in the state of Karnataka, India. It is the biggest lake in Kodagu, and once a year, during the Gowri festival, a special pooja is conducted and a 'Bagina' which consists of the belongings of goddess Honamma is presented to the lake.",
+    "title": "Honnamana Kere"
+  },
+  "dubare_elephant_camp_coorg": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Elephants_at_Dubare_Camp.jpg/800px-Elephants_at_Dubare_Camp.jpg",
+    "desc": "Famous tourist attraction in Coorg.",
+    "title": "Dubare Elephant Camp"
+  },
+  "hanging_bridge_coorg": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ae/Hanging_Bridge_Manchester_Times%2C_June_14%2C_1890.jpg/330px-Hanging_Bridge_Manchester_Times%2C_June_14%2C_1890.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Hanging Bridge is a medieval arched bridge spanning Hanging Ditch, a watercourse which connected the rivers Irk and Irwell in Manchester, England. It was built in 1421, replacing an earlier bridge at the same location. Eventually completely obscured by buildings over time, the bridge was rediscovered in the 1880s and the structure is now partially exposed. The bridge is listed as a Scheduled Ancient Monument.",
+    "title": "Hanging Bridge"
+  },
+  "honnamana_kere_coorg": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/91/Honnamana_Kere.jpg/330px-Honnamana_Kere.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Honnamana Kere is a lake and holy place in Doddamalthe near the village of Sulimalthe, 6 km away from Somwarpet town of Coorg in the state of Karnataka, India. It is the biggest lake in Kodagu, and once a year, during the Gowri festival, a special pooja is conducted and a 'Bagina' which consists of the belongings of goddess Honamma is presented to the lake.",
+    "title": "Honnamana Kere"
+  },
+  "palakkayam_thattutourisme_center_coorg": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Abbi_falls_coorg.jpg/800px-Abbi_falls_coorg.jpg",
+    "desc": null,
+    "title": null
+  },
+  "triveni_sangama_coorg": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Abbi_falls_coorg.jpg/800px-Abbi_falls_coorg.jpg",
+    "desc": null,
+    "title": null
+  },
+  "raja_seat_coorg": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/c/c6/Raja_seat_madikeri.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail_unscaled",
+    "desc": "Raja's Seat is a culturally significant site and tourist attraction in Madikeri of Coorg District. It is 270km away from Bangalore, the capital of Karnataka.",
+    "title": "Raja's Seat"
+  },
+  "bisle_ghat_view_point_coorg": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Abbi_falls_coorg.jpg/800px-Abbi_falls_coorg.jpg",
+    "desc": null,
+    "title": null
+  },
+  "ranipuram_coorg": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b2/Ranipuram.jpg/330px-Ranipuram.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Ranipuram, formerly Madathumala, is a village and a major tourist attraction in the Kasaragod district of the Indian state of Kerala. It is located near Talakaveri Wildlife Sanctuary in Kerala-Karnataka border. Situated at 1,048 metres (3,438 ft) above mean sea level, Ranipuram is 48 km from the nearest city Kanhangad and 107 km from the major port city of Mangalore.",
+    "title": "Ranipuram"
+  },
+  "nalknad_palace_coorg": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/04/Nalknad_Palace_%28Kakkabe%29_-_Nalnad_Palace_%2889%29.jpg/330px-Nalknad_Palace_%28Kakkabe%29_-_Nalnad_Palace_%2889%29.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Nalknad Palace or Nalkunadu, called Naalnaad Aramane in the local Kodava language, is a palace located in the Kodagu district of the Indian state of Karnataka. It is located near a village named Yavakapadi and was built between the years 1792 and 1794 AD. This palace was the last refuge of the last of the Haleri kings of Kodagu, Chikka Veerarajendra before he was deposed by the British. The Kannada film Shanti, which has only a single actor, was shot in the surroundings of the palace.",
+    "title": "Nalknad Palace"
+  },
+  "pullanparathattu_viewpoint_coorg": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Abbi_falls_coorg.jpg/800px-Abbi_falls_coorg.jpg",
+    "desc": null,
+    "title": null
+  },
+  "chokran_valavu_coorg": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Abbi_falls_coorg.jpg/800px-Abbi_falls_coorg.jpg",
+    "desc": null,
+    "title": null
+  },
+  "chariot_gokarna": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2b/Biga._Festa_do_esquecemento._Xinzo_de_Limia%2C_Ourense%2C_Galicia.jpg/330px-Biga._Festa_do_esquecemento._Xinzo_de_Limia%2C_Ourense%2C_Galicia.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "A chariot is a type of two-wheeled vehicle with spoked wheels, driven by a charioteer, usually using horses to provide rapid motive power for usage in warfare. The oldest known chariots have been found in burials of the Sintashta culture in modern-day Chelyabinsk Oblast, Russia, dated to c. 1950–1880 BC and are depicted on cylinder seals from Central Anatolia in Kültepe dated to c. 1900 BC. The critical invention that allowed the construction of light, horse-drawn chariots was the spoked wheel.",
+    "title": "Chariot"
+  },
+  "sunrise_gokarna": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ea/Spring_Lake%2C_New_Jersey_Beach_at_Sunrise.jpg/330px-Spring_Lake%2C_New_Jersey_Beach_at_Sunrise.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Sunrise is the moment when the upper rim of the Sun appears on the horizon in the morning, at the start of the Sun path. The term can also refer to the entire process of the solar disk crossing the horizon.",
+    "title": "Sunrise"
+  },
+  "curdi_gokarna": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/Curdi_Goa%2C_India.jpg/330px-Curdi_Goa%2C_India.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Curdi is a village in Sanguem taluka of Goa. The village was submerged in the 1980s by the reservoir of the Salaulim Dam. Every year, at the peak of summer during April–May, parts of the submerged village rise above the water level for around one month. During this period, the original villagers come back to relive their memories and gather around their respective places of worship. Most of the villagers were rehabilitated to the nearby villages of Valkinim and Vaddem, and have since spread across Goa and beyond.",
+    "title": "Curdi"
+  },
+  "palolem_crescent_beach_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "shivganga_falls_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "sri_durga_parameshwari_temple_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "murudeshwar_shiva_temple__beach_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "virupaksha_temple_gokarna": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Virupaksha_Temple_Hampi.jpg/800px-Virupaksha_Temple_Hampi.jpg",
+    "desc": "Famous tourist attraction in Gokarna.",
+    "title": "Virupaksha temple"
+  },
+  "sathodi_falls_gokarna": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/81/Sathodi_54.jpg/330px-Sathodi_54.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Sathodi Falls is a waterfall located in the Western Ghats, Uttara Kannada District Located 32 km (20 mi) from Yellapur and 74 km (46 mi) from Sirsi. It is about 15 metres tall. The stream then flows into the backwaters of the Kodasalli Dam, into the Kali River.",
+    "title": "Sathodi Falls"
+  },
+  "shri_francisco_caetano_sardinha_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "nanda_lake_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "jog_falls_gerosoppa_gokarna": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Jog_Falls_05092016.jpg/330px-Jog_Falls_05092016.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Jog Falls is a series of large, segmented waterfalls on the Sharavati River in Karnataka state of India, created by the river plunging approximately 253 metres (830 ft) and splitting into four distinct cascades. The waterfalls are situated in the Sagar taluk of the Shivamogga district.",
+    "title": "Jog Falls"
+  },
+  "usgalimal_rock_engravings_gokarna": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/Usgal1.jpg/330px-Usgal1.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "The Usgalimal rock engravings or Usgalimal petroglyphs at Usgalimal village, in South Goa, is one of the most important prehistoric sites in Western India.",
+    "title": "Usgalimal rock engravings"
+  },
+  "jog_falls_view__british_bungalow__gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "mohini_betta_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "cabo_de_rama_fort_sea_cliffs_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "koosalli_water_falls_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "magod_falls_viewpoint_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "yana_caves__limestone_rock_formations_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "vibhooti_falls_ankola_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "sadashivagad_fort_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "dabbe_falls_sagara_gokarna": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/af/Dabbe_Falls_SAGARA.jpg/330px-Dabbe_Falls_SAGARA.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Dabbe Falls is a waterfall located in place named Dabbe near Hosagadde in Sagar taluk, Shivamogga District in Karnataka state, India. The height of the falls is 110 meters. One can take a guide from Muppane nature camp which is 10 km away from Dabbe Falls.",
+    "title": "Dabbe Falls (Sagara)"
+  },
+  "ins_chapal_gokarna": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a8/INS_Chapal_%28K94%29.jpg/330px-INS_Chapal_%28K94%29.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "INS Chapal (K94) was a Chamak class missile boat of the Indian Navy.",
+    "title": "INS Chapal"
+  },
+  "bela_lake_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "sathodi_waterfalls_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "galgibaga_beach_gokarna": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Baga_Beach_Goa.jpg/800px-Baga_Beach_Goa.jpg",
+    "desc": "Famous tourist attraction in Gokarna.",
+    "title": "Galgibaga Beach"
+  },
+  "kali_tiger_reserve_gokarna": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/Kali_river.jpg/330px-Kali_river.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Kali Tiger Reserve is a protected area and tiger reserve. It is located in Uttara Kannada district, in Karnataka, India. The park is a habitat of Bengal tigers, black panthers and Indian elephants, amongst other distinctive fauna. The Kali River flows through the tiger reserve and is the lifeline of the ecosystem and hence the name. The tiger reserve is spread over an area of 1300 square kilometres.",
+    "title": "Kali Tiger Reserve"
+  },
+  "treetop_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "benne_hole_falls_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "bhimas_foot_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "view_on_floating_rock_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "sadashivgad_esturay_viewpoint_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "jayachamrajendra_viewpoint_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "sharavati_river_viewpoint_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "vibhuti_falls_gokarna": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Yana_Rocks.jpg/330px-Yana_Rocks.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Yana is a village and a geological site in Uttara Kannada district of the Indian state of Karnataka. There are several karst formations in the region, and prominent among them are the two rocky outcrops on the outskirts of the village, known as Bhairaveshwara Shikhara and the Mohini Shikhara. The site was declared as National Geological Monument by the Geological Survey of India in 2026. There is a temple dedicated to Bhaireveshwara, a form of Shiva in Hinduism.",
+    "title": "Yana, India"
+  },
+  "road_to_mount_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "jog_falls_gokarna": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Jog_Falls_05092016.jpg/330px-Jog_Falls_05092016.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Jog Falls is a series of large, segmented waterfalls on the Sharavati River in Karnataka state of India, created by the river plunging approximately 253 metres (830 ft) and splitting into four distinct cascades. The waterfalls are situated in the Sagar taluk of the Shivamogga district.",
+    "title": "Jog Falls"
+  },
+  "shri_santadurga_kunkalikaran_prasann_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "fort_kagala_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "cola_beach_gokarna": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/72/Agonda_beach.JPG/330px-Agonda_beach.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Agonda is a large village located in Canacona in Kushavati district, India. It is famous for its beach and is one of the only four beaches designated as turtle nesting sites under the Coastal Regulation Zone 2011 notification.",
+    "title": "Agonda"
+  },
+  "bhairaveshwara_shikhara_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "blue_water_falls_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "shivaganga_falls_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "kali_tiger_reserve_view_point_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "liganamakki_dam_reservoir_viewpoint_gokarna": {
+    "img": null,
+    "desc": null,
+    "title": null
+  },
+  "sowthadka_mahaganapathi_entrance_arch_coorg": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Abbi_falls_coorg.jpg/800px-Abbi_falls_coorg.jpg",
+    "desc": null,
+    "title": null
+  },
+  "vismaya_water_and_amusement_park_coorg": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Abbi_falls_coorg.jpg/800px-Abbi_falls_coorg.jpg",
+    "desc": null,
+    "title": null
+  },
+  "nagarhole_national_park_mysuru": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Tiger_in_Nagarhole_National_Park.jpg/800px-Tiger_in_Nagarhole_National_Park.jpg",
+    "desc": "Famous tourist attraction in Mysuru.",
+    "title": "Nagarhole National Park"
+  },
+  "jaganmohan_palace_mysuru": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c1/A_view_of_Jaganmohan_Palace.jpg/330px-A_view_of_Jaganmohan_Palace.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Sri Jayachamarajendra Art Gallery, commonly known by its former name Jaganmohana Palace, is a former royal mansion, arts museum and auditorium, and formerly an alternative royal residence of the ruling Maharaja of Mysore, located in Mysore, India, about 200m (600ft) to the west of Mysore Palace. Began in 1856 and completed in 1861, the palace is one of the oldest modern structures in Mysore.",
+    "title": "Jaganmohan Palace"
+  },
+  "lingambudhi_lake_mysuru": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/74/Lingambudhi_Lake_when_filled.jpeg/330px-Lingambudhi_Lake_when_filled.jpeg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Lingambudhi Lake is a lake in the Indian city of Mysore.",
+    "title": "Lingambudhi Lake"
+  },
+  "ranganathittu_bird_sanctuary_mysuru": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/75/Spot-billed_Pelican_Rising_Flight_Ranganathittu_Feb24_D72_26266.jpg/330px-Spot-billed_Pelican_Rising_Flight_Ranganathittu_Feb24_D72_26266.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Ranganathittu Bird Sanctuary, is a bird sanctuary in the Mandya District of Karnataka, in India. It is the largest bird sanctuary in the state, 40 acres (16 ha) in area, and comprises six islets on the banks of the Kaveri river. The sanctuary has been designated on 15 February 2022 as a protected Ramsar site since 2022.",
+    "title": "Ranganathittu Bird Sanctuary"
+  },
+  "ruins_of_tippu_sultans_palace_mysuru": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Mysore_Palace_Morning_View.jpg/800px-Mysore_Palace_Morning_View.jpg",
+    "desc": null,
+    "title": null
+  },
+  "watch_tower_of_gaganachukki_mysuru": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Mysore_Palace_Morning_View.jpg/800px-Mysore_Palace_Morning_View.jpg",
+    "desc": null,
+    "title": null
+  },
+  "kukkarahalli_lake_mysuru": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b9/Kukkarahalli_Lake.jpg/330px-Kukkarahalli_Lake.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Kukkarahalli Lake also called Kukkarhalli Kere, located in the heart of the Mysore city, adjoins the Manasgangotri, the Kalamandir (Rangyana) and the Central Food Technological Research Institute (CFTRI) campus. It provides lung-space to the city. Mummadi Krishnaraja Wodeyar (1794–1868) of the Mysore dynasty was responsible for getting the lake created, in the year 1864, to provide water for irrigation to about 4000 ha of land outside the city. The Lake also used to be a source of water supply to the city of Mysore but over the years, sewage and excessive land encroachments and blockage of water flow sources almost led to the eutrophication of the lake. The University of Mysore and the citizen forums of Mysore continue to make efforts to preserve the lake by implementing several remedial measures. There is a 3.5-km walkway on the periphery of the lake with shaded stone benches for visitors to sit, relax and enjoy the scenic serenity of the lake.",
+    "title": "Kukkarahalli Lake"
+  },
+  "house_of_r_k_narayan_mysuru": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Mysore_Palace_Morning_View.jpg/800px-Mysore_Palace_Morning_View.jpg",
+    "desc": null,
+    "title": null
+  },
+  "daria_daulat_bagh_mysuru": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/da/Gumbaj_containing_tomb_of_Tipu_Sultan.jpg/330px-Gumbaj_containing_tomb_of_Tipu_Sultan.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Daria Daulat Bagh is a palace located in the city of Srirangapatna, near Mysore in southern India. It is mostly made of teakwood.",
+    "title": "Daria Daulat Bagh"
+  },
+  "gaganachukki_falls_mysuru": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Mysore_Palace_Morning_View.jpg/800px-Mysore_Palace_Morning_View.jpg",
+    "desc": null,
+    "title": null
+  },
+  "harohalli_kere_mysore_taluk_mysuru": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Mysore_Palace_Morning_View.jpg/800px-Mysore_Palace_Morning_View.jpg",
+    "desc": null,
+    "title": null
+  },
+  "sandalwood_oil_factory_mysuru": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Mysore_Palace_Morning_View.jpg/800px-Mysore_Palace_Morning_View.jpg",
+    "desc": null,
+    "title": null
+  },
+  "kpc_glass_house_mysuru": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Mysore_Palace_Morning_View.jpg/800px-Mysore_Palace_Morning_View.jpg",
+    "desc": null,
+    "title": null
+  },
+  "chamundi_hill_mysuru": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Chamundeshwari_Temple_Gopuram.jpg/800px-Chamundeshwari_Temple_Gopuram.jpg",
+    "desc": "Famous tourist attraction in Mysuru.",
+    "title": "Chamundi Hill"
+  },
+  "lalitha_mahal_mysuru": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2a/Lalitha_Mahal_Palace_Hotel.jpg/330px-Lalitha_Mahal_Palace_Hotel.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "The Lalitha Mahal, now renamed Lalitha Mahal Palace Hotel, is a luxury hotel located in a former royal residence, and the second largest palace in the southern Indian city of Mysore, Karnataka, after the Mysore Palace. It is located near the Chamundi Hills, east of the city. The palace was built in 1921 by Maharaja Krishnaraja Wodeyar IV for the exclusive stay of the Governor-General of India.",
+    "title": "Lalitha Mahal"
+  },
+  "mysore_zoo_mysuru": {
+    "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/63/Entrance_of_Mysore_Zoo.jpg/330px-Entrance_of_Mysore_Zoo.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail",
+    "desc": "Mysore Zoo, officially known as Sri Chamarajendra Zoological Gardens, is a composite of zoological gardens and animal park located in the southern Indian city of Mysore, Karnataka. Stretching across a 157-acre (64 ha)-expanse and situated at about 700 metres from Mysore Palace, it is the oldest zoo in India and one of the oldest in the world. One of the most popular zoos in India and one of the city's most popular attractions, it is home to a wide range of over 168 species.",
+    "title": "Mysore Zoo"
+  },
+  "sharada_public_school_mysuru": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Mysore_Palace_Morning_View.jpg/800px-Mysore_Palace_Morning_View.jpg",
+    "desc": null,
+    "title": null
+  },
+  "narayanadurga_mysuru": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Mysore_Palace_Morning_View.jpg/800px-Mysore_Palace_Morning_View.jpg",
+    "desc": null,
+    "title": null
+  },
+  "birds_watch_tower_mysuru": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Mysore_Palace_Morning_View.jpg/800px-Mysore_Palace_Morning_View.jpg",
+    "desc": null,
+    "title": null
+  },
+  "krishnaraja_wodeyar_mysuru": {
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Mysore_Palace_Morning_View.jpg/800px-Mysore_Palace_Morning_View.jpg",
     "desc": null,
     "title": null
   }

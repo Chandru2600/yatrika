@@ -103,6 +103,7 @@
 /* ── Floating Capsule Spotlight Search Bar ─────────────────────── */
 .ripple-search-form {
   position: relative;
+  z-index: 30;
   width: 100%;
   max-width: 680px;
   display: flex;
@@ -168,6 +169,8 @@
 
 /* ── Trending Chips ──────────────────────────────────────────────── */
 .ripple-chips-row {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;

@@ -358,6 +358,28 @@ function saveStaySummary() {
   if (fb) fb.classList.remove('d-none');
 }
 
+// Auto-record Stay Manager summaries so they appear under "Your Stay Manager Plans" on the Dashboard
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    const autoData = {
+      source: {{ source|tojson }},
+      destination: {{ destination|tojson }},
+      checkin: {{ checkin|tojson }},
+      checkout: {{ checkout|tojson }},
+      num_days: {{ num_days|tojson }},
+      travelers: {{ travelers|tojson }},
+      stay: {{ stay|tojson }},
+      transit: {{ transit|tojson }},
+      url: window.location.href,
+      saved_at: new Date().toISOString()
+    };
+    const existing = JSON.parse(localStorage.getItem('yatrika_saved_stays') || '[]');
+    const filtered = existing.filter(item => item.url !== autoData.url);
+    filtered.unshift(autoData);
+    localStorage.setItem('yatrika_saved_stays', JSON.stringify(filtered.slice(0, 20)));
+  } catch (e) {}
+});
+
 function downloadStaySummary() {
   const txt = `YATRIKA STAY & COMMUTE SUMMARY\n` +
     `Route: {{ source }} -> {{ destination }}\n` +

@@ -407,3 +407,46 @@ def get_stay_road_route():
         "duration_mins": 8,
         "geometry": straight_line_geom
     })
+
+
+@stay_bp.route("/api/transport", methods=["GET", "POST"])
+def get_stay_transport_api():
+    """
+    Real multi-option transport endpoint for Stay Manager Step 2.
+    Supports both intra-city (< 50 km) and inter-city (>= 50 km) routes
+    using OSRM, Overpass API, IRCTC/RTC datasets, and IBM Granite LLM.
+    """
+    from backend.services.stay.stay_transport_service import get_stay_transport_options
+
+    data = (request.get_json(silent=True) or {}) if request.is_json else request.values
+    source = (data.get("source") or "Bengaluru").strip()
+    destination = (data.get("destination") or "").strip()
+    if not destination:
+        return jsonify({"error": "Destination is required."}), 400
+
+    try:
+        travelers = max(1, int(data.get("travelers") or 1))
+    except (TypeError, ValueError):
+        travelers = 1
+
+    def _float_or_none(val):
+        try:
+            return float(val) if val not in (None, "", "None") else None
+        except (TypeError, ValueError):
+            return None
+
+    stay_lat = _float_or_none(data.get("stay_lat"))
+    stay_lon = _float_or_none(data.get("stay_lon"))
+
+    try:
+        res = get_stay_transport_options(
+            source=source,
+            destination=destination,
+            stay_lat=stay_lat,
+            stay_lon=stay_lon,
+            travelers=travelers,
+        )
+        return jsonify(res)
+    except Exception as exc:
+        logger.exception("Stay transport lookup failed")
+        return jsonify({"error": f"Unable to load transport options: {exc}"}), 500

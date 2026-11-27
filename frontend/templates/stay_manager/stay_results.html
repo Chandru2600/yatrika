@@ -5,7 +5,7 @@
 {% block extra_css %}
 <!-- MapLibre GL CSS -->
 <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
-<link href="{{ url_for('static', filename='css/stay_manager.css') }}" rel="stylesheet" />
+<link href="{{ url_for('static', filename='css/stay_manager.css') }}?v=2" rel="stylesheet" />
 {% endblock %}
 
 {% block content %}
@@ -156,6 +156,8 @@
       <div id="stayCardsGrid" class="stay-grid-container">
         {% for s in initial_data.stays %}
         <article class="stay-grid-card" id="card_{{ s.id }}"
+                 onclick="openStayDetailPanel(this.dataset.id)"
+                 style="cursor: pointer;"
                  data-id="{{ s.id }}"
                  data-order="{{ loop.index }}"
                  data-lat="{{ s.lat }}"
@@ -167,70 +169,57 @@
                  data-tier="{{ s.tier or 'Mid-range' }}"
                  data-facilities="{{ (s.facilities or [])|join(',') }}">
           
-          <!-- Image Thumbnail -->
+          <!-- Image Thumbnail (Launchpad style: type pill top-left, gold rating top-right) -->
           <div class="stay-grid-thumb-wrap">
             <img src="{{ s.img }}" alt="{{ s.name }}" class="stay-grid-thumb" loading="lazy" />
             <span class="stay-grid-badge">{{ s.type }}</span>
             <span class="stay-grid-rating">★ {{ s.rating }}</span>
-            <span class="stay-grid-tier-tag">{{ s.tier or 'Mid-range' }}</span>
           </div>
 
           <!-- Card Content -->
           <div class="stay-grid-content">
-            <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
-              <h2 class="stay-grid-title text-navy mb-0" title="{{ s.name }}">{{ s.name }}</h2>
-              <div class="text-end text-nowrap">
-                <span class="stay-grid-price">₹{{ "{:,}".format(s.price_per_person_day or (s.price_per_night // (initial_data.travelers or 1))) }}</span>
-                <span class="stay-price-sub">/ person / day</span>
-                <div class="extra-small text-muted">Room ₹{{ "{:,}".format(s.price_per_night) }} / day</div>
-                {% if s.over_budget %}
-                <span class="badge bg-danger-subtle text-danger border border-danger-subtle extra-small mt-1">Over budget</span>
-                {% endif %}
-              </div>
-            </div>
+            <h2 class="stay-grid-title text-navy mb-1" title="{{ s.name }}">{{ s.name }}</h2>
 
-            <!-- Commute Distance to Office -->
-            <div class="stay-distance-line mb-2">
+            <!-- Commute + Address -->
+            <div class="stay-distance-line mb-1 text-truncate" title="{{ s.distance_km }} km to office (~{{ s.drive_mins }} mins) · {{ s.address }}">
               <i class="bi bi-geo-alt-fill text-turquoise me-1"></i>
-              <span><strong>{{ s.distance_km }} km</strong> to office (~{{ s.drive_mins }} mins drive)</span>
+              <span><strong>{{ s.distance_km }} km</strong> (~{{ s.drive_mins }}m) · {{ s.address }}</span>
             </div>
 
-            <!-- Address -->
-            <p class="stay-grid-address text-muted mb-2">{{ s.address }}</p>
-
-            <!-- Amenities chips -->
-            <div class="stay-amenities-wrap mb-3">
-              {% for a in s.amenities %}
+            <!-- Amenities chips (compact max 3) -->
+            <div class="stay-amenities-wrap mb-2">
+              {% for a in (s.amenities or [])[:3] %}
               <span class="stay-amenity-chip">{{ a }}</span>
               {% endfor %}
             </div>
 
-            <!-- Action Buttons: Select Stay, View on Map & Booking Links -->
-            <div class="stay-card-footer pt-2 border-top d-flex align-items-center justify-content-between gap-2 mt-auto">
-              <div class="d-flex align-items-center gap-1.5">
-                <!-- Select Stay CTA -->
-                <button type="button" class="btn btn-sm btn-gradient-select-stay py-1 px-2.5 extra-small fw-bold text-white rounded-pill d-inline-flex align-items-center gap-1"
-                        onclick="event.stopPropagation(); selectStayCard('{{ s.id }}', '{{ s.name|escape }}', {{ s.price_per_night }}, {{ s.price_per_person_day or (s.price_per_night // (initial_data.travelers or 1)) }}, {{ s.lat }}, {{ s.lon }}, '{{ s.img }}', '{{ s.address|escape }}', '{{ s.distance_km }}', '{{ s.drive_mins }}')">
-                  <i class="bi bi-check2-circle"></i><span>Select Stay</span>
-                </button>
-
-                <!-- Floating Map Trigger -->
-                <button type="button" class="btn btn-sm btn-outline-primary btn-floating-map-trigger py-1 px-2 extra-small fw-semibold"
-                        onclick="event.stopPropagation(); openFloatingMap('{{ s.id }}', {{ s.lat }}, {{ s.lon }}, '{{ s.name|escape }}', '{{ s.price_per_night }}', '{{ s.img }}', '{{ s.distance_km }}', '{{ s.drive_mins }}')">
-                  <i class="bi bi-map-fill me-1"></i>Map
-                </button>
+            <!-- Bottom Price & Compact Actions Row (matches Launchpad card footer) -->
+            <div class="stay-card-footer pt-2 mt-auto d-flex align-items-end justify-content-between gap-1">
+              <div style="min-width: 0;">
+                <div class="d-flex align-items-baseline gap-1 text-nowrap">
+                  <span class="stay-grid-price text-turquoise">₹{{ "{:,}".format(s.price_per_person_day or (s.price_per_night // (initial_data.travelers or 1))) }}</span>
+                  <span class="stay-price-sub">/person/day</span>
+                </div>
+                <div class="extra-small text-muted text-nowrap">
+                  Room ₹{{ "{:,}".format(s.price_per_night) }}/day
+                </div>
+                {% if s.over_budget %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle mt-1" style="font-size:0.62rem;">Over budget</span>
+                {% endif %}
               </div>
 
-              <!-- Deep Links -->
-              <div class="d-flex align-items-center gap-1">
-                <a href="{{ s.booking_links.agoda }}" target="_blank" rel="noopener noreferrer"
-                   class="btn btn-sm btn-light border py-1 px-2 extra-small text-dark fw-semibold" title="Compare on Agoda" onclick="event.stopPropagation()">
-                  Agoda ↗
-                </a>
-                <a href="{{ s.booking_links.booking_com }}" target="_blank" rel="noopener noreferrer"
-                   class="btn btn-sm btn-success py-1 px-2 extra-small text-white fw-semibold" title="Book on Booking.com" onclick="event.stopPropagation()">
-                  Book ↗
-                </a>
+              <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                <button type="button" class="btn btn-sm py-1 px-2 rounded-pill d-inline-flex align-items-center gap-1"
+                        style="font-size:0.74rem; background:#f0fdfa; color:#0f766e; border:1px solid #99f6e4; font-weight:600;"
+                        title="View on Map"
+                        onclick="event.stopPropagation(); openStayMapById(this.closest('.stay-grid-card').dataset.id)">
+                  <i class="bi bi-map-fill"></i><span>Map</span>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary py-1 px-2 rounded-pill text-nowrap"
+                        style="font-size:0.74rem; font-weight:600;"
+                        onclick="event.stopPropagation(); selectStayById(this.closest('.stay-grid-card').dataset.id)">
+                  Select →
+                </button>
               </div>
             </div>
           </div>
@@ -332,6 +321,15 @@
 
 </div>
 
+<!-- Right-Side Stay Detail Drawer (opens when clicking any stay card) -->
+<div id="stayDetailDrawer" class="stay-detail-drawer d-none" role="dialog" aria-modal="true" aria-label="Stay Details">
+  <div class="stay-detail-backdrop" onclick="closeStayDetailPanel()"></div>
+  <aside class="stay-detail-panel shadow-lg">
+    <button type="button" class="stay-detail-close" onclick="closeStayDetailPanel()" aria-label="Close details">&times;</button>
+    <div id="stayDetailContent" class="stay-detail-scroll"></div>
+  </aside>
+</div>
+
 <!-- Embedded Server State Data -->
 <script id="serverStayData" type="application/json">
   {{ initial_data|tojson|safe }}
@@ -341,7 +339,7 @@
 {% block extra_js %}
 <!-- MapLibre GL JS -->
 <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
-<script src="{{ url_for('static', filename='js/stay_manager.js') }}"></script>
+<script src="{{ url_for('static', filename='js/stay_manager.js') }}?v=2"></script>
 {% endblock %}
 
 {% block footer %}

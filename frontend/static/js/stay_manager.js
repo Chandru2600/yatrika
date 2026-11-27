@@ -575,3 +575,139 @@ function proceedToTransportMode() {
 
   window.location.href = url;
 }
+
+const FACILITY_ICONS = {
+  wifi: '📶 Free WiFi',
+  ac: '❄️ Air Conditioning',
+  parking: '🚗 Free Parking',
+  breakfast: '🍳 Breakfast Included',
+  pool: '🏊 Swimming Pool',
+  work_desk: '💼 Work Desk / Business',
+  power_backup: '⚡ Power Backup',
+  restaurant: '🍽️ On-site Restaurant',
+  gym: '🏋️ Fitness Center'
+};
+
+function openStayMapById(stayId) {
+  const s = (currentStayData?.stays || []).find(x => String(x.id) === String(stayId));
+  if (!s) return;
+  openFloatingMap(s.id, s.lat, s.lon, s.name, s.price_per_night, s.img, s.distance_km, s.drive_mins);
+}
+
+function selectStayById(stayId) {
+  const s = (currentStayData?.stays || []).find(x => String(x.id) === String(stayId));
+  if (!s) return;
+  const trav = Math.max(1, parseInt(currentStayData?.travelers || 1));
+  const pppd = s.price_per_person_day || Math.round((s.price_per_night || 0) / trav);
+  selectStayCard(s.id, s.name, s.price_per_night, pppd, s.lat, s.lon, s.img, s.address, s.distance_km, s.drive_mins);
+}
+
+function openStayDetailPanel(stayId) {
+  const stays = currentStayData?.stays || [];
+  const s = stays.find(x => String(x.id) === String(stayId));
+  const drawer = document.getElementById('stayDetailDrawer');
+  const content = document.getElementById('stayDetailContent');
+  if (!s || !drawer || !content) return;
+
+  const trav = Math.max(1, parseInt(currentStayData?.travelers || 2));
+  const nights = Math.max(1, parseInt(currentStayData?.days || 3));
+  const pppd = s.price_per_person_day || Math.round((s.price_per_night || 2500) / trav);
+  const gmapsQuery = encodeURIComponent(`${s.name}, ${s.address || ''}`);
+  const gmapsUrl = (s.lat && s.lon)
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.name)}&query_place_id=&center=${s.lat},${s.lon}`
+    : `https://www.google.com/maps/search/?api=1&query=${gmapsQuery}`;
+  const gmapsDirectUrl = `https://www.google.com/maps/search/?api=1&query=${gmapsQuery}`;
+
+  const allFacs = new Set([...(s.amenities || [])]);
+  (s.facilities || []).forEach(f => {
+    if (FACILITY_ICONS[f]) allFacs.add(FACILITY_ICONS[f]);
+  });
+  const facHtml = Array.from(allFacs).map(item =>
+    `<span class="badge bg-light text-dark border fw-semibold py-2 px-2 extra-small">${escapeHtmlStr(item)}</span>`
+  ).join('');
+
+  const safeName = (s.name || '').replace(/'/g, "\\'");
+  const safeAddr = (s.address || '').replace(/'/g, "\\'");
+
+  content.innerHTML = `
+    <div style="position:relative;height:210px;background:#0f172a;">
+      <img src="${s.img}" alt="${escapeHtmlStr(s.name)}" style="width:100%;height:100%;object-fit:cover;">
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.12) 0%,rgba(11,31,51,0.72) 100%);"></div>
+      <span class="stay-grid-badge" style="top:12px;left:12px;">${escapeHtmlStr(s.type || 'Hotel')} · ${escapeHtmlStr(s.tier || 'Mid-range')}</span>
+      <span class="stay-grid-rating" style="bottom:12px;left:12px;top:auto;right:auto;font-size:0.78rem;padding:4px 10px;">★ ${s.rating || '4.0'} Rating</span>
+    </div>
+
+    <div class="p-3 d-flex flex-column gap-3">
+      <div>
+        <h3 class="fs-5 fw-extrabold text-navy mb-1">${escapeHtmlStr(s.name)}</h3>
+        <p class="small text-muted mb-2"><i class="bi bi-geo-alt-fill text-turquoise me-1"></i>${escapeHtmlStr(s.address || '')}</p>
+        <a href="${gmapsDirectUrl}" target="_blank" rel="noopener noreferrer"
+           class="btn btn-sm btn-outline-secondary rounded-pill extra-small fw-semibold">
+          <i class="bi bi-google me-1 text-danger"></i>View Ratings &amp; Reviews on Google Maps ↗
+        </a>
+      </div>
+
+      <div class="p-3 rounded-3 border bg-light">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <div class="extra-small fw-bold text-uppercase text-muted">Commute to Office</div>
+            <div class="fw-bold text-navy">${s.distance_km} km · ~${s.drive_mins} mins drive</div>
+          </div>
+          <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold"
+                  style="background:#f0fdfa;color:#0f766e;border:1px solid #99f6e4;"
+                  onclick="closeStayDetailPanel(); openFloatingMap('${s.id}', ${s.lat}, ${s.lon}, '${safeName}', '${s.price_per_night}', '${s.img}', '${s.distance_km}', '${s.drive_mins}')">
+            <i class="bi bi-map-fill me-1"></i>Route on Map
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="extra-small fw-bold text-uppercase text-muted mb-2">Available Facilities &amp; Amenities</div>
+        <div class="d-flex flex-wrap gap-2">
+          ${facHtml || '<span class="extra-small text-muted">Standard room amenities</span>'}
+        </div>
+      </div>
+
+      <div class="p-3 rounded-3 border" style="background:#f8fafc;">
+        <div class="d-flex justify-content-between align-items-baseline">
+          <div>
+            <span class="fs-4 fw-extrabold text-turquoise">₹${Number(pppd).toLocaleString('en-IN')}</span>
+            <span class="extra-small text-muted">/ person / day</span>
+          </div>
+          ${s.over_budget ? '<span class="badge bg-danger-subtle text-danger border border-danger-subtle">Over budget</span>' : '<span class="badge bg-success-subtle text-success border border-success-subtle">Within budget</span>'}
+        </div>
+        <div class="extra-small text-muted mt-1">
+          Room rate: <strong>₹${Number(s.price_per_night).toLocaleString('en-IN')} / day</strong> · ${nights} night(s) room total: <strong>₹${Number(s.price_per_night * nights).toLocaleString('en-IN')}</strong>
+        </div>
+      </div>
+
+      <div class="d-flex flex-column gap-2 pt-2 border-top">
+        <button type="button" class="btn btn-gradient-select-stay text-white fw-bold rounded-pill py-2"
+                onclick="selectStayCard('${s.id}', '${safeName}', ${s.price_per_night}, ${pppd}, ${s.lat}, ${s.lon}, '${s.img}', '${safeAddr}', '${s.distance_km}', '${s.drive_mins}'); closeStayDetailPanel();">
+          <i class="bi bi-check2-circle me-1"></i>Select This Stay →
+        </button>
+        <div class="d-flex gap-2">
+          <a href="${s.booking_links?.agoda || '#'}" target="_blank" rel="noopener noreferrer"
+             class="btn btn-sm btn-light border flex-fill fw-semibold">Compare on Agoda ↗</a>
+          <a href="${s.booking_links?.booking_com || '#'}" target="_blank" rel="noopener noreferrer"
+             class="btn btn-sm btn-success flex-fill fw-semibold text-white">Book on Booking.com ↗</a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  drawer.classList.remove('d-none');
+}
+
+function closeStayDetailPanel() {
+  const drawer = document.getElementById('stayDetailDrawer');
+  if (drawer) drawer.classList.add('d-none');
+}
+
+function escapeHtmlStr(str) {
+  return String(str || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeStayDetailPanel();
+});

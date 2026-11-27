@@ -59,26 +59,38 @@ def overview():
 @login_required
 def dashboard():
     """User dashboard — recent trips, saved trips, stats."""
+    from backend.services.wikipedia.wiki_places_service import DESTINATION_AUTHENTIC_PHOTOS
+
     user_id = session["user_id"]
     trips        = get_trips_by_user(user_id)
     saved        = get_saved_trips(user_id)
-    recent_trips = trips[:5]
+
+    fallback_img = "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&q=80&auto=format&fit=crop"
+    enriched_trips = []
+    for t in trips:
+        td = dict(t)
+        d_low = (td.get("destination") or "").lower()
+        td["cover_img"] = next(
+            (v for k, v in DESTINATION_AUTHENTIC_PHOTOS.items() if k in d_low),
+            fallback_img,
+        )
+        enriched_trips.append(td)
 
     # Quick weather tip for most recent destination
     weather_summary = None
-    if trips:
-        dest = trips[0]["destination"]
+    if enriched_trips:
+        dest = enriched_trips[0]["destination"]
         weather_summary = get_current_weather(dest)
 
     stats = {
-        "total_trips":   len(trips),
+        "total_trips":   len(enriched_trips),
         "saved_trips":   len(saved),
-        "completed":     sum(1 for t in trips if t["status"] == "completed"),
-        "total_budget":  sum(t["budget"] for t in trips)
+        "completed":     sum(1 for t in enriched_trips if t["status"] == "completed"),
+        "total_budget":  sum(float(t.get("budget") or 0) for t in enriched_trips)
     }
 
     return render_template("dashboard/dashboard.html",
-        trips=recent_trips,
+        trips=enriched_trips,
         saved=saved,
         stats=stats,
         weather=weather_summary

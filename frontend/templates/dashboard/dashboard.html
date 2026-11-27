@@ -12,16 +12,16 @@
     --card-hover-shadow: 0 20px 38px -10px rgba(15, 23, 42, 0.16), 0 8px 18px -4px rgba(20, 184, 166, 0.12);
   }
 
-  /* ── Command Center Hero ───────────────────────────────────── */
+  /* ── Command Center Hero (Compact) ─────────────────────────── */
   .dash-hero {
     background: var(--dash-hero-bg);
-    border-radius: 28px;
-    padding: 38px 40px;
+    border-radius: 20px;
+    padding: 20px 24px;
     color: #ffffff;
-    box-shadow: 0 24px 50px -15px rgba(11, 21, 40, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    box-shadow: 0 18px 40px -15px rgba(11, 21, 40, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
     position: relative;
     overflow: hidden;
-    margin-bottom: 30px;
+    margin-bottom: 18px;
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
   .dash-hero::before {
@@ -64,18 +64,18 @@
   }
 
   .dash-hero-title {
-    font-size: 2.15rem;
+    font-size: 1.55rem;
     font-weight: 800;
     letter-spacing: -0.025em;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
     color: #ffffff;
   }
   .dash-hero-sub {
-    font-size: 0.96rem;
+    font-size: 0.86rem;
     color: rgba(226, 232, 240, 0.85);
-    max-width: 580px;
-    line-height: 1.6;
-    margin-bottom: 22px;
+    max-width: 540px;
+    line-height: 1.5;
+    margin-bottom: 14px;
   }
 
   /* ── Spotlight Card (Next Adventure) ───────────────────────── */
@@ -84,10 +84,10 @@
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 20px;
-    padding: 22px 24px;
+    border-radius: 16px;
+    padding: 15px 18px;
     color: #ffffff;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22);
     transition: transform 0.25s ease, border-color 0.25s ease;
   }
   .spotlight-card:hover {
@@ -122,17 +122,22 @@
     color: #e2e8f0;
   }
 
-  /* ── Bento KPI Tiles ───────────────────────────────────────── */
+  /* ── Bento KPI Tiles (Compact) ─────────────────────────────── */
   .kpi-bento-card {
     background: var(--card-surface);
     border: 1px solid var(--card-border);
-    border-radius: 20px;
-    padding: 22px 24px;
+    border-radius: 14px;
+    padding: 14px 16px;
     box-shadow: var(--card-shadow);
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
     height: 100%;
+  }
+  .kpi-val {
+    font-size: 1.45rem !important;
+    font-weight: 800;
+    line-height: 1.15;
   }
   .kpi-bento-card:hover {
     transform: translateY(-4px);
@@ -698,7 +703,7 @@
               <i class="bi bi-compass"></i>
             </div>
           </div>
-          <div class="kpi-val">{{ stats.total_trips }}</div>
+          <div class="kpi-val" id="statTotalTrips">{{ stats.total_trips }}</div>
           <div class="kpi-sub">
             <i class="bi bi-map text-turquoise"></i> Active in System
           </div>
@@ -713,7 +718,7 @@
               <i class="bi bi-bookmark-star"></i>
             </div>
           </div>
-          <div class="kpi-val text-warning">{{ stats.saved_trips }}</div>
+          <div class="kpi-val text-warning" id="statSavedTrips">{{ stats.saved_trips }}</div>
           <div class="kpi-sub">
             <i class="bi bi-heart text-warning"></i> Curated bucket-list hubs
           </div>
@@ -728,7 +733,7 @@
               <i class="bi bi-check2-circle"></i>
             </div>
           </div>
-          <div class="kpi-val text-success">{{ stats.completed }}</div>
+          <div class="kpi-val text-success" id="statCompleted">{{ stats.completed }}</div>
           <div class="kpi-sub">
             <i class="bi bi-flag text-success"></i> Archived Journeys
           </div>
@@ -743,7 +748,7 @@
               <i class="bi bi-wallet2"></i>
             </div>
           </div>
-          <div class="kpi-val" style="color: #ea580c;">₹{{ "{:,.0f}".format(stats.total_budget|float) }}</div>
+          <div class="kpi-val" id="statTotalBudget" style="color: #ea580c;">₹{{ "{:,.0f}".format(stats.total_budget|float) }}</div>
           <div class="kpi-sub">
             <i class="bi bi-currency-rupee text-coral"></i> Estimated total spend
           </div>
@@ -840,64 +845,7 @@
       </div>
     </div>
 
-    <!-- ── 5. QUICK PLANNING MODES ─────────────────────────────── -->
-    <div class="row g-3 mb-5">
-      <div class="col-md-4">
-        <a href="{{ url_for('planner.new_trip') }}" class="launcher-card launcher-express">
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="launcher-icon" style="background: rgba(20, 184, 166, 0.12); color: #0d9488;">
-              <i class="bi bi-lightning-charge-fill"></i>
-            </div>
-            <span class="badge rounded-pill bg-turquoise text-dark fw-bold px-2 py-1" style="font-size: 0.68rem;">~30 SECONDS</span>
-          </div>
-          <div class="launcher-title">⚡ Express Auto-Pilot</div>
-          <div class="launcher-desc">
-            Instantly generates an end-to-end trip plan with Base Camp homestays, verified road/rail transit, and day-by-day schedules in seconds.
-          </div>
-          <div class="launcher-action text-turquoise">
-            Launch Express Planner →
-          </div>
-        </a>
-      </div>
-
-      <div class="col-md-4">
-        <a href="{{ url_for('planner.wizard') }}" class="launcher-card launcher-studio">
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="launcher-icon" style="background: rgba(249, 115, 22, 0.12); color: #ea580c;">
-              <i class="bi bi-sliders2"></i>
-            </div>
-            <span class="badge rounded-pill bg-warning text-dark fw-bold px-2 py-1" style="font-size: 0.68rem;">5-STAGE STUDIO</span>
-          </div>
-          <div class="launcher-title">🎨 Custom Step Studio</div>
-          <div class="launcher-desc">
-            Hand-select your Base Camp resort, pick IRCTC / KSRTC transit, explore interactive MapLibre routes, and fine-tune your itinerary pins.
-          </div>
-          <div class="launcher-action" style="color: #ea580c;">
-            Open Custom Studio →
-          </div>
-        </a>
-      </div>
-
-      <div class="col-md-4">
-        <a href="{{ url_for('planner.destinations') }}" class="launcher-card launcher-explore">
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="launcher-icon" style="background: rgba(59, 130, 246, 0.12); color: #2563eb;">
-              <i class="bi bi-compass"></i>
-            </div>
-            <span class="badge rounded-pill bg-primary text-white fw-bold px-2 py-1" style="font-size: 0.68rem;">50+ HUBS</span>
-          </div>
-          <div class="launcher-title">🧭 Curated Destination Atlas</div>
-          <div class="launcher-desc">
-            Explore 50+ scenic Indian hill stations, heritage capitals, and coastal spots with live weather forecasts and attraction guides.
-          </div>
-          <div class="launcher-action text-primary">
-            Browse Destination Atlas →
-          </div>
-        </a>
-      </div>
-    </div>
-
-    <!-- ── 6. ITINERARY DECK & MANAGEMENT ──────────────────────── -->
+    <!-- ── 5. ITINERARY DECK & MANAGEMENT ──────────────────────── -->
     <div class="mb-5">
       <div class="deck-controls-bar">
         <div>
@@ -933,10 +881,11 @@
         <!-- CARDS VIEW -->
         <div id="deckCardsView" class="row g-4">
           {% for t in trips %}
-          <div class="col-md-6 col-lg-4 trip-item-wrapper" data-dest="{{ t.destination|lower }}" data-status="{{ t.status|lower }}">
+          <div class="col-md-6 col-lg-4 trip-item-wrapper" data-trip-id="{{ t.id }}" data-dest="{{ t.destination|lower }}" data-status="{{ t.status|lower }}" data-budget="{{ t.budget or 0 }}">
             <div class="itinerary-card">
               <!-- Cover Image with Gradient Scrim -->
-              <div class="itinerary-cover" id="cover-{{ t.id }}" data-dest="{{ t.destination }}">
+              <div class="itinerary-cover" id="cover-{{ t.id }}" data-dest="{{ t.destination }}"
+                   style="background-image: linear-gradient(180deg, rgba(11,31,51,0.18) 0%, rgba(11,31,51,0.85) 100%), url('{{ t.cover_img }}'); background-size: cover; background-position: center;">
                 <div class="d-flex justify-content-between align-items-center">
                   <span class="itinerary-status-pill {% if t.status == 'completed' %}itinerary-status-completed{% elif t.status == 'active' %}itinerary-status-active{% else %}itinerary-status-draft{% endif %}">
                     ● {{ t.status|title }}
@@ -980,11 +929,10 @@
                   <a href="{{ url_for('planner.wizard') }}?destination={{ t.destination }}" class="btn-icon-subtle" title="Re-plan in Studio">
                     <i class="bi bi-arrow-repeat"></i>
                   </a>
-                  <form method="POST" action="{{ url_for('planner.delete_trip_route', trip_id=t.id) }}" class="d-inline m-0" onsubmit="return confirm('Delete this itinerary for {{ t.destination }}?')">
-                    <button type="submit" class="btn-icon-subtle btn-icon-danger" title="Delete Itinerary">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </form>
+                  <button type="button" class="btn-icon-subtle btn-icon-danger" title="Delete Itinerary"
+                          onclick="deleteTripCard({{ t.id }}, '{{ t.destination|escape }}', this)">
+                    <i class="bi bi-trash3"></i>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1009,6 +957,28 @@
           </div>
         </div>
       {% endif %}
+    </div>
+
+    <!-- ── 6. YOUR STAYS (STAY MANAGER) ────────────────────────── -->
+    <div class="mb-5">
+      <div class="deck-controls-bar">
+        <div>
+          <h3 class="fw-bold text-navy mb-1">Your Stay Manager Plans</h3>
+          <p class="text-muted small mb-0">Browse, review, and manage your office-commute stay &amp; transit dossiers</p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <div class="filter-pill-group">
+            <button type="button" class="filter-pill-btn active">
+              All (<span id="staysCountAll">0</span>)
+            </button>
+          </div>
+          <a href="{{ url_for('stay_routes.stay_manager_view') }}" class="btn-turquoise btn-sm px-3 py-2" style="font-weight: 700; border-radius: 10px;">
+            <i class="bi bi-plus-lg me-1"></i> New Stay Search
+          </a>
+        </div>
+      </div>
+      <div id="dashboardSavedStaysGrid" class="row g-4"></div>
     </div>
 
     <!-- ── 7. CURATED ESCAPES / 1-CLICK BUCKET LIST ──────────────── -->
@@ -1250,6 +1220,135 @@
       }
     }
   }
+
+  async function deleteTripCard(tripId, destName, btnEl) {
+    if (!confirm(`Delete this itinerary for ${destName}?`)) return;
+    if (btnEl) btnEl.disabled = true;
+    try {
+      const res = await fetch(`/planner/${tripId}/delete`, {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const card = document.querySelector(`.trip-item-wrapper[data-trip-id="${tripId}"]`);
+      if (card) card.remove();
+
+      // Recompute KPI stats & count from remaining cards in DOM
+      const remaining = Array.from(document.querySelectorAll(".trip-item-wrapper"));
+      const totalCount = remaining.length;
+      const completedCount = remaining.filter(el => el.dataset.status === "completed").length;
+      const totalBudget = remaining.reduce((sum, el) => sum + (parseFloat(el.dataset.budget) || 0), 0);
+
+      const elTotal = document.getElementById("statTotalTrips");
+      const elComp = document.getElementById("statCompleted");
+      const elBud = document.getElementById("statTotalBudget");
+      const elCountAll = document.getElementById("countAll");
+      if (elTotal) elTotal.textContent = totalCount;
+      if (elComp) elComp.textContent = completedCount;
+      if (elBud) elBud.textContent = "₹" + Math.round(totalBudget).toLocaleString("en-IN");
+      if (elCountAll) elCountAll.textContent = totalCount;
+    } catch (err) {
+      if (btnEl) btnEl.disabled = false;
+      alert("Could not delete itinerary. Please try again.");
+    }
+  }
+
+  function renderDashboardStays() {
+    const grid = document.getElementById("dashboardSavedStaysGrid");
+    const countEl = document.getElementById("staysCountAll");
+    if (!grid) return;
+    let stays = [];
+    try {
+      stays = JSON.parse(localStorage.getItem("yatrika_saved_stays") || "[]");
+    } catch (_) { stays = []; }
+    if (countEl) countEl.textContent = stays.length;
+
+    if (!stays.length) {
+      grid.innerHTML = `
+        <div class="col-12">
+          <div class="card-modern text-center py-4">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">🏨</div>
+            <h5 class="fw-bold text-navy mb-1">No Stay Manager plans yet</h5>
+            <p class="text-muted small mx-auto mb-3" style="max-width: 440px;">
+              Search office-proximity stays in Stay Manager and select your hotel &amp; commute to see your stay dossiers here.
+            </p>
+            <a href="{{ url_for('stay_routes.stay_manager_view') }}" class="btn-turquoise px-4 py-2" style="font-weight: 700; border-radius: 12px;">
+              <i class="bi bi-building me-1"></i> Search Stays
+            </a>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = stays.map((s, idx) => {
+      const stayName = (s.stay && s.stay.name) || s.stay_name || 'Saved Stay';
+      const stayImg = (s.stay && s.stay.img) || s.img || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80';
+      const stayPppd = (s.stay && s.stay.price_per_person_day) || s.pppd || s.price || 0;
+      const stayDist = (s.stay && s.stay.distance_km) || '2.0';
+      const stayMins = (s.stay && s.stay.drive_mins) || '8';
+      const stayDays = s.num_days || s.days || 3;
+      const guests = s.travelers || 2;
+      const transitLbl = (s.transit && (s.transit.title || s.transit.mode)) || s.transit_title || s.transit_mode || 'Selected';
+      const scheduleStr = (s.checkin && s.checkout) ? `${s.checkin} → ${s.checkout}` : `${stayDays} Days Stay`;
+      const openUrl = s.url || s.summary_url || '/stay-manager';
+      const searchUrl = `/stay-manager/results?destination=${encodeURIComponent(s.destination || '')}&source=${encodeURIComponent(s.source || 'Bengaluru')}`;
+      return `
+      <div class="col-md-6 col-lg-4">
+        <div class="itinerary-card">
+          <div class="itinerary-cover" style="background-image: linear-gradient(180deg, rgba(11,31,51,0.18) 0%, rgba(11,31,51,0.85) 100%), url('${stayImg}'); background-size:cover; background-position:center;">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="itinerary-status-pill itinerary-status-active">● Saved Stay</span>
+              <span class="badge bg-dark bg-opacity-75 text-white fw-bold px-2 py-1" style="font-size:0.72rem; border-radius: 6px;">${stayDays} Days</span>
+            </div>
+            <div>
+              <h4 class="text-white fw-bold mb-0 text-shadow text-truncate">${stayName}</h4>
+              <div class="text-white-50 extra-small text-truncate"><i class="bi bi-geo-alt me-1"></i>${s.destination || 'Office Stay'}</div>
+            </div>
+          </div>
+          <div class="itinerary-body">
+            <div class="itinerary-tag-row">
+              <span class="itinerary-tag"><i class="bi bi-building me-1"></i>${stayDist} km (~${stayMins}m)</span>
+              <span class="itinerary-tag"><i class="bi bi-signpost-split me-1"></i>${transitLbl}</span>
+              <span class="itinerary-tag"><i class="bi bi-people me-1"></i>${guests} Guest${guests != 1 ? 's' : ''}</span>
+            </div>
+            <div class="itinerary-meta-grid">
+              <div class="itinerary-meta-item">
+                <span class="itinerary-meta-label">Schedule</span>
+                <span class="itinerary-meta-val">${scheduleStr}</span>
+              </div>
+              <div class="itinerary-meta-item">
+                <span class="itinerary-meta-label">Stay / Person</span>
+                <span class="itinerary-meta-val text-navy">₹${Number(stayPppd).toLocaleString('en-IN')}/day</span>
+              </div>
+            </div>
+            <div class="itinerary-actions">
+              <a href="${openUrl}" class="btn-view-dossier">
+                <i class="bi bi-file-earmark-text"></i> View Dossier
+              </a>
+              <a href="${searchUrl}" class="btn-icon-subtle" title="Re-search Stays">
+                <i class="bi bi-arrow-repeat"></i>
+              </a>
+              <button type="button" class="btn-icon-subtle btn-icon-danger" title="Delete Stay Plan" onclick="deleteSavedStay(${idx})">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;}).join('');
+  }
+
+  function deleteSavedStay(idx) {
+    try {
+      const stays = JSON.parse(localStorage.getItem("yatrika_saved_stays") || "[]");
+      stays.splice(idx, 1);
+      localStorage.setItem("yatrika_saved_stays", JSON.stringify(stays));
+      renderDashboardStays();
+    } catch (_) {}
+  }
+
+  document.addEventListener("DOMContentLoaded", renderDashboardStays);
 
   // Filter trips by status (all, active, completed)
   function filterTrips(status, btn) {

@@ -170,14 +170,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ── Budget Pie Chart ─────────────────────────────────────────── */
   const pieCanvas = document.getElementById("budgetPieChart");
-  if (pieCanvas && typeof BUDGET_LABELS !== "undefined" && BUDGET_LABELS.length) {
-    const palette = ["#0062FF","#6929C4","#009D9A","#198038","#B28600","#FA4D56","#FF832B"];
-    new Chart(pieCanvas, {
+  if (pieCanvas && typeof Chart !== "undefined" && typeof BUDGET_LABELS !== "undefined" && BUDGET_LABELS.length) {
+    const palette = ["#0B1F33", "#00A896", "#3B82F6", "#F59E0B", "#EF4444", "#8B5CF6", "#10B981"];
+    const numericData = BUDGET_DATA.map(v => Number(v) || 0);
+    const hasNonZero = numericData.some(v => v > 0);
+    window._budgetPieChart = new Chart(pieCanvas, {
       type: "doughnut",
       data: {
         labels:   BUDGET_LABELS.map(l => l.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())),
         datasets: [{
-          data:            BUDGET_DATA,
+          data:            hasNonZero ? numericData : numericData.map(() => 1),
           backgroundColor: palette,
           borderWidth:     2,
           borderColor:     "#fff",
@@ -186,23 +188,38 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       options: {
         responsive: true,
-        cutout:     "60%",
+        maintainAspectRatio: false,
+        cutout:     "62%",
         plugins: {
-          legend: { position: "bottom", labels: { font: { size: 11 }, boxWidth: 14, padding: 10 } },
-          tooltip: { callbacks: { label: (ctx) => ` ₹${ctx.parsed.toLocaleString('en-IN')}` } }
+          legend: { position: "bottom", labels: { font: { size: 11, weight: "600" }, boxWidth: 12, padding: 12 } },
+          tooltip: { callbacks: { label: (ctx) => ` ₹${(numericData[ctx.dataIndex] || 0).toLocaleString('en-IN')}` } }
         }
       }
     });
   }
 
+  // Re-measure Chart.js canvases whenever the Budget tab becomes visible
+  document.querySelectorAll('a[data-bs-toggle="pill"], a[data-bs-toggle="tab"], button[data-bs-toggle="pill"]').forEach(tabEl => {
+    tabEl.addEventListener("shown.bs.tab", () => {
+      if (window._budgetPieChart) {
+        window._budgetPieChart.resize();
+        window._budgetPieChart.update();
+      }
+      if (window._expenseChart) {
+        window._expenseChart.resize();
+        window._expenseChart.update();
+      }
+    });
+  });
+
   /* ── Expense Chart ────────────────────────────────────────────── */
   const expCanvas = document.getElementById("expenseChart");
-  if (expCanvas && typeof EXP_LABELS !== "undefined" && EXP_LABELS.length) {
+  if (expCanvas && typeof Chart !== "undefined" && typeof EXP_LABELS !== "undefined" && EXP_LABELS.length) {
     const agg = {};
     EXP_LABELS.forEach((cat, i) => {
       agg[cat] = (agg[cat] || 0) + EXP_DATA[i];
     });
-    new Chart(expCanvas, {
+    window._expenseChart = new Chart(expCanvas, {
       type: "bar",
       data: {
         labels:   Object.keys(agg).map(l => l.charAt(0).toUpperCase() + l.slice(1)),

@@ -257,18 +257,21 @@ async function loadTransportMode(mode, btnEl) {
   `;
 
   try {
-    const res = await fetch('/planner/api/transit/calculate', {
+    const res = await fetch('/stay-manager/api/transport', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         source: STAY_CTX.source,
         destination: STAY_CTX.destination,
-        selected_mode: mode,
+        stay_lat: STAY_CTX.stay?.lat || null,
+        stay_lon: STAY_CTX.stay?.lon || null,
         travelers: parseInt(STAY_CTX.travelers) || 1
       })
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     cachedTransitResponse = data;
+    updateModeTabLabels(data);
     renderTransportOptions(mode, data);
   } catch (err) {
     container.innerHTML = `
@@ -279,18 +282,29 @@ async function loadTransportMode(mode, btnEl) {
   }
 }
 
+function updateModeTabLabels(data) {
+  if (!data) return;
+  const distKm = parseFloat(data.distance_km || 0);
+  const flightTab = document.querySelector('.transport-mode-tab[data-mode="flight"]');
+  if (flightTab && distKm > 0 && distKm < 160) {
+    flightTab.style.display = 'none';
+  }
+  if (data.is_local) {
+    const trainSub = document.querySelector('.transport-mode-tab[data-mode="train"] .tab-sub');
+    const busSub = document.querySelector('.transport-mode-tab[data-mode="bus"] .tab-sub');
+    const carSub = document.querySelector('.transport-mode-tab[data-mode="car"] .tab-sub');
+    if (trainSub) trainSub.textContent = 'Metro & Suburban Rail';
+    if (busSub) busSub.textContent = 'City Express & AC Volvo';
+    if (carSub) carSub.textContent = 'Auto, Mini, Sedan & SUV';
+  }
+}
+
 function renderTransportOptions(mode, data) {
   const container = document.getElementById('transportOptionsContainer');
   const modeData = data?.all_options?.[mode] || data?.[mode] || data?.chosen_details || {};
   const schedules = modeData.schedules || [];
   const distKm = parseFloat(data?.distance_km || modeData.distance_km || 0);
   const trav = Math.max(1, parseInt(STAY_CTX.travelers) || 1);
-
-  // Hide Flight tab if intra-city / short route (< 160 km)
-  const flightTab = document.querySelector('.transport-mode-tab[data-mode="flight"]');
-  if (flightTab && distKm > 0 && distKm < 160) {
-    flightTab.style.display = 'none';
-  }
 
   if (modeData.available === false) {
     container.innerHTML = `
@@ -303,80 +317,101 @@ function renderTransportOptions(mode, data) {
   }
 
   if (!schedules.length) {
-    // Distance-aware fallback if a mode has no schedules
-    const effectiveDist = distKm > 0 ? distKm : 150;
-    const isLocal = effectiveDist < 50;
-    const speedKmh = mode === 'flight' ? 550 : mode === 'train' ? 58 : mode === 'car' ? (isLocal ? 28 : 55) : 45;
-    const hrs = Math.max(0.4, effectiveDist / speedKmh);
-    const durStr = hrs < 1 ? `${Math.round(hrs * 60)}m` : `${Math.floor(hrs)}h ${Math.round((hrs % 1) * 60)}m`;
-    const fare = mode === 'flight' ? Math.max(2800, Math.round(effectiveDist * 7.5))
-      : mode === 'car' ? Math.max(150, Math.round((effectiveDist * 16 + 150) / trav))
-      : mode === 'bus' ? Math.max(45, Math.round(effectiveDist * 2.1))
-      : Math.max(35, Math.round(effectiveDist * 1.45));
-    const title = isLocal
-      ? (mode === 'car' ? 'City AC Cab (Direct Pickup)' : mode === 'bus' ? 'City AC Express / Volvo Shuttle' : 'Local Suburban / Metro Rail')
-      : (mode === 'flight' ? `${STAY_CTX.source} ➔ ${STAY_CTX.destination.split(',')[0]} Direct Flight`
-        : mode === 'car' ? 'Outstation AC Sedan (Direct Pickup)'
-        : mode === 'bus' ? 'Express AC Sleeper Coach'
-        : 'Inter-City Express Rail');
-    renderCardsHtml([{
-      title,
-      departure: '07:00',
-      arrival: hrs < 1 ? `07:${String(Math.round(hrs * 60)).padStart(2, '0')}` : `${String((7 + Math.floor(hrs)) % 24).padStart(2, '0')}:${String(Math.round((hrs % 1) * 60)).padStart(2, '0')}`,
-      duration: durStr,
-      fare,
-      details: `${effectiveDist} km • ${mode.toUpperCase()} Connection`
-    }], mode);
+    container.innerHTML = `
+      <div class="alert alert-info rounded-4 border-0 shadow-sm p-4">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <strong>No scheduled ${escapeHtml(mode)} options found</strong> for ${escapeHtml(STAY_CTX.source)} ➔ ${escapeHtml(STAY_CTX.destination)}. Please check another transport tab.
+      </div>
+    `;
     return;
   }
 
   const normalized = schedules.map(item => {
-    let fare = item.fare_per_seat || item.price_per_seat || modeData.min_fare_per_seat || 650;
-    if (mode === 'car') {
+    let fare = item.fare_per_seat || item.price_per_seat || modeData.min_fare_per_seat || 0;
+    if (mode === 'car' && fare > 0) {
       fare = Math.round(fare / trav);
     }
     const label = item.train_name
       ? `${item.train_name}${item.train_number ? ' (' + item.train_number + ')' : ''}`
-      : (item.operator || item.airline || `${mode.toUpperCase()} Option`);
+      : (item.operator || item.airline || item.title || `${mode.toUpperCase()} Option`);
     return {
       title: label,
-      departure: item.departure || modeData.departure_time || '07:00',
-      arrival: item.arrival || modeData.arrival_time || '12:00',
-      duration: item.duration || modeData.travel_duration || '4h 30m',
+      departure: item.departure || modeData.departure_time || 'Scheduled',
+      arrival: item.arrival || modeData.arrival_time || 'On arrival',
+      duration: item.duration || modeData.travel_duration || (data.duration_mins ? `${data.duration_mins}m` : '—'),
       fare: Math.round(fare),
-      details: item.type || item.vehicle_model || item.details || `${distKm} km • Verified Carrier`
+      details: item.details || item.type || item.vehicle_model || `${distKm} km • ${data.data_source || 'Verified Tariff'}`,
+      classes: Array.isArray(item.classes_info) ? item.classes_info : []
     };
   });
 
-  renderCardsHtml(normalized, mode);
+  renderCardsHtml(normalized, mode, data.data_source, distKm);
 }
 
-function renderCardsHtml(items, mode) {
+function renderCardsHtml(items, mode, dataSource, distKm) {
   const container = document.getElementById('transportOptionsContainer');
   const icon = mode === 'train' ? '🚆' : mode === 'bus' ? '🚌' : mode === 'flight' ? '✈️' : '🚗';
 
-  container.innerHTML = items.map((item, idx) => `
-    <div class="ticket-option-card" id="tCard_${idx}" onclick="selectTransportOption(${idx}, '${mode}', '${escapeAttr(item.title)}', ${item.fare}, '${escapeAttr(item.departure)}', '${escapeAttr(item.arrival)}', '${escapeAttr(item.duration)}', '${escapeAttr(item.details)}')">
-      <div class="d-flex align-items-center gap-3">
-        <span class="fs-2">${icon}</span>
-        <div>
-          <div class="fw-bold text-navy">${escapeHtml(item.title)}</div>
-          <div class="extra-small text-muted">${escapeHtml(item.details)} • Duration: <strong>${escapeHtml(item.duration)}</strong></div>
-          <div class="small fw-semibold text-turquoise mt-1">${escapeHtml(item.departure)} ➔ ${escapeHtml(item.arrival)}</div>
-        </div>
-      </div>
-
-      <div class="d-flex align-items-center gap-3 ms-auto">
-        <div class="text-end">
-          <div class="fs-4 fw-extrabold text-navy">₹${Number(item.fare).toLocaleString('en-IN')}</div>
-          <div class="extra-small text-muted">/ person (1 seat)</div>
-        </div>
-        <button type="button" class="btn btn-sm btn-gradient-select-stay text-white fw-bold rounded-pill px-3 py-2">
-          Select ➔
-        </button>
-      </div>
+  const sourceBanner = dataSource ? `
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 px-1">
+      <span class="extra-small fw-semibold text-muted">
+        <i class="bi bi-signpost-2-fill text-turquoise me-1"></i>
+        Route distance: <strong>${distKm || '—'} km</strong> • ${items.length} option${items.length > 1 ? 's' : ''}
+      </span>
+      <span class="badge rounded-pill bg-light text-secondary border extra-small">
+        Source: ${escapeHtml(dataSource)}
+      </span>
     </div>
-  `).join('');
+  ` : '';
+
+  container.innerHTML = sourceBanner + items.map((item, idx) => {
+    const classPills = item.classes.length ? `
+      <div class="d-flex flex-wrap gap-1 mt-2" onclick="event.stopPropagation()">
+        ${item.classes.map((cls, cIdx) => `
+          <button type="button" class="class-pill-btn ${cIdx === 0 ? 'active' : ''}"
+                  onclick="selectCardClass(${idx}, ${Math.round(cls.fare || item.fare)}, '${escapeAttr(cls.code || cls.name)}', this, '${mode}', '${escapeAttr(item.title)}', '${escapeAttr(item.departure)}', '${escapeAttr(item.arrival)}', '${escapeAttr(item.duration)}', '${escapeAttr(item.details)}')">
+            ${escapeHtml(cls.code || cls.name)} · ₹${Number(cls.fare || item.fare).toLocaleString('en-IN')}
+          </button>
+        `).join('')}
+      </div>
+    ` : '';
+
+    return `
+      <div class="ticket-option-card" id="tCard_${idx}" data-fare="${item.fare}" onclick="selectTransportOption(${idx}, '${mode}', '${escapeAttr(item.title)}', Number(this.dataset.fare), '${escapeAttr(item.departure)}', '${escapeAttr(item.arrival)}', '${escapeAttr(item.duration)}', '${escapeAttr(item.details)}')">
+        <div class="d-flex align-items-center gap-3">
+          <span class="fs-2">${icon}</span>
+          <div>
+            <div class="fw-bold text-navy">${escapeHtml(item.title)}</div>
+            <div class="extra-small text-muted">${escapeHtml(item.details)} • Duration: <strong>${escapeHtml(item.duration)}</strong></div>
+            <div class="small fw-semibold text-turquoise mt-1">${escapeHtml(item.departure)} ➔ ${escapeHtml(item.arrival)}</div>
+            ${classPills}
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-3 ms-auto">
+          <div class="text-end">
+            <div class="fs-4 fw-extrabold text-navy" id="tCardFare_${idx}">₹${Number(item.fare).toLocaleString('en-IN')}</div>
+            <div class="extra-small text-muted">/ person (1 seat)</div>
+          </div>
+          <button type="button" class="btn btn-sm btn-gradient-select-stay text-white fw-bold rounded-pill px-3 py-2">
+            Select ➔
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectCardClass(idx, fare, clsLabel, btnEl, mode, title, dep, arr, dur, details) {
+  const card = document.getElementById(`tCard_${idx}`);
+  if (card) {
+    card.dataset.fare = fare;
+    card.querySelectorAll('.class-pill-btn').forEach(b => b.classList.remove('active'));
+  }
+  if (btnEl) btnEl.classList.add('active');
+  const fareEl = document.getElementById(`tCardFare_${idx}`);
+  if (fareEl) fareEl.textContent = `₹${Number(fare).toLocaleString('en-IN')}`;
+  selectTransportOption(idx, mode, `${title} [${clsLabel}]`, fare, dep, arr, dur, details);
 }
 
 function selectTransportOption(idx, mode, title, fare, dep, arr, dur, details) {
