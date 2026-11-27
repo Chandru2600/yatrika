@@ -497,11 +497,19 @@ def _build_weather_card(trip: dict, weather: dict, styles: dict):
     badge_style = styles["badge_emerald"] if is_live else styles["badge_ocean"]
 
     cur = weather.get("current") if isinstance(weather.get("current"), dict) else {}
+    fc_list = weather.get("forecast") if isinstance(weather.get("forecast"), list) else []
     temp = cur.get("temperature", 24)
     feels = cur.get("feels_like", 25)
     desc = cur.get("description", "Pleasant").title()
     humidity = cur.get("humidity", 58)
     wind = cur.get("wind_speed", 3.2)
+
+    range_str = ""
+    if fc_list:
+        mins = [float(d["temp_min"]) for d in fc_list if d.get("temp_min") is not None]
+        maxs = [float(d["temp_max"]) for d in fc_list if d.get("temp_max") is not None]
+        if mins and maxs:
+            range_str = f" · Day/Night: <b>{min(mins):.0f}°C – {max(maxs):.0f}°C</b>"
 
     top_row = Table([
         [
@@ -520,7 +528,7 @@ def _build_weather_card(trip: dict, weather: dict, styles: dict):
 
     metrics_table = Table([
         [
-            Paragraph(f"<b>{temp}°C</b> <font size=7 color='#64748B'>(Feels {feels}°C)</font><br/><font color='#0284C7' size=7.2><b>{desc}</b></font>", styles["body"]),
+            Paragraph(f"<b>{temp}°C</b> <font size=7 color='#64748B'>(Feels {feels}°C{range_str})</font><br/><font color='#0284C7' size=7.2><b>{desc}</b></font>", styles["body"]),
             Paragraph(f"Humidity: <b>{humidity}%</b><br/>Wind Speed: <b>{wind} m/s</b>", ParagraphStyle("WMtr", parent=styles["small"], alignment=TA_RIGHT))
         ]
     ], colWidths=[245, 245], style=[

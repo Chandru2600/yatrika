@@ -257,18 +257,35 @@ class MultiAgentCooperativePipeline:
             budget_analysis["remaining_pocket_balance_inr"] = max(0, round(denom - float(budget_analysis["committed_total_inr"]), 2))
             budget_analysis["is_feasible"] = not bool(tl_b.get("is_over_target", False))
             budget_analysis["budget_status"] = "🟢 Within Target" if budget_analysis["is_feasible"] else "🟡 Over Target"
+            denom = float(budget_analysis["committed_total_inr"] or 1.0)
             if isinstance(budget_analysis.get("breakdown"), dict):
-                for bk_key, amt_key in [
-                    ("accommodation", "stay_cost_inr"),
-                    ("transit", "transit_cost_inr"),
-                    ("food", "food_cost_inr"),
-                    ("sightseeing", "sightseeing_cost_inr"),
-                    ("emergency", "emergency_buffer_inr"),
-                ]:
-                    if bk_key in budget_analysis["breakdown"]:
-                        amt = float(budget_analysis[amt_key])
-                        budget_analysis["breakdown"][bk_key]["amount"] = amt
-                        budget_analysis["breakdown"][bk_key]["percentage"] = round((amt / denom) * 100, 1)
+                budget_analysis["breakdown"] = {
+                    "accommodation": {
+                        "amount": float(budget_analysis["stay_cost_inr"]),
+                        "percentage": round((float(budget_analysis["stay_cost_inr"]) / denom) * 100, 1),
+                        "details": f"Base camp stay ({max(1, days - 1)} nights)",
+                    },
+                    "transportation": {
+                        "amount": float(budget_analysis["transit_cost_inr"]),
+                        "percentage": round((float(budget_analysis["transit_cost_inr"]) / denom) * 100, 1),
+                        "details": f"Round-trip {transport} transit ({travelers} pax)",
+                    },
+                    "food_and_dining": {
+                        "amount": float(budget_analysis["food_cost_inr"]),
+                        "percentage": round((float(budget_analysis["food_cost_inr"]) / denom) * 100, 1),
+                        "details": f"Estimated meals ({days} days × {travelers} pax)",
+                    },
+                    "sightseeing_and_activities": {
+                        "amount": float(budget_analysis["sightseeing_cost_inr"]),
+                        "percentage": round((float(budget_analysis["sightseeing_cost_inr"]) / denom) * 100, 1),
+                        "details": "Attraction entry fees",
+                    },
+                    "emergency_and_buffer": {
+                        "amount": float(budget_analysis["emergency_buffer_inr"]),
+                        "percentage": round((float(budget_analysis["emergency_buffer_inr"]) / denom) * 100, 1),
+                        "details": "Local incidentals & contingency",
+                    },
+                }
 
         # ── Complete Itinerary Dictionary (matches view_trip.html bindings)
         unified_itinerary = {

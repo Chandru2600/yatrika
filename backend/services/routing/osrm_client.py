@@ -70,9 +70,9 @@ class OSRMClient:
         else:
             try:
                 cfg = get_config()
-                self.base_url = getattr(cfg, "OSRM_BASE_URL", "https://router.project-osrm.org").rstrip("/")
+                self.base_url = getattr(cfg, "OSRM_BASE_URL", "http://router.project-osrm.org").rstrip("/")
             except Exception:
-                self.base_url = "https://router.project-osrm.org"
+                self.base_url = "http://router.project-osrm.org"
         self.timeout = timeout
 
     @staticmethod

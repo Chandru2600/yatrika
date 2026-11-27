@@ -195,28 +195,12 @@ def repair_plan_constraints(agent_plan: Dict[str, Any], violations: List[Dict[st
     days_list = itinerary.get("days", [])
     selected_attractions = itinerary.get("selected_attractions", [])
 
-    # 1. Budget auto-healing
+    # 1. Budget transparency (preserve real calculate_trip_total breakdown; never overwrite with 35%/25% template)
     budget_violations = [v for v in violations if v["type"] == "budget"]
     if budget_violations:
         b_data = agent_plan.setdefault("budget", {})
-        b_data["total_budget"] = user_budget
-        b_data["master_total_budget"] = user_budget
-        b_data["daily_average"] = round(user_budget / max(1, days))
-        b_data["per_person_total"] = round(user_budget / max(1, travelers))
-        b_data["budget_status"] = "comfortable" if user_budget >= days * 2500 else "tight"
-
-        # Rebalance breakdown percentages
-        alloc = {
-            "accommodation": round(user_budget * 0.35),
-            "transportation": round(user_budget * 0.25),
-            "food": round(user_budget * 0.20),
-            "activities_tickets": round(user_budget * 0.12),
-            "emergency_fund": round(user_budget * 0.08)
-        }
-        breakdown = b_data.setdefault("breakdown", {})
-        for cat, amt in alloc.items():
-            if cat in breakdown:
-                breakdown[cat]["amount"] = amt
+        b_data["budget_status"] = "🟡 Over Target"
+        b_data["budget_warning"] = budget_violations[0].get("message", "Estimated trip cost exceeds target budget.")
 
     # 2. POI Closed Days & Excessive Radius auto-healing
     hours_violations = [v for v in violations if v["code"] == "POI_CLOSED_ON_DAY"]

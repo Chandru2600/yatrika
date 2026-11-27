@@ -129,15 +129,71 @@ def get_current_weather(city: str) -> dict:
         return get_mock_current_weather(city)
  
  
+def _fetch_open_meteo_forecast(city: str, days: int = 7) -> dict | None:
+    """Zero-key real daily min/max forecast via Open-Meteo for any Indian city."""
+    try:
+        from backend.agents_models.coord_resolver import resolve_destination_coords
+        lat, lon = resolve_destination_coords(city)
+        resp = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": lat,
+                "longitude": lon,
+                "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode",
+                "timezone": "Asia/Kolkata",
+                "forecast_days": max(1, min(14, int(days))),
+            },
+            timeout=3,
+        )
+        if resp.status_code != 200:
+            return None
+        daily = resp.json().get("daily") or {}
+        dates = daily.get("time") or []
+        tmax = daily.get("temperature_2m_max") or []
+        tmin = daily.get("temperature_2m_min") or []
+        rprob = daily.get("precipitation_probability_max") or []
+        wcodes = daily.get("weathercode") or []
+        if not dates:
+            return None
+
+        def _wmo_desc(code):
+            if code in (0, 1):
+                return "Clear Sky", "01d"
+            if code in (2, 3):
+                return "Partly Cloudy", "02d"
+            if code in (45, 48):
+                return "Mist", "50d"
+            if code and code >= 51:
+                return "Light Rain", "10d"
+            return "Mostly Sunny", "01d"
+
+        fc = []
+        for i, dt in enumerate(dates[:days]):
+            desc, icon = _wmo_desc(wcodes[i] if i < len(wcodes) else 0)
+            fc.append({
+                "date": dt,
+                "temp_min": round(float(tmin[i]), 1) if i < len(tmin) and tmin[i] is not None else 18.0,
+                "temp_max": round(float(tmax[i]), 1) if i < len(tmax) and tmax[i] is not None else 28.0,
+                "description": desc,
+                "icon": icon,
+                "humidity": 55,
+                "rain_prob": int(rprob[i]) if i < len(rprob) and rprob[i] is not None else 0,
+            })
+        return {"city": city, "forecast": fc, "error": None, "source": "open-meteo"}
+    except Exception:
+        return None
+
+
 def get_forecast(city: str, days: int = 7) -> dict:
     """
     Fetch a 5-day forecast and aggregate it into daily summaries.
-    Falls back to mock forecast if API key is invalid/missing.
+    Uses OpenWeatherMap when configured, otherwise real Open-Meteo daily min/max, then mock fallback.
     """
     cfg = get_config()
     key = cfg.WEATHER_API_KEY
     if not key or key.strip() == "" or "your_openweathermap_api" in key.lower():
-        return get_mock_forecast(city, days)
+        om = _fetch_open_meteo_forecast(city, days)
+        return om if om else get_mock_forecast(city, days)
 
     try:
         url = f"{cfg.WEATHER_BASE_URL}/forecast"
