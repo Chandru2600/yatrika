@@ -662,7 +662,7 @@ def build_connecting_train_alternative(src_station_code: str, dst_station_code: 
     return connecting_alternatives
 
 
-def fetch_railway_ai_fares(source: str, dest: str, dist_km: float, travelers: int = 1, train_class: str = "3A") -> dict:
+def fetch_railway_ai_fares(source: str, dest: str, dist_km: float, travelers: int = 1, train_class: str = "3A", travel_date: str = "") -> dict:
     """
     Fetch authentic train schedules and IRCTC fares.
     Returns verified real Indian Railways trains. If no direct train exists on the corridor,
@@ -687,10 +687,11 @@ def fetch_railway_ai_fares(source: str, dest: str, dist_km: float, travelers: in
             }
             from datetime import date, timedelta
             url = os.getenv("RAILWAY_AI_URL", "https://irctc1.p.rapidapi.com/api/v3/trainBetweenStations")
+            j_date = travel_date.strip() if (travel_date and len(travel_date.strip()) == 10) else (date.today() + timedelta(days=2)).isoformat()
             params = {
                 "fromStationCode": src_code,
                 "toStationCode": dst_code,
-                "dateOfJourney": (date.today() + timedelta(days=2)).isoformat(),
+                "dateOfJourney": j_date,
             }
             resp = requests.get(url, headers=headers, params=params, timeout=5)
             if resp.status_code == 200:

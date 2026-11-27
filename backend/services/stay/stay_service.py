@@ -107,7 +107,7 @@ def _query_geoapify_nearby_stays(dest_lat: float, dest_lon: float, destination: 
         resp = requests.get(
             "https://api.geoapify.com/v2/places",
             params={
-                "categories": "accommodation.hotel,accommodation.guest_house,accommodation.hostel",
+                "categories": "accommodation.hotel,accommodation.guest_house",
                 "filter": f"circle:{dest_lon},{dest_lat},12000",
                 "limit": 10,
                 "apiKey": api_key,
@@ -117,11 +117,14 @@ def _query_geoapify_nearby_stays(dest_lat: float, dest_lon: float, destination: 
         if not resp.ok:
             return []
         stays = []
+        _PG_NOISE = ("boys hostel", "men's hostel", "mens hostel", "ladies hostel", "girls hostel", "paying guest")
         for idx, feat in enumerate(resp.json().get("features") or []):
             props = feat.get("properties") or {}
             name = (props.get("name") or "").strip()
             lat, lon = props.get("lat"), props.get("lon")
             if not name or len(name) < 3 or lat is None or lon is None:
+                continue
+            if any(pg in name.lower() for pg in _PG_NOISE):
                 continue
             cats = " ".join(props.get("categories") or [])
             t_type = "Resort" if "resort" in cats else ("Guest House" if "guest_house" in cats else "Hotel")

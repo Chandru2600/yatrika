@@ -189,3 +189,28 @@ def test_trek_duration_tiers_by_round_trip_km():
     assert [s for d in tl1["days"] for s in d["sights"]][0]["dur_mins"] == 300
     assert [s for d in tl2["days"] for s in d["sights"]][0]["dur_mins"] == 360
     assert [s for d in tl3["days"] for s in d["sights"]][0]["dur_mins"] == 450
+
+
+def test_closed_days_asi_combo_checkin_buffer_and_budget_warning():
+    from backend.services.itinerary.timeline_builder import build_timeline
+    tl = build_timeline({
+        "source": "Bengaluru",
+        "destination": "Agra",
+        "start_date": "2026-11-27",  # Friday
+        "num_days": 2,
+        "num_travelers": 2,
+        "budget": 10000,
+        "transport": "flight",
+        "stay": {"name": "Maya Hotel", "price_per_night": 2000, "lat": 27.16, "lon": 78.04},
+        "transit": {"mode": "flight", "title": "IndiGo", "fare_per_person": 4500, "departure": "06:00", "duration_mins": 160, "distance_km": 1700},
+        "selected_attractions": [
+            {"id": "a1", "name": "Taj Mahal", "dur": 120, "fee": 50, "lat": 27.1751, "lon": 78.0421},
+            {"id": "h1", "name": "Vijaya Vittala Temple", "dur": 90, "fee": 40, "lat": 27.18, "lon": 78.02},
+            {"id": "h2", "name": "Lotus Mahal Pavilion", "dur": 60, "fee": 200, "lat": 27.18, "lon": 78.03},
+        ],
+    })
+    assert not any(s["name"] == "Taj Mahal" for s in tl["days"][0]["sights"])
+    assert any(s["name"] == "Taj Mahal" for s in tl["days"][1]["sights"])
+    assert tl["budget"]["entry_per_person"] == 90  # 50 (Taj) + 40 (ASI combo once)
+    assert any("Airport Check-in" in ev["title"] for ev in tl["days"][-1]["events"])
+    assert any("budget" in w.lower() for w in tl["warnings"])

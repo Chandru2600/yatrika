@@ -146,7 +146,18 @@ def calculate_trip_total(trip: dict) -> dict:
     transit_group = transit_pp * travelers
 
     sights = trip.get("selected_attractions") or []
-    entry_pp = sum(int(float(s.get("fee") or 0)) for s in sights)
+    entry_pp = 0
+    _hampi_combo_charged = False
+    _HAMPI_ASI_COMBO = ("vittala", "vijaya vittala", "lotus mahal", "elephant stables", "horse stables")
+    for s in sights:
+        s_low = (s.get("name") or "").lower()
+        fee = int(float(s.get("fee") or 0))
+        if any(k in s_low for k in _HAMPI_ASI_COMBO):
+            if not _hampi_combo_charged:
+                entry_pp += 40
+                _hampi_combo_charged = True
+        else:
+            entry_pp += fee
     entry_group = entry_pp * travelers
 
     food_pp = 600 * num_days
@@ -302,6 +313,7 @@ def build_timeline(trip: dict) -> dict:
             "fee": int(float(a.get("fee") or 0)),
             "dist_from_hotel": float(a.get("dist") or 12.0),
             "opening": a.get("opening"),
+            "closed_days": str(a.get("closed_days") or ("Friday" if any(k in s_low for k in ("taj mahal", "sarnath")) else "")).lower(),
             "close_mins": _parse_closing_mins(a.get("opening"), 18 * 60 + 30),
         })
 
@@ -443,7 +455,22 @@ def build_timeline(trip: dict) -> dict:
         lunch_added = False
         visited_sights: list[dict] = []
 
+        day_weekday = ""
+        if day_dates[d_idx]:
+            try:
+                day_weekday = datetime.strptime(day_dates[d_idx], "%Y-%m-%d").strftime("%A").lower()
+            except Exception:
+                day_weekday = ""
+
         for s in day_sights:
+            if day_weekday and s.get("closed_days") and day_weekday in s["closed_days"]:
+                if d_idx + 1 < num_days:
+                    per_day[d_idx + 1].append(s)
+                    warnings.append(f"{s['name']} is closed on {day_weekday.title()} — moved to Day {d_idx + 2}.")
+                else:
+                    warnings.append(f"{s['name']} is closed on {day_weekday.title()} — skipped from Day {day_num}.")
+                continue
+
             # Direct hotel distance for Stage 3 sum
             h_km, _ = _osrm_leg(hotel_coords, s["coords"], s["dist_from_hotel"])
             hotel_dist_sum_km += h_km
@@ -618,8 +645,24 @@ def build_timeline(trip: dict) -> dict:
             })
             cursor += 15
 
-            ret_dep = max(cursor, 20 * 60)
-            _fill_gap_if_needed(events, cursor, ret_dep, hotel_name)
+            buffer_mins = 90 if transit_mode == "flight" else 30
+            ret_dep = max(cursor + buffer_mins, 20 * 60)
+            _fill_gap_if_needed(events, cursor, ret_dep - buffer_mins, hotel_name)
+            events.append({
+                "start_time": _fmt_time(ret_dep - buffer_mins),
+                "end_time": _fmt_time(ret_dep),
+                "duration_mins": buffer_mins,
+                "duration_label": _fmt_duration(buffer_mins),
+                "distance_km": 0.0,
+                "distance_label": "",
+                "mode": transit_mode,
+                "type": "travel",
+                "icon": "🛂" if transit_mode == "flight" else "🎫",
+                "from_place": hotel_name,
+                "to_place": hotel_name,
+                "title": f"{'Airport Check-in & Security Buffer' if transit_mode == 'flight' else 'Station / Boarding Buffer'}",
+                "subtitle": f"Arrive {_fmt_duration(buffer_mins)} before {transit_mode} departure",
+            })
             ret_arr = ret_dep + transit_dur_mins
             next_day = ret_arr >= 24 * 60
             if next_day:
@@ -661,6 +704,11 @@ def build_timeline(trip: dict) -> dict:
         })
 
     totals = calculate_trip_total(trip)
+    if totals["budget_target"] > 0 and totals["transit_group"] >= 0.75 * totals["budget_target"]:
+        pct_t = round((totals["transit_group"] / totals["budget_target"]) * 100)
+        warnings.append(
+            f"Transit alone (₹{totals['transit_group']:,}) uses {pct_t}% of your ₹{totals['budget_target']:,} budget — consider Train/Bus or increasing your budget."
+        )
 
     return {
         "source": source,
