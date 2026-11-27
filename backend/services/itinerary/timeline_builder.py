@@ -248,13 +248,17 @@ def build_timeline(trip: dict) -> dict:
     # Normalize selected sights
     raw_sights = trip.get("selected_attractions") or []
     sights = []
+    _TREK_KEYWORDS = ("trek", "peak", "tadiandamol", "tadiyandmol", "kudremukh", "mullayanagiri", "triund", "kedarkantha")
     for a in raw_sights:
         lat = float(a["lat"]) if a.get("lat") is not None else None
         lon = float(a["lon"]) if a.get("lon") is not None else None
         dur_m = _parse_duration_mins(a.get("dur") or a.get("duration_mins") or 120, 120)
+        s_name = a.get("name", "Sight")
+        if any(tk in s_name.lower() for tk in _TREK_KEYWORDS):
+            dur_m = max(dur_m, 360)  # Treks/peaks require >= 6h, never 1h viewpoint
         sights.append({
             "id": a.get("id", ""),
-            "name": a.get("name", "Sight"),
+            "name": s_name,
             "cat": a.get("cat") or a.get("category") or "Sightseeing",
             "icon": a.get("icon") or "📍",
             "lat": lat,
@@ -411,6 +415,9 @@ def build_timeline(trip: dict) -> dict:
             hotel_dist_sum_km += h_km
 
             leg_km, leg_mins = _osrm_leg(prev_coords, s["coords"], s["dist_from_hotel"])
+            is_hill_dest = any(k in destination.lower() for k in ("coorg", "madikeri", "shimla", "manali", "munnar", "ooty", "darjeeling", "gangtok", "wayanad", "chikmagalur"))
+            if is_hill_dest and leg_km > 0:
+                leg_mins = max(leg_mins, int(round((leg_km / 32.0) * 60)))
             dist_lbl = "hotel → sight" if prev_place == hotel_name else "sight → sight"
 
             # Insert lunch if crossing midday before travel/visit
@@ -433,11 +440,14 @@ def build_timeline(trip: dict) -> dict:
                 cursor += 45
                 lunch_added = True
 
-            # Check if sight + return fits before closing/dark (18:30 max) & 12h day limit
+            # Check if sight + return fits before closing/dark (18:30 max), 12h day limit, and 115 km/day ghat drive cap
             ret_km_est, ret_mins_est = _osrm_leg(s["coords"], hotel_coords, s["dist_from_hotel"])
+            if is_hill_dest and ret_km_est > 0:
+                ret_mins_est = max(ret_mins_est, int(round((ret_km_est / 32.0) * 60)))
             projected_end = cursor + leg_mins + s["dur_mins"]
             max_cutoff = min(s["close_mins"], 18 * 60 + 30)
-            if projected_end > max_cutoff or (projected_end + ret_mins_est - (arrival_mins if day_num == 1 else 480)) > 12 * 60:
+            exceeds_drive_cap = is_hill_dest and (day_drive_km + leg_km + ret_km_est) > 115.0 and len(visited_sights) >= 1
+            if exceeds_drive_cap or projected_end > max_cutoff or (projected_end + ret_mins_est - (arrival_mins if day_num == 1 else 480)) > 12 * 60:
                 # Try moving to a later day if available
                 if d_idx + 1 < num_days:
                     per_day[d_idx + 1].append(s)

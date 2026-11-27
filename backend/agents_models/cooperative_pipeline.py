@@ -75,6 +75,16 @@ class MultiAgentCooperativePipeline:
 
         fare_inr = int(float(transit_info.get("estimated_fare_inr") or 0))
         one_way_pp = int(float(transit_info.get("fare_per_person_one_way") or 0))
+        round_trip_pp = int(float(transit_info.get("per_person_fare_inr") or (one_way_pp * 2)))
+        # Include last-mile airport/rail road transfer in door-to-door duration when destination has no direct hub
+        if not transit_info.get("has_direct_hub", True):
+            from backend.services.transit.location_resolver import resolve_location_hubs
+            dst_hub = resolve_location_hubs(dest)
+            if transport.lower() == "flight":
+                dur_mins += int(round(float(dst_hub.get("airport_transfer_hours", 0)) * 60))
+            elif transport.lower() == "train":
+                dur_mins += int(round(float(dst_hub.get("rail_transfer_hours", 0)) * 60))
+            dur_hours = round(dur_mins / 60.0, 1)
         op_title = transit_info.get("mode_title") or f"{transport.title()}"
         transit_info.update({
             "origin": source.title(),
@@ -235,7 +245,7 @@ class MultiAgentCooperativePipeline:
             "transit": {
                 "mode": transport,
                 "title": op_title,
-                "fare_per_person": one_way_pp,
+                "fare_per_person": round_trip_pp,
                 "departure": transit_info.get("departure_time", "06:00"),
                 "duration_mins": dur_mins,
                 "distance_km": round(approx_distance, 1),

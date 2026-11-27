@@ -437,7 +437,11 @@ def _build_bento_grid(trip: dict, itinerary: dict, budget: dict, hotels: dict, s
     per_person = round(budget_sum / trav)
 
     attractions = itinerary.get("selected_attractions") or []
-    sights_count = len(attractions) if attractions else int(trip.get("num_days", 1) or 1) * 3
+    tl_days_cnt = (itinerary.get("timeline") or {}).get("days") if isinstance(itinerary.get("timeline"), dict) else None
+    if tl_days_cnt:
+        sights_count = sum(len(d.get("sights", [])) for d in tl_days_cnt)
+    else:
+        sights_count = len(attractions) if attractions else int(trip.get("num_days", 1) or 1) * 3
     transit_fare_pp = transit_info.get("per_person_fare_inr") or transit_info.get("fare_per_person") or round(float(transit_fare or 0) / max(1, trav))
     stay_rating = base_stay.get("rating", base_stay.get("star_rating", 4.0)) if isinstance(base_stay, dict) else 4.0
 

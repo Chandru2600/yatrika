@@ -199,7 +199,7 @@ def is_generic_or_placeholder_name(name: str) -> bool:
         return True
     if len(s) > 55 or re.search(r'(?i)\b(?:to the (?:east|west|north|south) of|for climbers)\b', s):
         return True
-    if any(bad in s.lower() for bad in ("cave of nightmares", "in my dream", "locomotive works", "free view point", "cliff jumping point", "temple elephant bathing", "sunset viewpoint with")):
+    if any(bad in s.lower() for bad in ("cave of nightmares", "in my dream", "locomotive works", "free view point", "cliff jumping point", "temple elephant bathing", "sunset viewpoint with", "toy train", "vintage cars", "ridge point")):
         return True
     # 5. Bare generic category words without a specific name
     if s.lower() in BARE_GENERIC_NAMES:
@@ -282,7 +282,8 @@ def search_attractions_api():
         "bekal", "muzhappilangad", "arakkal", "parassinikkadavu", "chembirika",
         "dutch fort", "karivellur", "thirunelli", "chunchanakatte", "kannur",
         "kasaragod", "wayanad", "thalassery", "payyannur", "mysore", "mysuru",
-        "ooty", "bangalore", "bengaluru", "hassan", "belur", "chikmagalur"
+        "ooty", "bangalore", "bengaluru", "hassan", "belur", "chikmagalur",
+        "kukke", "subramanya"
     )
     MYSURU_OUTSIDE_KEYWORDS = (
         "bangalore", "bengaluru", "coorg", "kodagu", "madikeri", "ooty",
