@@ -329,7 +329,7 @@ def _build_intra_city_options(
             "train": {
                 "mode": "train",
                 "available": True,
-                "mode_title": "Metro & Suburban Rail",
+                "mode_title": "City Metro Rapid Transit",
                 "api_source": data_source,
                 "schedules": rail_schedules,
                 "min_fare_per_seat": min(s["fare_per_seat"] for s in rail_schedules),
@@ -422,9 +422,7 @@ def get_stay_transport_options(
 
     intercity = calculate_intercity_transit(source, destination, "train", travelers)
     options = intercity.get("all_options", {})
-    # Keep OSRM distance if intercity fell back to 280 default
     eff_dist = dist_km if intercity.get("distance_km") == 280.0 and dist_km != 280.0 else intercity.get("distance_km", dist_km)
-    enriched = _enrich_intercity_with_granite(source, destination, eff_dist, options)
 
     return {
         "source": source,
@@ -432,6 +430,8 @@ def get_stay_transport_options(
         "distance_km": eff_dist,
         "duration_mins": route_meta["duration_mins"],
         "is_local": False,
-        "data_source": f"{route_meta['geo_source']} + IRCTC/RTC Tariffs" + (" + IBM Granite LLM" if enriched else ""),
+        "data_source": f"{route_meta['geo_source']} + Launchpad Transit Engine",
         "all_options": options,
+        "chosen_mode": intercity.get("chosen_mode", "train"),
+        "chosen_details": intercity.get("chosen_details", {}),
     }
